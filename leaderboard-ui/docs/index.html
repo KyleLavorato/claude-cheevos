@@ -11,7 +11,7 @@
         <header>
             <h1>🏆 Claude Code Achievement Leaderboard</h1>
             <p class="subtitle">Achievement points earned via Claude Code hooks</p>
-            <div id="refresh-info" class="refresh-info">Auto-refreshes every 30 seconds</div>
+            <div id="refresh-info" class="refresh-info">Auto-refreshes every 15 minutes</div>
         </header>
 
         <div id="status" class="status hidden"></div>
@@ -31,12 +31,25 @@
             </div>
         </div>
 
-        <div id="loading" class="loading">Loading leaderboard...</div>
+        <div class="controls">
+            <div class="search-wrapper">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="search username..."
+                    autocomplete="off"
+                    spellcheck="false"
+                />
+            </div>
+            <button id="refresh-btn" class="refresh-btn">↻ refresh</button>
+        </div>
+
+        <div id="loading" class="loading">Loading leaderboard</div>
 
         <table id="leaderboard" class="leaderboard hidden">
             <thead>
                 <tr>
-                    <th class="rank-col">Rank</th>
+                    <th class="rank-col">#</th>
                     <th>Username</th>
                     <th class="num-col">Score</th>
                     <th class="num-col">Achievements</th>
@@ -47,13 +60,13 @@
             </tbody>
         </table>
 
+        <div id="no-results" class="hidden"></div>
+
         <div id="empty" class="empty hidden">No scores on the board yet. Start unlocking achievements!</div>
 
         <footer>
-            <p>
-                Powered by <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code</a>
-                achievement hooks &mdash; scores sync automatically on unlock.
-            </p>
+            Powered by <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code</a>
+            achievement hooks &mdash; scores sync automatically on unlock.
         </footer>
     </div>
 

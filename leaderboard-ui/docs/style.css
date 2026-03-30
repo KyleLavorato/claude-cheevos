@@ -1,70 +1,183 @@
-/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+/* ─── Fonts ──────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap');
+
+/* ─── Reset & Base ───────────────────────────────────────────────────────────── */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+:root {
+    --bg:          #0d0d0f;
+    --bg-card:     #141416;
+    --bg-hover:    #1c1c21;
+    --bg-header:   #101013;
+    --border:      #252530;
+    --border-dim:  #1a1a22;
+    --accent:      #d4784a;
+    --accent-glow: rgba(212, 120, 74, 0.15);
+    --accent-dim:  rgba(212, 120, 74, 0.08);
+    --text:        #e8e6e1;
+    --text-muted:  #6b7280;
+    --text-dim:    #3a3a46;
+    --gold:        #f5c518;
+    --silver:      #c0c0c0;
+    --bronze:      #cd7f32;
+    --red:         #f87171;
+    --font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+}
+
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #0f0f13;
-    color: #e0e0e0;
+    font-family: var(--font-mono);
+    background: var(--bg);
+    color: var(--text);
     min-height: 100vh;
     line-height: 1.5;
 }
 
-/* ─── Layout ────────────────────────────────────────────────────────────────── */
+/* ─── Layout ─────────────────────────────────────────────────────────────────── */
 .container {
-    max-width: 900px;
+    max-width: 920px;
     margin: 0 auto;
-    padding: 2rem 1rem 4rem;
+    padding: 2.5rem 1rem 4rem;
 }
 
-/* ─── Header ────────────────────────────────────────────────────────────────── */
+/* ─── Header ─────────────────────────────────────────────────────────────────── */
 header {
     text-align: center;
     margin-bottom: 2rem;
 }
 
+header::before {
+    content: '// claude-code · achievement leaderboard';
+    display: block;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    margin-bottom: 0.75rem;
+}
+
 header h1 {
-    font-size: 2rem;
+    font-size: 1.85rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: #f5c518;
+    color: var(--accent);
     margin-bottom: 0.4rem;
+    text-shadow: 0 0 40px rgba(212, 120, 74, 0.25);
 }
 
 .subtitle {
-    color: #888;
-    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
     margin-bottom: 0.5rem;
 }
 
 .refresh-info {
-    font-size: 0.78rem;
-    color: #555;
+    font-size: 0.73rem;
+    color: var(--text-dim);
 }
 
-/* ─── Status / Error ────────────────────────────────────────────────────────── */
-.status {
-    padding: 0.75rem 1.25rem;
-    border-radius: 6px;
+/* ─── Controls Row ───────────────────────────────────────────────────────────── */
+.controls {
+    display: flex;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-    text-align: center;
+    align-items: center;
+}
+
+.search-wrapper {
+    flex: 1;
+    position: relative;
+}
+
+.search-wrapper::before {
+    content: '>';
+    position: absolute;
+    left: 0.9rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 0.85rem;
+    pointer-events: none;
+}
+
+#search-input {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem 0.6rem 2.1rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+#search-input::placeholder {
+    color: var(--text-dim);
+}
+
+#search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.refresh-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 1.1rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0.02em;
+}
+
+.refresh-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+}
+
+.refresh-btn:active {
+    opacity: 0.75;
+}
+
+.refresh-btn.spinning {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ─── Status / Error ─────────────────────────────────────────────────────────── */
+.status {
+    padding: 0.65rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+    font-size: 0.82rem;
+    text-align: left;
 }
 
 .status.error {
-    background: #2a1515;
-    border: 1px solid #6b2020;
-    color: #e06060;
+    background: rgba(248, 113, 113, 0.06);
+    border: 1px solid rgba(248, 113, 113, 0.25);
+    color: var(--red);
+}
+
+.status.error::before {
+    content: '// error: ';
+    color: var(--text-dim);
 }
 
 .hidden {
     display: none !important;
 }
 
-/* ─── Stats Row ─────────────────────────────────────────────────────────────── */
+/* ─── Stats Row ──────────────────────────────────────────────────────────────── */
 .stats {
     display: flex;
     gap: 1rem;
@@ -73,71 +186,111 @@ header h1 {
 }
 
 .stat-card {
-    background: #1a1a22;
-    border: 1px solid #2a2a38;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1rem 2rem;
     text-align: center;
     flex: 1;
     max-width: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
 }
 
 .stat-value {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #f5c518;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
 }
 
 .stat-label {
-    font-size: 0.78rem;
-    color: #666;
+    font-size: 0.7rem;
+    color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-top: 0.2rem;
+    letter-spacing: 0.08em;
+    margin-top: 0.25rem;
 }
 
-/* ─── Loading ───────────────────────────────────────────────────────────────── */
+/* ─── Loading ────────────────────────────────────────────────────────────────── */
 .loading {
     text-align: center;
-    color: #555;
+    color: var(--text-dim);
     padding: 3rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
 }
 
-/* ─── Empty ─────────────────────────────────────────────────────────────────── */
+.loading::before {
+    content: '$ ';
+    color: var(--accent);
+}
+
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 1em;
+    background: var(--accent);
+    margin-left: 4px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+/* ─── Empty ──────────────────────────────────────────────────────────────────── */
 .empty {
     text-align: center;
-    color: #555;
+    color: var(--text-muted);
     padding: 3rem;
-    font-size: 1rem;
-    background: #1a1a22;
-    border: 1px solid #2a2a38;
+    font-size: 0.88rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 8px;
 }
 
-/* ─── Table ─────────────────────────────────────────────────────────────────── */
+.empty::before {
+    content: '// ';
+    color: var(--text-dim);
+}
+
+/* ─── Table ──────────────────────────────────────────────────────────────────── */
 .leaderboard {
     width: 100%;
     border-collapse: collapse;
-    background: #1a1a22;
-    border: 1px solid #2a2a38;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
 }
 
 .leaderboard thead {
-    background: #12121a;
+    background: var(--bg-header);
 }
 
 .leaderboard th {
-    padding: 0.85rem 1rem;
+    padding: 0.8rem 1rem;
     text-align: left;
-    font-size: 0.78rem;
+    font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #777;
-    border-bottom: 1px solid #2a2a38;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
 }
 
 .rank-col { width: 60px; text-align: center; }
@@ -145,9 +298,9 @@ header h1 {
 .date-col { width: 140px; text-align: right; }
 
 .leaderboard td {
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid #20202c;
-    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid var(--border-dim);
+    font-size: 0.88rem;
     vertical-align: middle;
 }
 
@@ -156,69 +309,107 @@ header h1 {
 }
 
 .leaderboard tbody tr:hover {
-    background: #20202c;
+    background: var(--bg-hover);
 }
 
-/* ─── Rank cells ────────────────────────────────────────────────────────────── */
+.leaderboard tbody tr.search-match {
+    background: var(--accent-dim);
+}
+
+.leaderboard tbody tr.search-match:hover {
+    background: var(--accent-glow);
+}
+
+/* ─── Rank cells ─────────────────────────────────────────────────────────────── */
 .rank-cell {
     text-align: center;
     font-weight: 700;
     font-size: 1rem;
-    color: #555;
+    color: var(--text-dim);
 }
 
-/* Gold / Silver / Bronze top-3 */
-tr.rank-1 .rank-cell { color: #f5c518; font-size: 1.2rem; }
-tr.rank-2 .rank-cell { color: #c0c0c0; font-size: 1.1rem; }
-tr.rank-3 .rank-cell { color: #cd7f32; font-size: 1.05rem; }
+tr.rank-1 .rank-cell { color: var(--gold);   font-size: 1.2rem;  }
+tr.rank-2 .rank-cell { color: var(--silver); font-size: 1.1rem;  }
+tr.rank-3 .rank-cell { color: var(--bronze); font-size: 1.05rem; }
 
-tr.rank-1 td { background: rgba(245, 197, 24, 0.05); }
-tr.rank-2 td { background: rgba(192, 192, 192, 0.04); }
-tr.rank-3 td { background: rgba(205, 127, 50, 0.04); }
+tr.rank-1 td { background: rgba(245, 197, 24,  0.04); }
+tr.rank-2 td { background: rgba(192, 192, 192, 0.03); }
+tr.rank-3 td { background: rgba(205, 127, 50,  0.03); }
 
-/* ─── Score / Unlock cells ──────────────────────────────────────────────────── */
+tr.rank-1:hover td,
+tr.rank-2:hover td,
+tr.rank-3:hover td { background: var(--bg-hover); }
+
+/* ─── Username cell ──────────────────────────────────────────────────────────── */
+.username-cell::before {
+    content: '@';
+    color: var(--text-dim);
+    font-size: 0.78em;
+    margin-right: 1px;
+}
+
+/* ─── Score / Unlock cells ───────────────────────────────────────────────────── */
 .score-cell {
     text-align: right;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
-    color: #f5c518;
+    color: var(--accent);
 }
 
 .unlock-cell {
     text-align: right;
     font-variant-numeric: tabular-nums;
-    color: #aaa;
+    color: var(--text-muted);
 }
 
-/* ─── Date cell ─────────────────────────────────────────────────────────────── */
+/* ─── Date cell ──────────────────────────────────────────────────────────────── */
 .date-cell {
     text-align: right;
-    color: #555;
-    font-size: 0.85rem;
-}
-
-/* ─── Footer ────────────────────────────────────────────────────────────────── */
-footer {
-    text-align: center;
-    margin-top: 3rem;
-    color: #444;
+    color: var(--text-dim);
     font-size: 0.82rem;
 }
 
+/* ─── No-results message ─────────────────────────────────────────────────────── */
+#no-results {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 1rem;
+    font-size: 0.88rem;
+}
+
+#no-results::before {
+    content: '// no match: ';
+    color: var(--text-dim);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────────────────────── */
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    color: var(--text-dim);
+    font-size: 0.78rem;
+}
+
+footer::before { content: '/* '; color: var(--border); }
+footer::after  { content: ' */'; color: var(--border); }
+
 footer a {
-    color: #666;
+    color: var(--text-muted);
     text-decoration: none;
 }
 
 footer a:hover {
-    color: #aaa;
+    color: var(--accent);
 }
 
 /* ─── Responsive ─────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-    header h1 { font-size: 1.5rem; }
+    header::before { display: none; }
+    header h1 { font-size: 1.4rem; }
     .stats { flex-direction: column; align-items: center; }
     .stat-card { max-width: 100%; width: 100%; }
     .date-col { display: none; }
     .leaderboard td.date-cell { display: none; }
+    .controls { flex-direction: column; }
+    .refresh-btn { width: 100%; text-align: center; }
 }

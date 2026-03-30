@@ -4,16 +4,22 @@
 const API_URL   = 'https://YOUR_API_GATEWAY_URL/prod';
 const API_TOKEN = 'YOUR_TOKEN_HERE';
 
-// Auto-refresh interval in milliseconds
-const REFRESH_INTERVAL = 30_000;
+// Auto-refresh interval in milliseconds (15 minutes)
+const REFRESH_INTERVAL = 900_000;
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let allUsers = [];
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
-const loading   = document.getElementById('loading');
-const table     = document.getElementById('leaderboard');
-const tbody     = document.getElementById('leaderboard-body');
-const statsEl   = document.getElementById('stats');
-const statusEl  = document.getElementById('status');
-const emptyEl   = document.getElementById('empty');
+const loading    = document.getElementById('loading');
+const table      = document.getElementById('leaderboard');
+const tbody      = document.getElementById('leaderboard-body');
+const statsEl    = document.getElementById('stats');
+const statusEl   = document.getElementById('status');
+const emptyEl    = document.getElementById('empty');
+const searchEl   = document.getElementById('search-input');
+const refreshBtn = document.getElementById('refresh-btn');
+const noResults  = document.getElementById('no-results');
 
 const statPlayers  = document.getElementById('stat-players');
 const statTopScore = document.getElementById('stat-top-score');
@@ -51,11 +57,53 @@ function clearError() {
     statusEl.className = 'status hidden';
 }
 
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 // ─── Render ───────────────────────────────────────────────────────────────────
 
-function render(users) {
-    tbody.innerHTML = '';
+function renderStats(users) {
+    const totalUnlocks = users.reduce((sum, u) => sum + (Number(u.unlock_count) || 0), 0);
+    statPlayers.textContent  = users.length;
+    statTopScore.textContent = users.length > 0 ? formatScore(users[0].score) : '—';
+    statUnlocks.textContent  = totalUnlocks.toLocaleString();
+}
 
+function renderRows(users, query) {
+    tbody.innerHTML = '';
+    noResults.classList.add('hidden');
+
+    if (users.length === 0) {
+        if (query) {
+            noResults.textContent = query;
+            noResults.classList.remove('hidden');
+        }
+        return;
+    }
+
+    users.forEach((user, idx) => {
+        const rank = idx + 1;
+        const tr   = document.createElement('tr');
+        tr.className = `rank-${rank}`;
+        if (query) tr.classList.add('search-match');
+
+        tr.innerHTML = `
+            <td class="rank-cell">${rankEmoji(rank)}</td>
+            <td class="username-cell">${escapeHtml(user.username || '(unknown)')}</td>
+            <td class="score-cell">${formatScore(user.score)}</td>
+            <td class="unlock-cell">${Number(user.unlock_count) || 0}</td>
+            <td class="date-cell">${formatDate(user.last_updated)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function render(users) {
     if (!users || users.length === 0) {
         table.classList.add('hidden');
         statsEl.classList.add('hidden');
@@ -67,35 +115,32 @@ function render(users) {
     table.classList.remove('hidden');
     statsEl.classList.remove('hidden');
 
-    // Stats row
-    const totalUnlocks = users.reduce((sum, u) => sum + (Number(u.unlock_count) || 0), 0);
-    statPlayers.textContent  = users.length;
-    statTopScore.textContent = formatScore(users[0].score);
-    statUnlocks.textContent  = totalUnlocks.toLocaleString();
-
-    users.forEach((user, idx) => {
-        const rank = idx + 1;
-        const tr   = document.createElement('tr');
-        tr.className = `rank-${rank}`;
-
-        tr.innerHTML = `
-            <td class="rank-cell">${rankEmoji(rank)}</td>
-            <td>${escapeHtml(user.username || '(unknown)')}</td>
-            <td class="score-cell">${formatScore(user.score)}</td>
-            <td class="unlock-cell">${Number(user.unlock_count) || 0}</td>
-            <td class="date-cell">${formatDate(user.last_updated)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
+    renderStats(users);
+    renderRows(users, '');
 }
 
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+// ─── Search ───────────────────────────────────────────────────────────────────
+
+function applySearch() {
+    const query = searchEl.value.trim().toLowerCase();
+    if (!allUsers.length) return;
+
+    emptyEl.classList.add('hidden');
+    table.classList.remove('hidden');
+
+    if (!query) {
+        renderRows(allUsers, '');
+        return;
+    }
+
+    const filtered = allUsers.filter(u =>
+        (u.username || '').toLowerCase().includes(query)
+    );
+
+    renderRows(filtered, query);
 }
+
+searchEl.addEventListener('input', applySearch);
 
 // ─── Fetch ────────────────────────────────────────────────────────────────────
 
@@ -113,11 +158,27 @@ async function fetchLeaderboard() {
         const data = await resp.json();
         clearError();
         loading.classList.add('hidden');
-        render(data.users || []);
+        allUsers = data.users || [];
+        render(allUsers);
+
+        // Re-apply any active search after data refresh
+        if (searchEl.value.trim()) applySearch();
     } catch (err) {
         showError(`Failed to load leaderboard: ${err.message}`);
     }
 }
+
+// ─── Manual refresh ───────────────────────────────────────────────────────────
+
+refreshBtn.addEventListener('click', () => {
+    if (refreshBtn.classList.contains('spinning')) return;
+    refreshBtn.classList.add('spinning');
+    refreshBtn.textContent = '↻ refreshing...';
+    fetchLeaderboard().finally(() => {
+        refreshBtn.classList.remove('spinning');
+        refreshBtn.textContent = '↻ refresh';
+    });
+});
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
