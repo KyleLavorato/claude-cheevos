@@ -302,13 +302,18 @@ ACHIEVEMENT_LINES=$(jq -r '
     | join("\n")
 ' "$TEMP_NOTIFS")
 
-# Display ASCII badge for single achievement unlocks (if in terminal)
-if [[ "$COUNT" == "1" && -t 1 ]]; then
+# Display ASCII badge for single achievement unlocks
+# Note: Badge is included in the systemMessage output, not printed directly to terminal
+if [[ "$COUNT" == "1" ]]; then
     _badge_tier=$(jq -r '.[0].skill_level' "$TEMP_NOTIFS")
     _badge_script="$(dirname "$SCRIPTS_DIR")/data/badge-templates/ascii-badges.sh"
     if [[ -f "$_badge_script" ]]; then
-        bash "$_badge_script" "$_badge_tier" 2>/dev/null || true
+        BADGE_OUTPUT=$(bash "$_badge_script" "$_badge_tier" 2>/dev/null || echo "")
+    else
+        BADGE_OUTPUT=""
     fi
+else
+    BADGE_OUTPUT=""
 fi
 
 # Fire system notification (macOS and WSL/Windows)
@@ -363,8 +368,18 @@ fi
 
 # Emit systemMessage JSON - Claude Code displays this to the user inline
 # jq handles proper JSON escaping of newlines and special characters
-jq -n \
-    --arg header "$HEADER" \
-    --arg lines "$ACHIEVEMENT_LINES" \
-    --arg score "$TOTAL_SCORE" \
-    '{"systemMessage": ($header + "\n" + $lines + "\nTotal Score: " + $score + " pts")}'
+if [[ -n "$BADGE_OUTPUT" ]]; then
+    # Include badge before the achievement details
+    jq -n \
+        --arg badge "$BADGE_OUTPUT" \
+        --arg header "$HEADER" \
+        --arg lines "$ACHIEVEMENT_LINES" \
+        --arg score "$TOTAL_SCORE" \
+        '{"systemMessage": ($badge + "\n\n" + $header + "\n" + $lines + "\nTotal Score: " + $score + " pts")}'
+else
+    jq -n \
+        --arg header "$HEADER" \
+        --arg lines "$ACHIEVEMENT_LINES" \
+        --arg score "$TOTAL_SCORE" \
+        '{"systemMessage": ($header + "\n" + $lines + "\nTotal Score: " + $score + " pts")}'
+fi
