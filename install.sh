@@ -96,10 +96,33 @@ cp "$REPO_DIR/scripts/check-updates.sh"      "$ACHIEVEMENTS_DIR/scripts/check-up
 cp "$REPO_DIR/scripts/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 cp "$REPO_DIR/scripts/leaderboard-sync.sh"   "$ACHIEVEMENTS_DIR/scripts/leaderboard-sync.sh"
 cp "$REPO_DIR/scripts/auto-update.sh"        "$ACHIEVEMENTS_DIR/scripts/auto-update.sh"
+cp "$REPO_DIR/scripts/play-sound.sh"         "$ACHIEVEMENTS_DIR/scripts/play-sound.sh"
+cp "$REPO_DIR/scripts/sound-config.sh"       "$ACHIEVEMENTS_DIR/scripts/sound-config.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions (always update from repo to pick up new achievements)
 cp "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
+
+# Sound packs directory structure
+mkdir -p "$ACHIEVEMENTS_DIR/data/sounds/default"
+if [[ -f "$REPO_DIR/data/sounds/README.md" ]]; then
+    cp "$REPO_DIR/data/sounds/README.md" "$ACHIEVEMENTS_DIR/data/sounds/"
+fi
+
+# Initialize sound config if not exists
+if [[ ! -f "$ACHIEVEMENTS_DIR/sound-config.json" ]]; then
+    cat > "$ACHIEVEMENTS_DIR/sound-config.json" << 'SOUND_EOF'
+{
+  "enabled": true,
+  "pack": "default",
+  "volume": 75,
+  "quiet_hours": {
+    "start": "",
+    "end": ""
+  }
+}
+SOUND_EOF
+fi
 
 echo "✓ Scripts installed to $ACHIEVEMENTS_DIR"
 

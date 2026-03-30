@@ -302,17 +302,26 @@ ACHIEVEMENT_LINES=$(jq -r '
     | join("\n")
 ' "$TEMP_NOTIFS")
 
+# Play achievement sound (async, before notification)
+if [[ "$COUNT" == "1" ]]; then
+    _sound_tier=$(jq -r '.[0].skill_level' "$TEMP_NOTIFS")
+    _sound_name=$(jq -r '.[0].name' "$TEMP_NOTIFS")
+    bash "$SCRIPTS_DIR/play-sound.sh" "$_sound_tier" "$_sound_name" 2>/dev/null &
+fi
+
 # Fire system notification (macOS and WSL/Windows)
 if [[ "$(uname -s)" == "Darwin" ]]; then
-    # macOS: native notification via osascript
+    # macOS: native notification via osascript (without sound - play-sound.sh handles it)
     if [[ "$COUNT" == "1" ]]; then
         _notif_name=$(jq -r '.[0].name' "$TEMP_NOTIFS")
         _notif_pts=$(jq -r '.[0].points | tostring' "$TEMP_NOTIFS")
         _notif_desc=$(jq -r '.[0].description' "$TEMP_NOTIFS")
-        osascript -e "display notification \"${_notif_desc} (+${_notif_pts} pts)\" with title \"🏆 Achievement Unlocked!\" subtitle \"${_notif_name}\" sound name \"Glass\""
+        osascript -e "display notification \"${_notif_desc} (+${_notif_pts} pts)\" with title \"🏆 Achievement Unlocked!\" subtitle \"${_notif_name}\""
     else
         _notif_names=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
-        osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\" sound name \"Glass\""
+        # Multiple unlocks: play master tier sound (fanfare)
+        bash "$SCRIPTS_DIR/play-sound.sh" "master" "Multiple Achievements" 2>/dev/null &
+        osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\""
     fi
 elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
     # WSL: Windows toast notification via PowerShell
