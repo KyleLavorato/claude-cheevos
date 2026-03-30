@@ -377,7 +377,7 @@ The binary (`go/cmd/cheevos/`) replaces all stateful bash scripts. All subcomman
 | `cheevos award <counter>` | award.sh — manually increment a counter (Easter eggs) |
 | `cheevos drain` | Notification drain block in stop.sh — emit systemMessage + OS notify |
 | `cheevos update-defs [--force]` | check-updates.sh — fetch new defs from GitHub (once/day) |
-| `cheevos leaderboard-sync` | leaderboard-sync.sh — PUT score to leaderboard API |
+| `cheevos leaderboard-sync` | PUT score to leaderboard API (spawned by `drain` on unlock) |
 | `cheevos verify` | verify-install.sh — health check the installation |
 | `cheevos print-hmac-secret` | (install-time) extract HMAC secret for lib.sh injection |
 
@@ -423,7 +423,7 @@ building — the Makefile does this automatically. The copy is gitignored.
 | `web_searches` | WebSearch, WebFetch |
 | `glob_grep_calls` | Glob, Grep |
 | `skill_calls` | Skill |
-| `github_mcp_calls` | mcp__github__*, mcp__dsgithub__* |
+| `github_mcp_calls` | mcp__github__* |
 | `jira_mcp_calls` | mcp__confluence__* |
 | `total_mcp_calls` | all mcp__* tools |
 | `commands_created` | Write to .claude/commands/*.md |
