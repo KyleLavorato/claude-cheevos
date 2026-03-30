@@ -446,9 +446,120 @@ Other fun ones to try:
 
 ---
 
+## Auto-Update
+
+The achievement system automatically checks for new achievement definitions from the public GitHub repository and keeps your local definitions up to date.
+
+### How it works
+
+- **Automatic checks**: On every Claude Code session start, the system checks for updates in the background (with a 1-hour cooldown to avoid excessive network calls)
+- **Silent by default**: Updates happen silently unless new achievements are found
+- **Notifications**: When new achievements are added, you'll see a message listing them with their point values
+- **Updates existing**: If achievement definitions change (e.g., point values, descriptions), your local copy will be updated to match the remote version
+- **Preserves progress**: Your `state.json` (score, unlocked achievements, counters) is never touched by auto-update
+
+### Manual update
+
+You can manually trigger an update check at any time:
+
+```bash
+# Check for updates and show results
+bash ~/.claude/achievements/scripts/auto-update.sh
+
+# Force check (skip 1-hour cooldown)
+bash ~/.claude/achievements/scripts/auto-update.sh --force
+
+# Silent mode (suppress output, only errors shown)
+bash ~/.claude/achievements/scripts/auto-update.sh --quiet
+```
+
+### Disabling auto-update
+
+To disable automatic updates, remove or comment out the auto-update line in `~/.claude/achievements/hooks/session-start.sh`:
+
+```bash
+# Auto-update achievement definitions from GitHub (runs asynchronously in background)
+# bash "$SCRIPTS_DIR/auto-update.sh" --quiet &
+```
+
+---
+
+## Building from Source
+
+Pre-built binaries are included in `dist/` so most users never need to compile. Build
+from source when you want to add achievements, change the HMAC key, or contribute changes.
+
+### Prerequisites
+
+- Go 1.21+
+- `jq` (for the hooks — already required at runtime)
+- `make`
+
+### Targets
+
+| Command | What it does |
+|---|---|
+| `make prod` | Production build for the current platform. Auto-generates `CHEEVOS_HMAC_KEY` if not set. |
+| `make dist` | Cross-compile for all 5 platforms into `dist/`. Auto-generates `CHEEVOS_HMAC_KEY` if not set. |
+| `make dist-zip` | Runs `dist`, then bundles everything into `dist/cheevos-release.zip`. |
+| `make test` | Runs the Go test suite. |
+| `make clean` | Removes the local binary, the embedded defs copy, and `dist/`. |
+
+### Production build (single platform)
+
+```bash
+make prod
+# → ./cheevos  (HMAC-signed, ready to distribute)
+```
+
+Or supply your own key to keep it consistent across builds:
+```bash
+CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen) make prod
+```
+
+### Cross-compile all platforms
+
+```bash
+make dist
+# → dist/cheevos-darwin-amd64
+#   dist/cheevos-darwin-arm64
+#   dist/cheevos-linux-amd64
+#   dist/cheevos-linux-arm64
+#   dist/cheevos-windows-amd64.exe
+```
+
+### Create a distributable zip
+
+```bash
+make dist-zip
+# → dist/cheevos-release.zip
+```
+
+The zip contains all five binaries plus `install.sh`, `uninstall.sh`, `hooks/`,
+`scripts/`, and `data/definitions.json`. Recipients unzip and run `install.sh`:
+
+```bash
+unzip cheevos-release.zip
+bash install.sh
+# Optional: bash install.sh --token <token> --api-url <url>
+```
+
+To uninstall, use the included script:
+```bash
+bash uninstall.sh
+```
+
+> **HMAC key note:** Each `make dist` / `make prod` call generates a *new* random key
+> and bakes it into the binary. The hooks read the secret back from the binary at install
+> time via `cheevos print-hmac-secret` — so any binary built from the same `make`
+> invocation is self-consistent. You do **not** need to keep the key yourself; just let
+> the keygen tool produce a fresh one each time you build.
+
+---
+
 ## Adding Custom Achievements
 
-Edit `data/definitions.json` in the repo, rebuild the binary (`cd go && make dist`), and re-run `install.sh`. Your progress is preserved.
+Edit `data/definitions.json` in the repo, rebuild the binary (`make dist`), and re-run `install.sh`. Your progress is preserved.
 
 ```json
 {

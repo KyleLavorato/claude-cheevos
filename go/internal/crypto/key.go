@@ -14,7 +14,7 @@ import (
 // appearing as a plain string in the binary when inspected with `strings`.
 //
 // This value must match the nonce used by tools/keygen/main.go.
-const obfuscationNonce = "R3VpbGRlbnN0ZXJuU3RyYXNzZW5iYWhuR3VpbGQ="
+const obfuscationNonce = "R3VpbGRlbnN0ZXJuU3RyYXNzZW5iYWhuR3VpbGQxMTE="
 
 // LoadKeyFromFile reads the 32-byte AES encryption key from the .key file
 // in the given achievements directory. The key file contains a base64-encoded
