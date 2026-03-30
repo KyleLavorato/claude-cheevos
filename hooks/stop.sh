@@ -266,7 +266,6 @@ fi
 # ─── Drain notification queue and emit systemMessage ─────────────────────────
 # cheevos drain writes the systemMessage JSON to stdout and fires OS notifications.
 # It exits 0 with no output if the queue was empty.
+# When achievements are drained, drain also spawns leaderboard-sync in the
+# background automatically — so the sync only happens on actual unlocks.
 "$CHEEVOS" drain
-
-# ─── Leaderboard sync (fire-and-forget, only if leaderboard is enabled) ──────
-"$CHEEVOS" leaderboard-sync &

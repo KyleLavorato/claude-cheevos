@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "os"
+    "os/exec"
     "path/filepath"
     "strings"
     "time"
@@ -98,5 +99,15 @@ func Drain(achievementsDir string) error {
     out := map[string]string{"systemMessage": msg}
     data, _ := json.Marshal(out)
     fmt.Println(string(data))
+
+    // Achievements were unlocked — sync score to leaderboard in the background.
+    // We spawn a new process rather than calling LeaderboardSync() directly so
+    // that Drain returns immediately (no HTTP latency in the stop hook).
+    if exe, err := os.Executable(); err == nil {
+        cmd := exec.Command(exe, "leaderboard-sync")
+        cmd.Env = append(os.Environ(), "ACHIEVEMENTS_DIR="+achievementsDir)
+        _ = cmd.Start() // fire-and-forget; ignore error
+    }
+
     return nil
 }

@@ -183,7 +183,7 @@ case "$TOOL" in
     ExitPlanMode)
         COUNTER_UPDATES='{"plan_mode_sessions": 1}'
         ;;
-    mcp__github__*|mcp__dsgithub__*)
+    mcp__github__*)
         COUNTER_UPDATES='{"github_mcp_calls": 1, "total_mcp_calls": 1}'
         if [[ "$TOOL" == *"create_pull_request"* ]]; then
             COUNTER_UPDATES=$(printf '%s' "$COUNTER_UPDATES" | jq '. + {"pull_requests": 1}')
