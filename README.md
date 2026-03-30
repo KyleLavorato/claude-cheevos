@@ -217,13 +217,13 @@ needed to add or remove achievements from it.
 | # | Achievement | Tip |
 |---|---|---|
 | 1 | Hello, World | Just run `claude` |
-| 2 | Back Again | Run `claude --resume` or type `/resume` |
-| 3 | Curious Mind | Ask a question needing current info |
-| 4 | Code Sculptor | Ask Claude to create some files |
-| 5 | Laying Down the Law | Ask Claude to create a `CLAUDE.md` |
-| 6 | Bookworm | Ask Claude to read and explain source files |
-| 7 | Shell Jockey | Ask Claude to run shell commands |
-| 8 | Think First | Ask Claude to plan before implementing |
+| 2 | Code Sculptor | Ask Claude to create some files |
+| 3 | Bookworm | Ask Claude to read and explain source files |
+| 4 | Shell Jockey | Ask Claude to run shell commands |
+| 5 | Curious Mind | Ask a question needing current info |
+| 6 | Think First | Ask Claude to plan before implementing |
+| 7 | Back Again | Run `claude --resume` or type `/resume` |
+| 8 | Laying Down the Law | Ask Claude to create a `CLAUDE.md` |
 
 Completing all 8 tutorial achievements unlocks the **Graduate** rank badge.
 
@@ -353,6 +353,10 @@ Some achievements can't be tracked automatically and require deliberately asking
 bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks
 ```
 
+> **Note:** `award.sh` validates the counter name against `definitions.json` — only counters
+> that are referenced by at least one achievement are accepted. Arbitrary or misspelled counter
+> names are rejected with an error.
+
 Other fun ones to try:
 - **Execute Order 66** — ask Claude to `kill -9` a process
 - **I am groot, wait I mean root** — ask Claude to run a `sudo` command
@@ -463,7 +467,8 @@ tail -f ~/.claude/achievements/logs/leaderboard.log
 ## TODO
 
 - [ ] Add tamper protection to `state.json` (e.g. HMAC signature) to prevent manually editing counters to cheat achievements
-- [ ] Protect the `award.sh` script so it can only be called for the specific Easter egg achievement (`easter_egg_unlocks`) — prevent Claude from using it to unlock arbitrary achievements on request
+- [x] ~~Protect the `award.sh` script so it can only be called for valid achievement counters~~ — `award.sh` now validates the counter name against `definitions.json`
+- [ ] Auto-update — have Claude check the public GitHub repo for new `definitions.json` entries and pull them down automatically when new achievements are published
 - [ ] Dev mode — a flag or env var that bypasses tamper protection and lets you manually unlock any achievement by ID for testing purposes (e.g. `CHEEVOS_DEV=1 bash award.sh <achievement_id>`)
 - [ ] Encrypt `state.json` so achievement progress cannot be read or modified in plaintext — prevents cheating without requiring a full HMAC signature scheme
 - [ ] In dev mode, permanently flag `state.json` so the account is ineligible for leaderboard submission — dev-mode unlocks should never count toward any public rankings

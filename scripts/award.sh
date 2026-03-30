@@ -18,7 +18,14 @@ if [[ -z "$COUNTER" ]]; then
     exit 1
 fi
 
+# Validate that the counter is used by at least one achievement in definitions.json
 init_state
+VALID=$(jq --arg c "$COUNTER" '[.achievements[] | select(.condition.counter == $c)] | length' "$DEFS_FILE")
+if [[ "$VALID" == "0" ]]; then
+    printf "Error: '%s' is not a valid achievement counter.\n" "$COUNTER" >&2
+    printf "Valid counters can be found in definitions.json.\n" >&2
+    exit 1
+fi
 
 export _STATE_FILE="$STATE_FILE"
 export _DEFS_FILE="$DEFS_FILE"

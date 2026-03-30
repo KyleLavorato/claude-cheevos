@@ -198,7 +198,8 @@ positives from templates and boilerplate files that happen to contain TODO comme
 
 **`easter_egg_unlocks`** is incremented manually by running:
 `bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks` — Claude should do this
-when the user asks to unlock "Hey Unlock This."
+when the user asks to unlock "Hey Unlock This." `award.sh` validates the counter name
+against `definitions.json` and rejects any counter not used by an achievement.
 
 **Bash 3.2 note:** Use `grep -qi` for case-insensitive matching, not `${var^^}`.
 Use `if/fi` not `[[ ]] && action` to avoid `set -e` exits on false conditions.
