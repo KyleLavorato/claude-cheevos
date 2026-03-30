@@ -325,8 +325,9 @@ elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/
         _notif_body=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
     fi
     # Write PS script to temp file to avoid shell/PS escaping issues
-    # Single quotes in values are doubled for PS single-quoted strings;
-    # XML special chars are handled by SecurityElement::Escape inside PS.
+    # Escape single quotes by doubling them, escape XML chars
+    _title_esc=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
+    _body_esc=$(printf '%s' "$_notif_body" | sed "s/'/''/g")
     _ps_tmp=$(mktemp /tmp/cheevos-notif.XXXXXX.ps1)
     # Escape single quotes for PS single-quoted strings (double them)
     _ps_title=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
@@ -336,11 +337,11 @@ elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/
     # via sed after writing.
     cat > "$_ps_tmp" << 'PSEOF'
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
-$title = [System.Security.SecurityElement]::Escape('__TITLE__')
-$body  = [System.Security.SecurityElement]::Escape('__BODY__')
-$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
-$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>$title</text><text>$body</text></binding></visual></toast>")
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new($xml))
+\$title = [System.Security.SecurityElement]::Escape('$_title_esc')
+\$body  = [System.Security.SecurityElement]::Escape('$_body_esc')
+\$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
+\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual></toast>")
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
 PSEOF
     # Substitute placeholders with actual values (sed delimiter chosen
     # to avoid clashing with notification text)
