@@ -315,7 +315,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
         osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\" sound name \"Glass\""
     fi
 elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    # WSL: Windows toast notification via PowerShell
+    # WSL: Windows toast notification with sound via PowerShell
     # Build title and body strings
     if [[ "$COUNT" == "1" ]]; then
         _notif_title="🏆 Achievement Unlocked!"
@@ -334,7 +334,8 @@ elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/
 \$title = [System.Security.SecurityElement]::Escape('$_title_esc')
 \$body  = [System.Security.SecurityElement]::Escape('$_body_esc')
 \$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
-\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual></toast>")
+# Add audio element for notification sound (ms-winsoundevent:Notification.Default)
+\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual><audio src='ms-winsoundevent:Notification.Default'/></toast>")
 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
 PSEOF
     _win_ps_tmp=$(wslpath -w "$_ps_tmp")
