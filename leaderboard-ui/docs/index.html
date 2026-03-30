@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Code Achievement Leaderboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏆 Claude Code Achievement Leaderboard</h1>
+            <p class="subtitle">Achievement points earned via Claude Code hooks</p>
+            <div id="refresh-info" class="refresh-info">Auto-refreshes every 30 seconds</div>
+        </header>
+
+        <div id="status" class="status hidden"></div>
+
+        <div id="stats" class="stats hidden">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-players">—</div>
+                <div class="stat-label">Players</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-top-score">—</div>
+                <div class="stat-label">Top Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total-unlocks">—</div>
+                <div class="stat-label">Total Unlocks</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading leaderboard...</div>
+
+        <table id="leaderboard" class="leaderboard hidden">
+            <thead>
+                <tr>
+                    <th class="rank-col">Rank</th>
+                    <th>Username</th>
+                    <th class="num-col">Score</th>
+                    <th class="num-col">Achievements</th>
+                    <th class="date-col">Last Active</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+            </tbody>
+        </table>
+
+        <div id="empty" class="empty hidden">No scores on the board yet. Start unlocking achievements!</div>
+
+        <footer>
+            <p>
+                Powered by <a href="https://github.com/anthropics/claude-code" target="_blank">Claude Code</a>
+                achievement hooks &mdash; scores sync automatically on unlock.
+            </p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

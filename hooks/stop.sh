@@ -355,6 +355,11 @@ fi
 
 rm -f "$TEMP_NOTIFS"
 
+# Sync score to leaderboard (fire-and-forget; only fires when achievements unlocked)
+if [[ -f "$SCRIPTS_DIR/leaderboard-sync.sh" ]]; then
+    bash "$SCRIPTS_DIR/leaderboard-sync.sh" </dev/null >/dev/null 2>&1 &
+fi
+
 # Build header
 if [[ "$COUNT" == "1" ]]; then
     HEADER="🏆 Achievement Unlocked!"

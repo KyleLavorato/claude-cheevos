@@ -1,0 +1,492 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  service-claude-cheevo — Leaderboard API for the Claude Code Achievement System.
+  Provides a REST API backed by DynamoDB, secured by a Secrets Manager token
+  via a Lambda authorizer.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Parameters
+# ─────────────────────────────────────────────────────────────────────────────
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues: [prod, dev, staging]
+    Description: API Gateway stage name.
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Resources
+# ─────────────────────────────────────────────────────────────────────────────
+Resources:
+
+  # ── DynamoDB ────────────────────────────────────────────────────────────────
+  ServiceClaudeCheevoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: service-claude-cheevo-users
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+
+  # ── Secrets Manager ─────────────────────────────────────────────────────────
+  ServiceClaudeCheevoApiSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: service-claude-cheevo/api-token
+      Description: Bearer token for the Claude cheevo leaderboard API.
+      GenerateSecretString:
+        # 48 URL-safe characters — no quotes, slashes, backslashes, or shell-special chars
+        # that could break in HTTP headers or bash variable assignments.
+        ExcludeCharacters: '"@/\`${}[]|<>!;,()^&*#%'
+        PasswordLength: 48
+        ExcludePunctuation: false
+
+  # ── IAM Role ────────────────────────────────────────────────────────────────
+  ServiceClaudeCheevoLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: service-claude-cheevo-lambda-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Scan
+                Resource: !GetAtt ServiceClaudeCheevoTable.Arn
+        - PolicyName: SecretsManagerAccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref ServiceClaudeCheevoApiSecret
+
+  # ── Lambda Authorizer ────────────────────────────────────────────────────────
+  ServiceClaudeCheevoAuthorizerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: service-claude-cheevo-authorizer
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt ServiceClaudeCheevoLambdaRole.Arn
+      Timeout: 10
+      MemorySize: 128
+      Environment:
+        Variables:
+          SECRET_ARN: !Ref ServiceClaudeCheevoApiSecret
+      Code:
+        ZipFile: |
+          import os
+          import boto3
+
+          _client = None
+          _cached_token = None
+
+
+          def _get_token():
+              global _client, _cached_token
+              if _cached_token:
+                  return _cached_token
+              if _client is None:
+                  _client = boto3.client("secretsmanager")
+              resp = _client.get_secret_value(SecretId=os.environ["SECRET_ARN"])
+              _cached_token = resp["SecretString"]
+              return _cached_token
+
+
+          def handler(event, context):
+              raw = event.get("authorizationToken", "")
+              if raw.startswith("Bearer "):
+                  token = raw[7:]
+              else:
+                  token = raw
+
+              expected = _get_token()
+              effect = "Allow" if token == expected else "Deny"
+
+              # Wildcard ARN avoids per-method cache misses while keeping 300s TTL
+              method_arn = event.get("methodArn", "")
+              parts = method_arn.split(":")
+              if len(parts) >= 6:
+                  region = parts[3]
+                  account = parts[4]
+                  api_parts = parts[5].split("/")
+                  api_id = api_parts[0]
+                  stage = api_parts[1] if len(api_parts) > 1 else "*"
+                  wildcard_arn = f"arn:aws:execute-api:{region}:{account}:{api_id}/{stage}/*/*"
+              else:
+                  wildcard_arn = method_arn
+
+              return {
+                  "principalId": "user",
+                  "policyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [{
+                          "Action": "execute-api:Invoke",
+                          "Effect": effect,
+                          "Resource": wildcard_arn,
+                      }],
+                  },
+              }
+
+  # ── Lambda Handler ───────────────────────────────────────────────────────────
+  ServiceClaudeCheevoHandlerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: service-claude-cheevo-api
+      Runtime: python3.12
+      Handler: index.handler
+      Role: !GetAtt ServiceClaudeCheevoLambdaRole.Arn
+      Timeout: 15
+      MemorySize: 256
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ServiceClaudeCheevoTable
+      Code:
+        ZipFile: |
+          import json
+          import os
+          import boto3
+          from boto3.dynamodb.conditions import Attr
+
+          _dynamodb = None
+          _table = None
+
+          CORS_HEADERS = {
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Headers": "Authorization,Content-Type",
+              "Access-Control-Allow-Methods": "GET,PUT,OPTIONS",
+              "Content-Type": "application/json",
+          }
+
+
+          def _get_table():
+              global _dynamodb, _table
+              if _table is None:
+                  _dynamodb = boto3.resource("dynamodb")
+                  _table = _dynamodb.Table(os.environ["TABLE_NAME"])
+              return _table
+
+
+          def respond(status, body):
+              return {
+                  "statusCode": status,
+                  "headers": CORS_HEADERS,
+                  "body": json.dumps(body),
+              }
+
+
+          def handler(event, context):
+              method = event.get("httpMethod", "")
+              path = event.get("path", "")
+              path_params = event.get("pathParameters") or {}
+              user_id = path_params.get("userId")
+
+              # CORS preflight
+              if method == "OPTIONS":
+                  return respond(200, {})
+
+              table = _get_table()
+
+              # GET /users — lightweight scan, sorted by score desc
+              if method == "GET" and path == "/users":
+                  resp = table.scan(
+                      ProjectionExpression="#ui, #u, #s, #uc, #lu",
+                      ExpressionAttributeNames={
+                          "#s":  "score",
+                          "#u":  "username",
+                          "#ui": "user_id",
+                          "#uc": "unlock_count",
+                          "#lu": "last_updated",
+                      },
+                  )
+                  users = sorted(
+                      resp.get("Items", []),
+                      key=lambda x: int(x.get("score", 0)),
+                      reverse=True,
+                  )
+                  # Normalise Decimal → int for JSON serialisation
+                  for u in users:
+                      if "score" in u:
+                          u["score"] = int(u["score"])
+                      if "unlock_count" in u:
+                          u["unlock_count"] = int(u["unlock_count"])
+                  return respond(200, {"users": users})
+
+              # GET /users/{userId}
+              if method == "GET" and user_id:
+                  resp = table.get_item(Key={"user_id": user_id})
+                  item = resp.get("Item")
+                  if not item:
+                      return respond(404, {"error": "User not found"})
+                  if "score" in item:
+                      item["score"] = int(item["score"])
+                  if "unlock_count" in item:
+                      item["unlock_count"] = int(item["unlock_count"])
+                  return respond(200, item)
+
+              # PUT /users/{userId}
+              if method == "PUT" and user_id:
+                  try:
+                      body = json.loads(event.get("body") or "{}")
+                  except json.JSONDecodeError:
+                      return respond(400, {"error": "Invalid JSON body"})
+
+                  required = {"username", "score", "unlock_count", "last_updated"}
+                  missing = required - body.keys()
+                  if missing:
+                      return respond(400, {"error": f"Missing fields: {sorted(missing)}"})
+
+                  table.put_item(Item={
+                      "user_id":      user_id,
+                      "username":     str(body["username"])[:64],
+                      "score":        int(body["score"]),
+                      "unlock_count": int(body["unlock_count"]),
+                      "last_updated": str(body["last_updated"])[:32],
+                  })
+                  return respond(200, {"ok": True})
+
+              # DELETE /users/{userId}
+              if method == "DELETE" and user_id:
+                  table.delete_item(Key={"user_id": user_id})
+                  return respond(200, {"ok": True})
+
+              return respond(404, {"error": "Not found"})
+
+  # ── API Gateway ──────────────────────────────────────────────────────────────
+  ServiceClaudeCheevoApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: service-claude-cheevo-api
+      Description: Leaderboard API for the Claude Code Achievement System.
+      EndpointConfiguration:
+        Types: [REGIONAL]
+
+  ServiceClaudeCheevoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: service-claude-cheevo-authorizer
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      Type: TOKEN
+      AuthorizerUri: !Sub
+        - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnArn}/invocations
+        - FnArn: !GetAtt ServiceClaudeCheevoAuthorizerFunction.Arn
+      IdentitySource: method.request.header.Authorization
+      AuthorizerResultTtlInSeconds: 300
+
+  # /users resource
+  UsersResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ParentId: !GetAtt ServiceClaudeCheevoApi.RootResourceId
+      PathPart: users
+
+  # /users/{userId} resource
+  UserIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ParentId: !Ref UsersResource
+      PathPart: "{userId}"
+
+  # GET /users
+  UsersGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UsersResource
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref ServiceClaudeCheevoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnArn}/invocations
+          - FnArn: !GetAtt ServiceClaudeCheevoHandlerFunction.Arn
+
+  # OPTIONS /users (CORS preflight, no auth)
+  UsersOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UsersResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Authorization,Content-Type'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PUT,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # GET /users/{userId}
+  UserGetMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UserIdResource
+      HttpMethod: GET
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref ServiceClaudeCheevoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnArn}/invocations
+          - FnArn: !GetAtt ServiceClaudeCheevoHandlerFunction.Arn
+
+  # PUT /users/{userId}
+  UserPutMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UserIdResource
+      HttpMethod: PUT
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref ServiceClaudeCheevoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnArn}/invocations
+          - FnArn: !GetAtt ServiceClaudeCheevoHandlerFunction.Arn
+
+  # DELETE /users/{userId}
+  UserDeleteMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UserIdResource
+      HttpMethod: DELETE
+      AuthorizationType: CUSTOM
+      AuthorizerId: !Ref ServiceClaudeCheevoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FnArn}/invocations
+          - FnArn: !GetAtt ServiceClaudeCheevoHandlerFunction.Arn
+
+  # OPTIONS /users/{userId} (CORS preflight, no auth)
+  UserOptionsMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      ResourceId: !Ref UserIdResource
+      HttpMethod: OPTIONS
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+        RequestTemplates:
+          application/json: '{"statusCode": 200}'
+        IntegrationResponses:
+          - StatusCode: "200"
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Authorization,Content-Type'"
+              method.response.header.Access-Control-Allow-Methods: "'GET,PUT,DELETE,OPTIONS'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates:
+              application/json: ""
+      MethodResponses:
+        - StatusCode: "200"
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Methods: true
+            method.response.header.Access-Control-Allow-Origin: true
+
+  # ── Deployment & Stage ───────────────────────────────────────────────────────
+  ServiceClaudeCheevoDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - UsersGetMethod
+      - UsersOptionsMethod
+      - UserGetMethod
+      - UserPutMethod
+      - UserDeleteMethod
+      - UserOptionsMethod
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      # Bump this description whenever methods change to force a new deployment snapshot.
+      # CloudFormation only re-creates the deployment when Properties change (DependsOn alone
+      # is not enough). Current routes: GET /users, GET/PUT/DELETE /users/{userId}, OPTIONS both.
+      Description: "v2 — routes: GET /users, GET PUT DELETE /users/{userId}"
+
+  ServiceClaudeCheevoStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref ServiceClaudeCheevoApi
+      DeploymentId: !Ref ServiceClaudeCheevoDeployment
+      StageName: !Ref Environment
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingBurstLimit: 50
+          ThrottlingRateLimit: 20
+
+  # ── Lambda invoke permissions ────────────────────────────────────────────────
+  AuthorizerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ServiceClaudeCheevoAuthorizerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ServiceClaudeCheevoApi}/authorizers/${ServiceClaudeCheevoAuthorizer}"
+
+  HandlerInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ServiceClaudeCheevoHandlerFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${ServiceClaudeCheevoApi}/${Environment}/*/*"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Outputs
+# ─────────────────────────────────────────────────────────────────────────────
+Outputs:
+  ApiUrl:
+    Description: Full invoke URL including stage (use this as API_URL in leaderboard-ui)
+    Value: !Sub "https://${ServiceClaudeCheevoApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}"
+
+  TableName:
+    Description: DynamoDB table name
+    Value: !Ref ServiceClaudeCheevoTable
+
+  SecretArn:
+    Description: Secrets Manager ARN — use for manual token rotation reference
+    Value: !Ref ServiceClaudeCheevoApiSecret

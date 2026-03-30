@@ -9,6 +9,8 @@ DEFS_FILE="$ACHIEVEMENTS_DIR/definitions.json"
 NOTIFICATIONS_FILE="$ACHIEVEMENTS_DIR/notifications.json"
 LOCK_FILE="$ACHIEVEMENTS_DIR/state.lock"
 SCRIPTS_DIR="$ACHIEVEMENTS_DIR/scripts"
+LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
+LEADERBOARD_LOG_FILE="$ACHIEVEMENTS_DIR/logs/leaderboard.log"
 
 # Initialize state files if they don't exist yet
 init_state() {

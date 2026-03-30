@@ -9,6 +9,17 @@
 
 set -euo pipefail
 
+# ─── Argument parsing ─────────────────────────────────────────────────────────
+ARG_TOKEN=""
+ARG_API_URL=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --token)   ARG_TOKEN="${2:-}";   shift 2 ;;
+        --api-url) ARG_API_URL="${2:-}"; shift 2 ;;
+        *) echo "Usage: bash install.sh [--token TOKEN] [--api-url URL]"; exit 1 ;;
+    esac
+done
+
 VERSION="1.0.0"
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 ACHIEVEMENTS_DIR="$HOME/.claude/achievements"
@@ -82,6 +93,7 @@ cp "$REPO_DIR/scripts/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-ach
 cp "$REPO_DIR/scripts/learning-path.sh"      "$ACHIEVEMENTS_DIR/scripts/learning-path.sh"
 cp "$REPO_DIR/scripts/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
 cp "$REPO_DIR/scripts/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
+cp "$REPO_DIR/scripts/leaderboard-sync.sh"  "$ACHIEVEMENTS_DIR/scripts/leaderboard-sync.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions (always update from repo to pick up new achievements)
@@ -203,6 +215,53 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 printf '%s' "$VERSION" > "$ACHIEVEMENTS_DIR/.version"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 6.5: Leaderboard configuration
+# Three cases:
+#   A) --token and --api-url both provided  → generate UUID, write enabled conf
+#   B) No args, conf already exists         → preserve (upgrade)
+#   C) No args, no conf                     → write disabled conf
+# ─────────────────────────────────────────────────────────────────────────────
+
+LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
+
+if [[ -n "$ARG_TOKEN" && -n "$ARG_API_URL" ]]; then
+    # Case A: generate UUID (bash 3.2 safe)
+    if command -v uuidgen >/dev/null 2>&1; then
+        USER_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+    elif command -v python3 >/dev/null 2>&1; then
+        USER_ID=$(python3 -c "import uuid; print(str(uuid.uuid4()))")
+    elif [[ -f /proc/sys/kernel/random/uuid ]]; then
+        USER_ID=$(cat /proc/sys/kernel/random/uuid)
+    else
+        USER_ID=$(od -x /dev/urandom | head -1 | awk '{print $2$3"-"$4"-"$5"-"$6"-"$7$8$9}')
+    fi
+    USERNAME=$(whoami 2>/dev/null || echo "user")
+    cat > "$LEADERBOARD_CONF" << EOF
+LEADERBOARD_ENABLED=true
+USER_ID=${USER_ID}
+USERNAME=${USERNAME}
+TOKEN=${ARG_TOKEN}
+API_URL=${ARG_API_URL}
+EOF
+    chmod 600 "$LEADERBOARD_CONF"
+    echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID})"
+elif [[ -f "$LEADERBOARD_CONF" ]]; then
+    # Case B: existing conf — preserve on upgrade
+    echo "✓ Leaderboard config preserved (upgrade)"
+else
+    # Case C: no args, no conf — write disabled stub
+    cat > "$LEADERBOARD_CONF" << 'EOF'
+LEADERBOARD_ENABLED=false
+USER_ID=
+USERNAME=
+TOKEN=
+API_URL=
+EOF
+    chmod 600 "$LEADERBOARD_CONF"
+    echo "✓ Leaderboard disabled (re-run with --token and --api-url to enable)"
+fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Done

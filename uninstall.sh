@@ -66,7 +66,34 @@ jq '
 echo "✓ Removed achievement hooks from settings.json"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 3: Optionally delete achievement data
+# Step 3: Remove from leaderboard (if enabled)
+# ─────────────────────────────────────────────────────────────────────────────
+
+LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
+if [[ -f "$LEADERBOARD_CONF" ]]; then
+    LEADERBOARD_ENABLED=$(grep -m1 '^LEADERBOARD_ENABLED=' "$LEADERBOARD_CONF" | cut -d= -f2-)
+    if [[ "$LEADERBOARD_ENABLED" == "true" ]]; then
+        USER_ID=$(grep -m1 '^USER_ID='  "$LEADERBOARD_CONF" | cut -d= -f2-)
+        TOKEN=$(grep -m1   '^TOKEN='    "$LEADERBOARD_CONF" | cut -d= -f2-)
+        API_URL=$(grep -m1 '^API_URL='  "$LEADERBOARD_CONF" | cut -d= -f2-)
+
+        if [[ -n "$USER_ID" && -n "$TOKEN" && -n "$API_URL" ]]; then
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+                --connect-timeout 5 --max-time 10 \
+                -X DELETE \
+                -H "Authorization: Bearer ${TOKEN}" \
+                "${API_URL}/users/${USER_ID}" 2>/dev/null || true)
+            if [[ "$HTTP_CODE" == "200" ]]; then
+                echo "✓ Removed from leaderboard (user: $USER_ID)"
+            else
+                echo "  (Leaderboard removal skipped — HTTP $HTTP_CODE)"
+            fi
+        fi
+    fi
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 4: Optionally delete achievement data
 # ─────────────────────────────────────────────────────────────────────────────
 
 echo ""

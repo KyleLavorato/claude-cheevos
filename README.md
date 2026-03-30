@@ -1,4 +1,6 @@
-# cheevos — Claude Code Achievement System
+# claude-cheevos - Claude Code Achievement System
+
+![](docs/banner.png)
 
 A self-contained achievement system for [Claude Code](https://claude.ai/code) that tracks your
 usage milestones, awards points, and surfaces progress through three UIs and a live status bar.
@@ -20,10 +22,14 @@ usage milestones, awards points, and surfaces progress through three UIs and a l
 git clone https://github.com/KyleLavorato/claude-cheevos.git
 cd claude-cheevos
 bash install.sh
+
+# Optional: enable leaderboard sync (pushes your score on every achievement unlock)
+bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 ```
 
 The installer is **idempotent** — safe to run again to upgrade scripts. Your score and progress
-are never touched on reinstall.
+are never touched on reinstall. If `--token`/`--api-url` are omitted, leaderboard sync is
+disabled and everything else works normally.
 
 Then **restart Claude Code** for hooks to take effect.
 
@@ -37,6 +43,7 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 ├── state.json                # Your score, counters, unlocked list
 ├── notifications.json        # Pending unlock queue ([] when empty)
 ├── state.lock                # Lock file (do not delete)
+├── leaderboard.conf          # Leaderboard config: enabled, UUID, token, API URL (chmod 600)
 ├── .version                  # Installed version
 ├── .original-statusline      # Your previous statusLine command (restored on uninstall)
 ├── hooks/
@@ -44,14 +51,17 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 │   ├── post-tool-use.sh      # Fires after every tool call (async)
 │   ├── pre-compact.sh        # Fires before context compaction
 │   └── stop.sh               # Fires at end of every assistant turn
-└── scripts/
-    ├── lib.sh                 # Shared paths and locking
-    ├── state-update.sh        # Atomic state writer (always called under lock)
-    ├── statusline-wrapper.sh  # Status bar output
-    ├── seed-state.sh          # First-install state seeder
-    ├── show-achievements.sh   # Full achievement list UI
-    ├── learning-path.sh       # Guided tutorial UI
-    └── award.sh               # Manual Easter egg award tool
+├── scripts/
+│   ├── lib.sh                 # Shared paths and locking
+│   ├── state-update.sh        # Atomic state writer (always called under lock)
+│   ├── statusline-wrapper.sh  # Status bar output
+│   ├── seed-state.sh          # First-install state seeder
+│   ├── show-achievements.sh   # Full achievement list UI
+│   ├── learning-path.sh       # Guided tutorial UI
+│   ├── award.sh               # Manual Easter egg award tool
+│   └── leaderboard-sync.sh    # Score push to leaderboard API (fire-and-forget)
+└── logs/
+    └── leaderboard.log        # Append-only sync log (HTTP status per PUT, token never logged)
 ```
 
 ### Uninstallation
@@ -367,6 +377,56 @@ not at the offending line. Always run `bash -n script.sh` after editing.
 running the scripts with `bash` explicitly (not `sh`). All scripts include `#!/usr/bin/env bash`
 shebang lines and are designed to be Bash 3.2 compatible. Running them with `/bin/sh` will fail
 on macOS, as `/bin/sh` may map to a different shell. Always invoke: `bash script.sh`
+
+---
+
+## Leaderboard
+
+An optional live leaderboard lets you compare scores with teammates. It consists of three
+parts deployed separately:
+
+### 1. AWS microservice (`microservice/`)
+
+A self-contained CloudFormation stack: API Gateway → Lambda → DynamoDB, secured by an
+auto-generated Secrets Manager bearer token (no token to invent or store beforehand).
+
+```bash
+cd microservice
+aws cloudformation deploy \
+  --template-file template.yaml \
+  --stack-name service-claude-cheevo \
+  --parameter-overrides Environment=prod \
+  --capabilities CAPABILITY_NAMED_IAM \
+  --region us-east-1
+
+# Retrieve the generated token and API URL
+TOKEN=$(aws secretsmanager get-secret-value \
+  --secret-id service-claude-cheevo/api-token --query SecretString --output text)
+API_URL=$(aws cloudformation describe-stacks --stack-name service-claude-cheevo \
+  --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text)
+```
+
+See `microservice/README.md` for the full API reference.
+
+### 2. GitHub Pages UI (`leaderboard-ui/`)
+
+A generic dark-theme leaderboard (sortable by score, top-3 medal highlights, 30s auto-refresh).
+Copy `leaderboard-ui/docs/` to any GitHub repo, fill in `API_URL` and `API_TOKEN` in `app.js`,
+enable GitHub Pages from `main → /docs`, and it's live.
+
+See `leaderboard-ui/README.md` for step-by-step setup.
+
+### 3. Cheevos sync (`leaderboard-sync.sh`)
+
+Installed automatically with `--token` and `--api-url`. After every achievement unlock,
+`stop.sh` calls `leaderboard-sync.sh` in the background. It does a silent `PUT /users/{uuid}`
+with the current score — the token is never written to logs.
+
+```bash
+# Verify your leaderboard config after install
+cat ~/.claude/achievements/leaderboard.conf
+tail -f ~/.claude/achievements/logs/leaderboard.log
+```
 
 ---
 

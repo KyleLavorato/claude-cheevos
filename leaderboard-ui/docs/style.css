@@ -1,0 +1,224 @@
+/* ─── Reset & Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #0f0f13;
+    color: #e0e0e0;
+    min-height: 100vh;
+    line-height: 1.5;
+}
+
+/* ─── Layout ────────────────────────────────────────────────────────────────── */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem 4rem;
+}
+
+/* ─── Header ────────────────────────────────────────────────────────────────── */
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #f5c518;
+    margin-bottom: 0.4rem;
+}
+
+.subtitle {
+    color: #888;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.refresh-info {
+    font-size: 0.78rem;
+    color: #555;
+}
+
+/* ─── Status / Error ────────────────────────────────────────────────────────── */
+.status {
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.status.error {
+    background: #2a1515;
+    border: 1px solid #6b2020;
+    color: #e06060;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ─── Stats Row ─────────────────────────────────────────────────────────────── */
+.stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    justify-content: center;
+}
+
+.stat-card {
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    border-radius: 8px;
+    padding: 1rem 2rem;
+    text-align: center;
+    flex: 1;
+    max-width: 200px;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #f5c518;
+}
+
+.stat-label {
+    font-size: 0.78rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 0.2rem;
+}
+
+/* ─── Loading ───────────────────────────────────────────────────────────────── */
+.loading {
+    text-align: center;
+    color: #555;
+    padding: 3rem;
+    font-size: 1rem;
+}
+
+/* ─── Empty ─────────────────────────────────────────────────────────────────── */
+.empty {
+    text-align: center;
+    color: #555;
+    padding: 3rem;
+    font-size: 1rem;
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    border-radius: 8px;
+}
+
+/* ─── Table ─────────────────────────────────────────────────────────────────── */
+.leaderboard {
+    width: 100%;
+    border-collapse: collapse;
+    background: #1a1a22;
+    border: 1px solid #2a2a38;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.leaderboard thead {
+    background: #12121a;
+}
+
+.leaderboard th {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #777;
+    border-bottom: 1px solid #2a2a38;
+}
+
+.rank-col { width: 60px; text-align: center; }
+.num-col  { width: 110px; text-align: right; }
+.date-col { width: 140px; text-align: right; }
+
+.leaderboard td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid #20202c;
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+.leaderboard tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.leaderboard tbody tr:hover {
+    background: #20202c;
+}
+
+/* ─── Rank cells ────────────────────────────────────────────────────────────── */
+.rank-cell {
+    text-align: center;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #555;
+}
+
+/* Gold / Silver / Bronze top-3 */
+tr.rank-1 .rank-cell { color: #f5c518; font-size: 1.2rem; }
+tr.rank-2 .rank-cell { color: #c0c0c0; font-size: 1.1rem; }
+tr.rank-3 .rank-cell { color: #cd7f32; font-size: 1.05rem; }
+
+tr.rank-1 td { background: rgba(245, 197, 24, 0.05); }
+tr.rank-2 td { background: rgba(192, 192, 192, 0.04); }
+tr.rank-3 td { background: rgba(205, 127, 50, 0.04); }
+
+/* ─── Score / Unlock cells ──────────────────────────────────────────────────── */
+.score-cell {
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: #f5c518;
+}
+
+.unlock-cell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #aaa;
+}
+
+/* ─── Date cell ─────────────────────────────────────────────────────────────── */
+.date-cell {
+    text-align: right;
+    color: #555;
+    font-size: 0.85rem;
+}
+
+/* ─── Footer ────────────────────────────────────────────────────────────────── */
+footer {
+    text-align: center;
+    margin-top: 3rem;
+    color: #444;
+    font-size: 0.82rem;
+}
+
+footer a {
+    color: #666;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #aaa;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    .stats { flex-direction: column; align-items: center; }
+    .stat-card { max-width: 100%; width: 100%; }
+    .date-col { display: none; }
+    .leaderboard td.date-cell { display: none; }
+}

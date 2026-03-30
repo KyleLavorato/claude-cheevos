@@ -12,7 +12,7 @@ cheevos/
 │   ├── session-start.sh         # SessionStart hook — sessions, streak, time-based, concurrent
 │   ├── post-tool-use.sh         # PostToolUse hook (async) — all tool-use counter tracking
 │   ├── pre-compact.sh           # PreCompact hook — auto-compact and manual compact tracking
-│   └── stop.sh                  # Stop hook — transcript analysis + notification drain
+│   └── stop.sh                  # Stop hook — transcript analysis + notification drain + leaderboard sync trigger
 ├── scripts/
 │   ├── lib.sh                   # Shared library: paths, init_state(), with_lock()
 │   ├── state-update.sh          # Atomic state writer, called under lock by all hooks
@@ -21,7 +21,14 @@ cheevos/
 │   ├── show-achievements.sh     # Achievement list UI with unlock/level filters
 │   ├── learning-path.sh         # Tutorial UI driven by "tutorial": true in definitions
 │   ├── award.sh                 # Manual counter increment for Easter egg achievements
+│   ├── leaderboard-sync.sh      # Fire-and-forget score push to leaderboard API on unlock
 │   └── verify-install.sh        # Installation verification and health check
+├── microservice/
+│   ├── template.yaml            # Self-contained CloudFormation stack (all Lambda inline)
+│   └── README.md                # Deploy, smoke test, API reference
+├── leaderboard-ui/
+│   ├── docs/                    # Generic GitHub Pages UI (index.html, style.css, app.js)
+│   └── README.md                # Setup guide for generic deployment
 ├── install.sh                   # Idempotent installer — copies files, patches settings.json
 ├── uninstall.sh                 # Removes hooks from settings.json, optionally deletes state
 └── README.md
@@ -40,12 +47,17 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 | `.version` | Installed version string — used by install.sh for upgrade detection |
 | `.original-statusline` | Prior `statusLine.command` value saved for uninstall restoration |
 | `hooks/`, `scripts/` | All scripts copied from repo (safe to overwrite on upgrade) |
+| `leaderboard.conf` | Leaderboard config: enabled flag, user UUID, token, API URL (chmod 600) |
+| `logs/leaderboard.log` | Append-only sync log — HTTP status per PUT, token never written |
 
 ## Install and Test
 
 ```bash
 bash install.sh        # idempotent, safe to run multiple times
 bash uninstall.sh      # restores original statusLine, removes hooks
+
+# Leaderboard-enabled install (generates UUID, writes leaderboard.conf)
+bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 
 # View achievements
 bash ~/.claude/achievements/scripts/show-achievements.sh [--unlocked] [--beginner]
@@ -59,6 +71,10 @@ bash ~/.claude/achievements/scripts/verify-install.sh
 
 # Verify state
 jq . ~/.claude/achievements/state.json
+
+# Verify leaderboard config (token stored plaintext, chmod 600)
+cat ~/.claude/achievements/leaderboard.conf
+tail -f ~/.claude/achievements/logs/leaderboard.log  # watch syncs live
 ```
 
 After install, restart Claude Code for hooks to take effect.
@@ -491,6 +507,13 @@ When adding new scripts, add a `cp` line in the shared-scripts block before `chm
 When adding new hooks, add a `cp` line in the hooks block and add the hook registration
 to the jq merge block (Phase 2). The jq merge is idempotent — it checks for exact
 command string before adding.
+
+**Phase 6.5 — Leaderboard configuration** (added in leaderboard work stream):
+- `--token TOKEN` and `--api-url URL` args parsed before Phase 0 via a `while [[$# -gt 0]]` loop
+- If both args provided → generates a UUID (uuidgen / python3 / /proc fallback) → writes enabled `leaderboard.conf` → `chmod 600`
+- If no args and conf exists → preserves (upgrade path)
+- If no args and no conf → writes disabled stub
+- `leaderboard.conf` is never overwritten on upgrade unless `--token` is re-supplied
 
 ## Common Gotchas
 
