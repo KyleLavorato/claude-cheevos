@@ -39,7 +39,7 @@ func main() {
 
     obfuscated := make([]byte, 32)
     for i := range 32 {
-        obfuscated[i] = raw[i] ^ nonce[i]
+        obfuscated[i] = raw[i] ^ nonce[i%len(nonce)]
     }
 
     fmt.Println(base64.StdEncoding.EncodeToString(obfuscated))

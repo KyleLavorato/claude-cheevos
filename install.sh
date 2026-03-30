@@ -48,6 +48,25 @@ for cmd in jq bash; do
     fi
 done
 
+# macOS: Auto-install terminal-notifier for enhanced notifications
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    if ! command -v terminal-notifier >/dev/null 2>&1; then
+        echo "Installing terminal-notifier for enhanced notification icons..."
+        if command -v brew >/dev/null 2>&1; then
+            brew install terminal-notifier || {
+                echo "WARNING: Failed to install terminal-notifier via Homebrew"
+                echo "         Notifications will fall back to osascript (no custom icons)"
+            }
+        else
+            echo "WARNING: Homebrew not found - cannot auto-install terminal-notifier"
+            echo "         Install manually: brew install terminal-notifier"
+            echo "         Notifications will fall back to osascript (no custom icons)"
+        fi
+    else
+        echo "✓ terminal-notifier already installed"
+    fi
+fi
+
 if [[ ! -f "$SETTINGS" ]]; then
     echo "ERROR: $SETTINGS not found. Is Claude Code installed?"
     exit 1
