@@ -95,6 +95,7 @@ cp "$REPO_DIR/scripts/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh
 cp "$REPO_DIR/scripts/check-updates.sh"      "$ACHIEVEMENTS_DIR/scripts/check-updates.sh"
 cp "$REPO_DIR/scripts/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 cp "$REPO_DIR/scripts/leaderboard-sync.sh"   "$ACHIEVEMENTS_DIR/scripts/leaderboard-sync.sh"
+cp "$REPO_DIR/scripts/auto-update.sh"        "$ACHIEVEMENTS_DIR/scripts/auto-update.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions (always update from repo to pick up new achievements)

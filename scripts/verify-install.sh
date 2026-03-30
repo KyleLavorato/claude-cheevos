@@ -39,6 +39,7 @@ REQUIRED_FILES=(
     "scripts/statusline-wrapper.sh"
     "scripts/show-achievements.sh"
     "scripts/learning-path.sh"
+    "scripts/auto-update.sh"
 )
 
 MISSING=0

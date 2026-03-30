@@ -104,5 +104,7 @@ with_lock bash "$SCRIPTS_DIR/state-update.sh"
 # ─── Auto-update check (once per day, runs in background) ────────────────────
 # Check for new achievement definitions from the public GitHub repo
 bash "$SCRIPTS_DIR/check-updates.sh" &
+# Auto-update achievement definitions from GitHub (runs asynchronously in background)
+# bash "$SCRIPTS_DIR/auto-update.sh" --quiet & # This is already covered by above
 
 exit 0

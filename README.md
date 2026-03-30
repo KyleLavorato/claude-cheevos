@@ -49,6 +49,7 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 ├── leaderboard.conf          # Leaderboard config: enabled, UUID, token, API URL (chmod 600)
 ├── .version                  # Installed version
 ├── .original-statusline      # Your previous statusLine command (restored on uninstall)
+├── .last-update-check        # Timestamp of last auto-update check (unix epoch seconds)
 ├── hooks/
 │   ├── session-start.sh      # Fires on session start/resume
 │   ├── post-tool-use.sh      # Fires after every tool call (async)
@@ -63,7 +64,8 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 │   ├── learning-path.sh       # Guided tutorial UI
 │   ├── award.sh               # Manual Easter egg award tool
 │   ├── check-updates.sh       # Auto-update definitions from GitHub (runs once/day)
-│   └── leaderboard-sync.sh    # Score push to leaderboard API (fire-and-forget)
+│   ├── leaderboard-sync.sh    # Score push to leaderboard API (fire-and-forget)
+│   └── auto-update.sh         # Auto-update definitions.json from GitHub
 └── logs/
     └── leaderboard.log        # Append-only sync log (HTTP status per PUT, token never logged)
 ```
@@ -363,6 +365,44 @@ Other fun ones to try:
 - **Rewriting History** — ask Claude to `git push --force`
 - **I'm Sorry, Dave** — ask Claude to respond with the HAL 9000 phrase
 - **Lucky 7s** — engineer a response that uses exactly 777 output tokens
+
+---
+
+## Auto-Update
+
+The achievement system automatically checks for new achievement definitions from the public GitHub repository and keeps your local definitions up to date.
+
+### How it works
+
+- **Automatic checks**: On every Claude Code session start, the system checks for updates in the background (with a 1-hour cooldown to avoid excessive network calls)
+- **Silent by default**: Updates happen silently unless new achievements are found
+- **Notifications**: When new achievements are added, you'll see a message listing them with their point values
+- **Updates existing**: If achievement definitions change (e.g., point values, descriptions), your local copy will be updated to match the remote version
+- **Preserves progress**: Your `state.json` (score, unlocked achievements, counters) is never touched by auto-update
+
+### Manual update
+
+You can manually trigger an update check at any time:
+
+```bash
+# Check for updates and show results
+bash ~/.claude/achievements/scripts/auto-update.sh
+
+# Force check (skip 1-hour cooldown)
+bash ~/.claude/achievements/scripts/auto-update.sh --force
+
+# Silent mode (suppress output, only errors shown)
+bash ~/.claude/achievements/scripts/auto-update.sh --quiet
+```
+
+### Disabling auto-update
+
+To disable automatic updates, remove or comment out the auto-update line in `~/.claude/achievements/hooks/session-start.sh`:
+
+```bash
+# Auto-update achievement definitions from GitHub (runs asynchronously in background)
+# bash "$SCRIPTS_DIR/auto-update.sh" --quiet &
+```
 
 ---
 
