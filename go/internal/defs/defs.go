@@ -19,15 +19,17 @@ type Definitions struct {
 
 // Achievement represents a single achievement entry.
 type Achievement struct {
-    ID          string    `json:"id"`
-    Name        string    `json:"name"`
-    Description string    `json:"description"`
-    Points      int       `json:"points"`
-    Category    string    `json:"category"`
-    SkillLevel  string    `json:"skill_level"`
-    Condition   Condition `json:"condition"`
-    Tutorial    bool      `json:"tutorial"`
-    Secret      bool      `json:"secret"`
+    ID            string    `json:"id"`
+    Name          string    `json:"name"`
+    Description   string    `json:"description"`
+    Points        int       `json:"points"`
+    Category      string    `json:"category"`
+    SkillLevel    string    `json:"skill_level"`
+    Condition     Condition `json:"condition"`
+    Tutorial      bool      `json:"tutorial"`
+    Secret        bool      `json:"secret"`
+    Team          bool      `json:"team,omitempty"`
+    TeamAggregate bool      `json:"team_aggregate,omitempty"`
 }
 
 // Condition describes when an achievement is unlocked.
