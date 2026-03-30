@@ -270,3 +270,101 @@ fi
 
 # ─── Leaderboard sync (fire-and-forget, only if leaderboard is enabled) ──────
 "$CHEEVOS" leaderboard-sync &
+
+QUEUE_COUNT=$(jq 'length' "$NOTIFICATIONS_FILE" 2>/dev/null || echo 0)
+if [[ "$QUEUE_COUNT" == "0" ]]; then
+    exit 0
+fi
+
+# Drain the notification queue under lock into a temp file
+TEMP_NOTIFS=$(mktemp /tmp/cheevos-notifs.XXXXXX.json)
+export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
+export _TEMP_NOTIFS="$TEMP_NOTIFS"
+
+with_lock bash -c '
+    count=$(jq "length" "$_NOTIFICATIONS_FILE" 2>/dev/null || echo 0)
+    if [[ "$count" -gt 0 ]]; then
+        cp "$_NOTIFICATIONS_FILE" "$_TEMP_NOTIFS"
+        printf "[]" > "$_NOTIFICATIONS_FILE"
+    fi
+'
+
+# Verify we actually got something (race: another Stop hook could have drained first)
+if [[ ! -s "$TEMP_NOTIFS" ]]; then
+    rm -f "$TEMP_NOTIFS"
+    exit 0
+fi
+
+COUNT=$(jq 'length' "$TEMP_NOTIFS" 2>/dev/null || echo 0)
+if [[ "$COUNT" == "0" ]]; then
+    rm -f "$TEMP_NOTIFS"
+    exit 0
+fi
+
+# Read current score (no lock needed - display only)
+TOTAL_SCORE=$(jq -r '.score // 0' "$STATE_FILE" 2>/dev/null || echo 0)
+
+# Build achievement list lines
+ACHIEVEMENT_LINES=$(jq -r '
+    map("  [" + .name + " +" + (.points | tostring) + " pts] " + .description)
+    | join("\n")
+' "$TEMP_NOTIFS")
+
+# Fire system notification (macOS and WSL/Windows)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    # macOS: native notification via osascript
+    if [[ "$COUNT" == "1" ]]; then
+        _notif_name=$(jq -r '.[0].name' "$TEMP_NOTIFS")
+        _notif_pts=$(jq -r '.[0].points | tostring' "$TEMP_NOTIFS")
+        _notif_desc=$(jq -r '.[0].description' "$TEMP_NOTIFS")
+        osascript -e "display notification \"${_notif_desc} (+${_notif_pts} pts)\" with title \"🏆 Achievement Unlocked!\" subtitle \"${_notif_name}\" sound name \"Glass\""
+    else
+        _notif_names=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
+        osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\" sound name \"Glass\""
+    fi
+elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
+    # WSL: Windows toast notification with sound via PowerShell
+    # Build title and body strings
+    if [[ "$COUNT" == "1" ]]; then
+        _notif_title="🏆 Achievement Unlocked!"
+        _notif_body=$(jq -r '"[" + .[0].name + "] " + .[0].description + " (+" + (.[0].points | tostring) + " pts)"' "$TEMP_NOTIFS")
+    else
+        _notif_title="🏆 ${COUNT} Achievements Unlocked!"
+        _notif_body=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
+    fi
+    # Write PS script to temp file to avoid shell/PS escaping issues
+    # Escape single quotes by doubling them, escape XML chars
+    _title_esc=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
+    _body_esc=$(printf '%s' "$_notif_body" | sed "s/'/''/g")
+    _ps_tmp=$(mktemp /tmp/cheevos-notif.XXXXXX.ps1)
+    cat > "$_ps_tmp" << PSEOF
+[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
+\$title = [System.Security.SecurityElement]::Escape('$_title_esc')
+\$body  = [System.Security.SecurityElement]::Escape('$_body_esc')
+\$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
+# Add audio element for notification sound (ms-winsoundevent:Notification.Default)
+\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual><audio src='ms-winsoundevent:Notification.Default'/></toast>")
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
+PSEOF
+    _win_ps_tmp=$(wslpath -w "$_ps_tmp")
+    powershell.exe -NonInteractive -NoProfile -WindowStyle Hidden -File "$_win_ps_tmp" 2>/dev/null &
+    # Clean up temp file after PS has had time to read it
+    { sleep 5; rm -f "$_ps_tmp"; } &
+fi
+
+rm -f "$TEMP_NOTIFS"
+
+# Build header
+if [[ "$COUNT" == "1" ]]; then
+    HEADER="🏆 Achievement Unlocked!"
+else
+    HEADER="🏆 ${COUNT} Achievements Unlocked!"
+fi
+
+# Emit systemMessage JSON - Claude Code displays this to the user inline
+# jq handles proper JSON escaping of newlines and special characters
+jq -n \
+    --arg header "$HEADER" \
+    --arg lines "$ACHIEVEMENT_LINES" \
+    --arg score "$TOTAL_SCORE" \
+    '{"systemMessage": ($header + "\n" + $lines + "\nTotal Score: " + $score + " pts")}'
