@@ -497,6 +497,8 @@ from source when you want to add achievements, change the HMAC key, or contribut
 
 ### Targets
 
+All `make` commands must be run from the **repository root** (not from the `go/` subdirectory).
+
 | Command | What it does |
 |---|---|
 | `make prod` | Production build for the current platform. Auto-generates `CHEEVOS_HMAC_KEY` if not set. |
@@ -508,8 +510,9 @@ from source when you want to add achievements, change the HMAC key, or contribut
 ### Production build (single platform)
 
 ```bash
+# From the repository root:
 make prod
-# → ./cheevos  (HMAC-signed, ready to distribute)
+# → dist/cheevos-<os>-<arch>  (HMAC-signed, ready to distribute)
 ```
 
 Or supply your own key to keep it consistent across builds:
@@ -520,6 +523,7 @@ CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen) make prod
 ### Cross-compile all platforms
 
 ```bash
+# From the repository root:
 make dist
 # → dist/cheevos-darwin-amd64
 #   dist/cheevos-darwin-arm64
@@ -531,6 +535,7 @@ make dist
 ### Create a distributable zip
 
 ```bash
+# From the repository root:
 make dist-zip
 # → dist/cheevos-release.zip
 ```
@@ -540,6 +545,7 @@ The zip contains all five binaries plus `install.sh`, `uninstall.sh`, `hooks/`,
 
 ```bash
 unzip cheevos-release.zip
+cd cheevos
 bash install.sh
 # Optional: bash install.sh --token <token> --api-url <url>
 ```

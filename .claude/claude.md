@@ -90,7 +90,7 @@ Slash commands are installed to `~/.claude/commands/` (not inside `achievements/
 
 ```bash
 # Build binaries (provider step, requires Go)
-cd go && CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist
+make dist
 
 # Install (end-user step, requires jq + bash only)
 bash install.sh
@@ -168,7 +168,7 @@ Every achievement needs:
 1. An entry in `data/definitions.json`
 2. Something that increments its counter (hook or stop.sh)
 3. A row added to `docs/achievement_list.md`
-4. Rebuild the binary: `cd go && CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist`
+4. Rebuild the binary: `make dist`
 
 ### 1. definitions.json entry
 

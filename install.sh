@@ -6,7 +6,7 @@
 #
 # The cheevos binary must already be compiled and present in the dist/ directory
 # alongside this script. Compilation is handled separately by the provider via:
-#   cd go && CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist
+#   make dist
 #
 # Usage:
 #   bash install.sh                           # basic install (leaderboard disabled)
@@ -96,7 +96,7 @@ if [[ ! -f "$BINARY_SRC" ]]; then
     ls "$DIST_DIR/" 2>/dev/null | sed 's/^/         /' || echo "         (dist/ directory not found)"
     echo ""
     echo "       The binary must be built by the provider before distribution:"
-    echo "         cd go && CHEEVOS_HMAC_KEY=\$(go run ./tools/keygen) make dist"
+    echo "         make dist"
     exit 1
 fi
 
