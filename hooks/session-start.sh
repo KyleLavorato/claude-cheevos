@@ -11,17 +11,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=../scripts/lib.sh
 source "$SCRIPT_DIR/../scripts/lib.sh"
 
+# Guard: if the binary is not installed, exit gracefully
+[[ -x "$CHEEVOS" ]] || exit 0
+
 INPUT=$(cat)
 SOURCE=$(printf '%s' "$INPUT" | jq -r '.source // "startup"')
 
 # Track session resumes separately, then exit
 if [[ "$SOURCE" == "resume" ]]; then
-    init_state
+    "$CHEEVOS" init
     export _STATE_FILE="$STATE_FILE"
-    export _DEFS_FILE="$DEFS_FILE"
     export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
     export _COUNTER_UPDATES='{"session_resumes": 1}'
-    with_lock bash "$SCRIPTS_DIR/state-update.sh"
+    _CHEEVOS_TS=$(cheevos_ts)
+    export _CHEEVOS_SIG
+    _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "" "" "$_CHEEVOS_TS")
+    export _CHEEVOS_TS
+    "$CHEEVOS" update
     exit 0
 fi
 
@@ -30,7 +36,7 @@ if [[ "$SOURCE" != "startup" ]]; then
     exit 0
 fi
 
-init_state
+"$CHEEVOS" init
 
 # ─── Streak tracking ──────────────────────────────────────────────────────────
 # Compute days since Unix epoch for today (integer, same across timezones)
@@ -74,9 +80,7 @@ if (( DOW == 5 && HOUR >= 16 )); then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"friday_sessions": 1}')
 fi
 
-# Dangerous launch detection — increments dangerous_launches and maintains a
-# separate consecutive-day streak (dangerous_streak) that resets if the flag
-# is absent, enabling the "Do as I Say Not as I Do" achievement.
+# Dangerous launch detection
 CURRENT_DANGER_STREAK=$(jq -r '.counters.dangerous_streak // 0' "$STATE_FILE" 2>/dev/null || echo 0)
 if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"dangerous_launches": 1}')
@@ -87,24 +91,23 @@ fi
 
 export _COUNTER_SETS="{\"streak_days\": ${NEW_STREAK}, \"last_session_epoch\": ${TODAY_EPOCH}, \"dangerous_streak\": ${NEW_DANGER_STREAK}}"
 
-# Style Points — user had a custom statusLine configured before cheevos
-# install.sh saves the original command to .original-statusline; non-empty = custom status
+# Style Points — user had a custom statusLine configured before cheevos install
 if [[ -s "$ACHIEVEMENTS_DIR/.original-statusline" ]]; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"custom_statusline_set": 1}')
 fi
 
 export _COUNTER_UPDATES="$UPDATES"
-
 export _STATE_FILE="$STATE_FILE"
-export _DEFS_FILE="$DEFS_FILE"
 export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
 
-with_lock bash "$SCRIPTS_DIR/state-update.sh"
+_CHEEVOS_TS=$(cheevos_ts)
+export _CHEEVOS_SIG
+_CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "${_COUNTER_SETS:-}" "" "" "$_CHEEVOS_TS")
+export _CHEEVOS_TS
 
-# ─── Auto-update check (once per day, runs in background) ────────────────────
-# Check for new achievement definitions from the public GitHub repo
-bash "$SCRIPTS_DIR/check-updates.sh" &
-# Auto-update achievement definitions from GitHub (runs asynchronously in background)
-# bash "$SCRIPTS_DIR/auto-update.sh" --quiet & # This is already covered by above
+"$CHEEVOS" update
+
+# Auto-update check (once per day, runs in background — rate-limited inside the binary)
+"$CHEEVOS" update-defs &
 
 exit 0

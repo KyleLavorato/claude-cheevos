@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 # stop.sh - Stop hook (runs synchronously at end of each assistant turn)
 #
-# 1. Tracks the active model by reading the transcript once per session
-#    and updating the models_used list in state.json.
-# 2. Drains the notification queue built up by async PostToolUse hooks
-#    and outputs a systemMessage JSON blob to notify the user of newly
-#    unlocked achievements. Multiple unlocks are batched into one message.
+# 1. Analyses the transcript to detect phrase-based counters and model tracking.
+# 2. Calls cheevos update if anything changed.
+# 3. Calls cheevos drain to flush the notification queue and emit systemMessage.
 
 set -euo pipefail
 
@@ -13,10 +11,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=../scripts/lib.sh
 source "$SCRIPT_DIR/../scripts/lib.sh"
 
+# Guard: if the binary is not installed, exit gracefully
+[[ -x "$CHEEVOS" ]] || exit 0
+
 # Always read stdin — hook input contains session_id and transcript_path
 INPUT=$(cat)
 
-# ─── Transcript analysis (model tracking + sorry detection) ──────────────────
+# ─── Transcript analysis (model tracking + phrase detection) ─────────────────
 SESSION_ID=$(printf '%s' "$INPUT"      | jq -r '.session_id    // ""')
 TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | jq -r '.transcript_path // ""')
 
@@ -51,14 +52,14 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             sorry:         ($text | ascii_downcase | test("sorry")),
             great_question: ($text | ascii_downcase | test("great question")),
             hal_9000:       ($text | ascii_downcase | test("sorry, dave")),
-            youre_right:    ($text | ascii_downcase | test("you.?re right|you are right")),
+            youre_right:    ($text | ascii_downcase | test("you'\''?re right|you are right")),
             barnacles:      ($text | ascii_downcase | test("barnacles")),
             twenty_questions: ($user_text | ascii_downcase | test("20 questions|twenty questions")),
             magic_conch:      ($user_text | ascii_downcase | test("help me decide|help me choose|help me make a decision|which should i|what should i (do|pick|choose|use)")),
             inner_machinations: ($user_text | ascii_downcase | test("explain (this |the )?(codebase|code|repo|project)|summarize (this |the )?(codebase|code|repo|project)|give me an overview|walk me through (this |the )?(codebase|code|repo)|how does (this |the )?(codebase|code|project) work")),
             tic_tac_toe: (
                 ($user_text | ascii_downcase | test("tic.?tac.?toe")) and
-                ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i.?ve won"))
+                ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i('\''ve)? won"))
             ),
             code_smell: ($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")),
             doctor_run: ($user_text | ascii_downcase | test("^/doctor|\\s/doctor")),
@@ -152,42 +153,42 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"barnacles_said": 1}')
     fi
 
-    # 20 questions tracking — fires when user message contains "20 questions"
+    # 20 questions tracking
     if [[ "$TWENTY_QUESTIONS" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"twenty_questions_started": 1}')
     fi
 
-    # Magic Conch Shell — fires when user asks Claude to help make a decision
+    # Magic Conch Shell
     if [[ "$MAGIC_CONCH" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"magic_conch_used": 1}')
     fi
 
-    # Inner Machinations — fires when user asks Claude to explain or summarize a codebase
+    # Inner Machinations
     if [[ "$INNER_MACHINATIONS" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"inner_machinations_used": 1}')
     fi
 
-    # Tic tac toe — fires when user plays and Claude wins
+    # Tic tac toe
     if [[ "$TIC_TAC_TOE" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"lost_tic_tac_toe": 1}')
     fi
 
-    # Code smell — fires when user asks Claude to check for code smells
+    # Code smell
     if [[ "$CODE_SMELL" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"code_smell_check": 1}')
     fi
 
-    # /doctor command — fires when user runs Claude's diagnostic command
+    # /doctor command
     if [[ "$DOCTOR_RUN" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"doctor_run": 1}')
     fi
 
-    # Deja Vu — user sent the same message as the previous turn
+    # Deja Vu
     if [[ "$DEJA_VU" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"deja_vu_sent": 1}')
     fi
 
-    # Chess — fires when user mentions chess
+    # Chess
     if [[ "$CHESS" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"chess_started": 1}')
     fi
@@ -200,18 +201,17 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"vibe_code_done": 1}')
     fi
 
-    # But Its Compiling — fires when a response took more than 15 minutes
+    # But Its Compiling
     if [[ "$SLOW_RESPONSE" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"slow_responses": 1}')
     fi
 
-    # "Write that down" — CLAUDE.md written while context > 90% full (>180k input tokens)
+    # "Write that down"
     if [[ "$WROTE_CLAUDE_MD" == "true" && "$CONTEXT_HIGH" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"write_that_down": 1}')
     fi
 
     # Stack Connector — GitHub MCP + Jira MCP + at least one other MCP server
-    # Reads current state (pre-update) to check cumulative counters
     _GH=$(jq -r '.counters.github_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
     _JR=$(jq -r '.counters.jira_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
     _TOT=$(jq -r '.counters.total_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
@@ -224,17 +224,17 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"lucky_friends": 1}')
     fi
 
-    # Lucky 7s — exactly 777 output tokens in the last response
+    # Lucky 7s
     if [[ "$LUCKY" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"lucky_sessions": 1}')
     fi
 
-    # Token consumption — accumulate output tokens per turn as tokens_consumed
+    # Token consumption
     if (( OUTPUT_TOKENS > 0 )); then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq --argjson t "$OUTPUT_TOKENS" '. + {"tokens_consumed": $t}')
     fi
 
-    # Code review quality — only when this turn had a codeReview skill call
+    # Code review quality
     if [[ "$CODE_REVIEW_TURN" == "true" ]]; then
         if [[ "$NO_ISSUES" == "true" ]]; then
             COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"perfect_reviews": 1}')
@@ -246,116 +246,27 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
 
     # Only write to state if there's something to update
     if [[ -n "$NEW_MODEL_VAL" || "$COUNTER_EXTRA" != '{}' ]]; then
-        init_state
+        "$CHEEVOS" init
         export _STATE_FILE="$STATE_FILE"
-        export _DEFS_FILE="$DEFS_FILE"
         export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
         export _COUNTER_UPDATES="$COUNTER_EXTRA"
         [[ -n "$NEW_MODEL_VAL"  ]] && export _NEW_MODEL="$NEW_MODEL_VAL"
         [[ -n "$SESSION_ID_VAL" ]] && export _SESSION_ID="$SESSION_ID_VAL"
-        with_lock bash "$SCRIPTS_DIR/state-update.sh"
+
+        _CHEEVOS_TS=$(cheevos_ts)
+        export _CHEEVOS_SIG
+        _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "${_NEW_MODEL:-}" "${_SESSION_ID:-}" "$_CHEEVOS_TS")
+        export _CHEEVOS_TS
+
+        "$CHEEVOS" update
         unset _NEW_MODEL _SESSION_ID
     fi
 fi
 
-# Fast path: skip if notification queue is absent or empty
-if [[ ! -f "$NOTIFICATIONS_FILE" ]]; then
-    exit 0
-fi
+# ─── Drain notification queue and emit systemMessage ─────────────────────────
+# cheevos drain writes the systemMessage JSON to stdout and fires OS notifications.
+# It exits 0 with no output if the queue was empty.
+"$CHEEVOS" drain
 
-QUEUE_COUNT=$(jq 'length' "$NOTIFICATIONS_FILE" 2>/dev/null || echo 0)
-if [[ "$QUEUE_COUNT" == "0" ]]; then
-    exit 0
-fi
-
-# Drain the notification queue under lock into a temp file
-TEMP_NOTIFS=$(mktemp /tmp/cheevos-notifs.XXXXXX.json)
-export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
-export _TEMP_NOTIFS="$TEMP_NOTIFS"
-
-with_lock bash -c '
-    count=$(jq "length" "$_NOTIFICATIONS_FILE" 2>/dev/null || echo 0)
-    if [[ "$count" -gt 0 ]]; then
-        cp "$_NOTIFICATIONS_FILE" "$_TEMP_NOTIFS"
-        printf "[]" > "$_NOTIFICATIONS_FILE"
-    fi
-'
-
-# Verify we actually got something (race: another Stop hook could have drained first)
-if [[ ! -s "$TEMP_NOTIFS" ]]; then
-    rm -f "$TEMP_NOTIFS"
-    exit 0
-fi
-
-COUNT=$(jq 'length' "$TEMP_NOTIFS" 2>/dev/null || echo 0)
-if [[ "$COUNT" == "0" ]]; then
-    rm -f "$TEMP_NOTIFS"
-    exit 0
-fi
-
-# Read current score (no lock needed - display only)
-TOTAL_SCORE=$(jq -r '.score // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-
-# Build achievement list lines
-ACHIEVEMENT_LINES=$(jq -r '
-    map("  [" + .name + " +" + (.points | tostring) + " pts] " + .description)
-    | join("\n")
-' "$TEMP_NOTIFS")
-
-# Fire system notification (macOS and WSL/Windows)
-if [[ "$(uname -s)" == "Darwin" ]]; then
-    # macOS: native notification via osascript
-    if [[ "$COUNT" == "1" ]]; then
-        _notif_name=$(jq -r '.[0].name' "$TEMP_NOTIFS")
-        _notif_pts=$(jq -r '.[0].points | tostring' "$TEMP_NOTIFS")
-        _notif_desc=$(jq -r '.[0].description' "$TEMP_NOTIFS")
-        osascript -e "display notification \"${_notif_desc} (+${_notif_pts} pts)\" with title \"🏆 Achievement Unlocked!\" subtitle \"${_notif_name}\" sound name \"Glass\""
-    else
-        _notif_names=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
-        osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\" sound name \"Glass\""
-    fi
-elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    # WSL: Windows toast notification via PowerShell
-    # Build title and body strings
-    if [[ "$COUNT" == "1" ]]; then
-        _notif_title="🏆 Achievement Unlocked!"
-        _notif_body=$(jq -r '"[" + .[0].name + "] " + .[0].description + " (+" + (.[0].points | tostring) + " pts)"' "$TEMP_NOTIFS")
-    else
-        _notif_title="🏆 ${COUNT} Achievements Unlocked!"
-        _notif_body=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
-    fi
-    # Write PS script to temp file to avoid shell/PS escaping issues
-    # Escape single quotes by doubling them, escape XML chars
-    _title_esc=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
-    _body_esc=$(printf '%s' "$_notif_body" | sed "s/'/''/g")
-    _ps_tmp=$(mktemp /tmp/cheevos-notif.XXXXXX.ps1)
-    cat > "$_ps_tmp" << PSEOF
-[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
-\$title = [System.Security.SecurityElement]::Escape('$_title_esc')
-\$body  = [System.Security.SecurityElement]::Escape('$_body_esc')
-\$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
-\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual></toast>")
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
-PSEOF
-    _win_ps_tmp=$(wslpath -w "$_ps_tmp")
-    powershell.exe -NonInteractive -NoProfile -WindowStyle Hidden -File "$_win_ps_tmp" 2>/dev/null &
-    # Clean up temp file after PS has had time to read it
-    { sleep 5; rm -f "$_ps_tmp"; } &
-fi
-
-rm -f "$TEMP_NOTIFS"
-
-# Build header
-if [[ "$COUNT" == "1" ]]; then
-    HEADER="🏆 Achievement Unlocked!"
-else
-    HEADER="🏆 ${COUNT} Achievements Unlocked!"
-fi
-
-# Emit systemMessage JSON - Claude Code displays this to the user inline
-# jq handles proper JSON escaping of newlines and special characters
-jq -n \
-    --arg header "$HEADER" \
-    --arg lines "$ACHIEVEMENT_LINES" \
-    --arg score "$TOTAL_SCORE" \
-    '{"systemMessage": ($header + "\n" + $lines + "\nTotal Score: " + $score + " pts")}'
+# ─── Leaderboard sync (fire-and-forget, only if leaderboard is enabled) ──────
+"$CHEEVOS" leaderboard-sync &

@@ -3,33 +3,54 @@
 A self-contained achievement system for Claude Code that tracks usage milestones via hooks,
 awards points, and displays the score in the status bar. Installed to `~/.claude/achievements/`.
 
+The core engine is a compiled Go binary (`cheevos`) that stores state in an AES-256-GCM
+encrypted file, embeds achievement definitions at compile time, and validates hook calls
+with HMAC-SHA256 signatures to prevent casual tampering.
+
 ## Project Layout
 
 ```
 cheevos/
-├── data/definitions.json        # All achievement definitions (source of truth)
+├── data/definitions.json        # All achievement definitions (source of truth for embed)
 ├── hooks/
 │   ├── session-start.sh         # SessionStart hook — sessions, streak, time-based, concurrent
 │   ├── post-tool-use.sh         # PostToolUse hook (async) — all tool-use counter tracking
 │   ├── pre-compact.sh           # PreCompact hook — auto-compact and manual compact tracking
-│   └── stop.sh                  # Stop hook — transcript analysis + notification drain + leaderboard sync trigger
+│   └── stop.sh                  # Stop hook — transcript analysis + drain + leaderboard sync
 ├── scripts/
-│   ├── lib.sh                   # Shared library: paths, init_state(), with_lock()
-│   ├── state-update.sh          # Atomic state writer, called under lock by all hooks
-│   ├── statusline-wrapper.sh    # Status bar display
-│   ├── seed-state.sh            # First-install state seeder (reads stats-cache.json)
-│   ├── show-achievements.sh     # Achievement list UI with unlock/level filters
-│   ├── learning-path.sh         # Tutorial UI driven by "tutorial": true in definitions
-│   ├── award.sh                 # Manual counter increment for Easter egg achievements
-│   ├── leaderboard-sync.sh      # Fire-and-forget score push to leaderboard API on unlock
-│   └── verify-install.sh        # Installation verification and health check
+│   ├── lib.sh                   # Shared library: paths, HMAC helpers, _CHEEVOS_HMAC_SECRET
+│   ├── statusline-wrapper.sh    # Thin shim → cheevos statusline
+│   ├── seed-state.sh            # Thin shim → cheevos seed
+│   ├── show-achievements.sh     # Thin shim → cheevos show
+│   ├── learning-path.sh         # Thin shim → cheevos learn
+│   ├── award.sh                 # Thin shim → cheevos award
+│   └── verify-install.sh        # Thin shim → cheevos verify
+├── go/                          # Go source for the cheevos binary
+│   ├── go.mod / go.sum
+│   ├── Makefile                 # cross-compile matrix (requires CHEEVOS_HMAC_KEY env var)
+│   ├── cmd/cheevos/             # CLI entrypoint + subcommand handlers
+│   ├── internal/
+│   │   ├── store/               # EncryptedJSONStore (AES-256-GCM), StateStore interface
+│   │   ├── crypto/              # AES helpers, key loading, HMAC key deobfuscation
+│   │   ├── engine/              # Achievement-checking engine (port of state-update.sh)
+│   │   ├── defs/                # Embedded definitions + on-disk override loader
+│   │   ├── hmac/                # HMAC-SHA256 payload verification
+│   │   ├── lock/                # Cross-platform advisory file lock
+│   │   └── notify/              # OS notification dispatch (macOS/Linux/Windows)
+│   └── tools/keygen/            # Generates XOR-obfuscated HMAC key for -ldflags
+├── dist/                        # Pre-built binaries (produced by `make dist`)
+│   ├── cheevos-darwin-amd64
+│   ├── cheevos-darwin-arm64
+│   ├── cheevos-linux-amd64
+│   ├── cheevos-linux-arm64
+│   └── cheevos-windows-amd64.exe
 ├── microservice/
 │   ├── template.yaml            # Self-contained CloudFormation stack (all Lambda inline)
 │   └── README.md                # Deploy, smoke test, API reference
 ├── leaderboard-ui/
 │   ├── docs/                    # Generic GitHub Pages UI (index.html, style.css, app.js)
 │   └── README.md                # Setup guide for generic deployment
-├── install.sh                   # Idempotent installer — copies files, patches settings.json
+├── install.sh                   # Idempotent installer — installs binary + scripts + hooks
 ├── uninstall.sh                 # Removes hooks from settings.json, optionally deletes state
 └── README.md
 ```
@@ -40,10 +61,12 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 
 | File | Purpose |
 |---|---|
-| `state.json` | Score, counters, unlocked list, models_used, streak data |
-| `definitions.json` | Achievement definitions (copied from repo on every install) |
+| `cheevos` | The compiled binary — all state logic lives here |
+| `state.json` | AES-256-GCM encrypted state (score, counters, unlocked list, models_used) |
+| `.key` | Per-installation 32-byte AES key (chmod 600, generated at install time) |
+| `definitions.json` | On-disk definitions override (written by `cheevos update-defs`; absent = use embedded) |
 | `notifications.json` | Queue of pending unlock notifications (`[]` when empty) |
-| `state.lock` | Lockfile for `with_lock` (never delete manually) |
+| `state.lock` | Advisory lockfile (never delete manually) |
 | `.version` | Installed version string — used by install.sh for upgrade detection |
 | `.original-statusline` | Prior `statusLine.command` value saved for uninstall restoration |
 | `hooks/`, `scripts/` | All scripts copied from repo (safe to overwrite on upgrade) |
@@ -53,24 +76,28 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 ## Install and Test
 
 ```bash
-bash install.sh        # idempotent, safe to run multiple times
-bash uninstall.sh      # restores original statusLine, removes hooks
+# Build binaries (provider step, requires Go)
+cd go && CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist
+
+# Install (end-user step, requires jq + bash only)
+bash install.sh
+bash uninstall.sh
 
 # Leaderboard-enabled install (generates UUID, writes leaderboard.conf)
 bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 
 # View achievements
-bash ~/.claude/achievements/scripts/show-achievements.sh [--unlocked] [--beginner]
-bash ~/.claude/achievements/scripts/learning-path.sh
+~/.claude/achievements/cheevos show [--unlocked] [--beginner]
+~/.claude/achievements/cheevos learn
 
 # Award an Easter egg counter manually
-bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks
+~/.claude/achievements/cheevos award easter_egg_unlocks
 
 # Verify installation
-bash ~/.claude/achievements/scripts/verify-install.sh
+~/.claude/achievements/cheevos verify
 
-# Verify state
-jq . ~/.claude/achievements/state.json
+# Force-check for new achievement definitions from GitHub
+~/.claude/achievements/cheevos update-defs --force
 
 # Verify leaderboard config (token stored plaintext, chmod 600)
 cat ~/.claude/achievements/leaderboard.conf
@@ -89,7 +116,9 @@ DIR=~/.claude/achievements
 # Test a bash command counter (bash_calls)
 echo '{"tool_name":"Bash","tool_input":{"command":"echo hello"}}' \
     | bash "$DIR/hooks/post-tool-use.sh"
-jq '.counters.bash_calls' "$DIR/state.json"
+
+# Read score (state is encrypted — use the binary, not jq directly)
+$DIR/cheevos show --unlocked
 
 # Test git commit detection
 echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m test"}}' \
@@ -118,8 +147,9 @@ echo '{"session_id":"x","transcript_path":""}' \
 
 Every achievement needs:
 1. An entry in `data/definitions.json`
-2. Something that increments its counter (hook, stop.sh, etc.)
+2. Something that increments its counter (hook or stop.sh)
 3. A row added to `docs/achievement_list.md`
+4. Rebuild the binary: `cd go && CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist`
 
 ### 1. definitions.json entry
 
@@ -138,12 +168,15 @@ Every achievement needs:
 **Categories:** `sessions`, `files`, `shell`, `search`, `mcp`, `plan_mode`, `tokens`,
 `commands`, `context`, `specs`, `reviews`, `tests`, `misc`, `rank`
 
-**Skill levels:** `beginner`, `intermediate`, `experienced`, `master`, `impossible`
+**Skill levels:** `beginner`, `intermediate`, `experienced`, `master`, `impossible`, `secret`
 
-**Tutorial flag:** Add `"tutorial": true` to include in `learning-path.sh`. The learning
-path is driven entirely by this flag — no script changes needed.
+**Tutorial flag:** Add `"tutorial": true` to include in `cheevos learn`. The learning
+path is driven entirely by this flag — no code changes needed.
 
-### 2. Condition types (in `state-update.sh`)
+**Secret achievements:** Add `"secret": true` — `cheevos show` renders `???` for the
+description so the condition is hidden from the user.
+
+### 2. Condition types (in `go/internal/engine/engine.go`)
 
 | type field | behaviour |
 |---|---|
@@ -153,13 +186,14 @@ path is driven entirely by this flag — no script changes needed.
 | `"all_tutorial"` | All `tutorial: true` achievements are unlocked. |
 | `"unlocked_count_gte"` | `unlocked.length >= threshold` (meta count milestone). |
 
-Rank/special conditions omit the `"counter"` and `"threshold"` keys — `show-achievements.sh`
-checks for `threshold == "null"` to skip progress display.
+Rank/special conditions omit the `"counter"` and `"threshold"` keys — `cheevos show`
+checks for a zero threshold with empty counter to skip progress display.
 
 ## How Counters Are Tracked
 
 ### post-tool-use.sh (async, fires after every tool call)
 
+The hook parses stdin JSON and builds `_COUNTER_UPDATES`, then calls `cheevos update`.
 Add a new counter by extending the relevant `case` branch. Input is read from stdin as JSON:
 - `tool_name` — the tool used
 - `tool_input.*` — the tool's arguments
@@ -187,19 +221,10 @@ fi
 **Important:** Always use incremental jq builds (`'. + {"key": 1}'`) rather than
 reassigning the whole JSON string, to allow multiple counters to combine.
 
-**MultiEdit note:** `MultiEdit` tool_input uses an `edits` array (`tool_input.edits[].file_path`).
-Use `jq -r '.tool_input.edits[]?.file_path'` to extract all target file paths and grep them for
-patterns (README, test files, etc.).
-
-**Intentional gap — Write and TODO/FIXME:** `todo_comments_added` is only tracked in `Edit`
-(via `tool_input.new_string`), not `Write`. This is intentional: `new_string` is exactly the
-text being inserted, so it's a precise signal. A `Write` content check would produce false
-positives from templates and boilerplate files that happen to contain TODO comments.
-
 **`easter_egg_unlocks`** is incremented manually by running:
-`bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks` — Claude should do this
-when the user asks to unlock "Hey Unlock This." `award.sh` validates the counter name
-against `definitions.json` and rejects any counter not used by an achievement.
+`~/.claude/achievements/cheevos award easter_egg_unlocks` — Claude should do this
+when the user asks to unlock "Hey Unlock This." `cheevos award` validates the counter
+name against the embedded definitions and rejects any counter not used by an achievement.
 
 **Bash 3.2 note:** Use `grep -qi` for case-insensitive matching, not `${var^^}`.
 Use `if/fi` not `[[ ]] && action` to avoid `set -e` exits on false conditions.
@@ -207,11 +232,13 @@ Use `if/fi` not `[[ ]] && action` to avoid `set -e` exits on false conditions.
 ### session-start.sh (sync, fires on SessionStart)
 
 Handles three source values:
-- `"startup"` — fresh session (main branch: streak, concurrent, time-based, session count)
+- `"startup"` — fresh session (streak, concurrent, time-based, session count)
 - `"resume"` — session resumed (increments `session_resumes`, then exits)
 - anything else — exits without tracking
 
-Counter updates built incrementally into `UPDATES` JSON, then exported as `_COUNTER_UPDATES`.
+Also fires `cheevos update-defs &` in background for the daily auto-update check.
+
+Counter updates built incrementally into `UPDATES` JSON, then signed and passed to `cheevos update`.
 
 **Adding time-based achievements:** Add a time check block using `HOUR` and `DOW`
 (already extracted). Append to `UPDATES` with jq:
@@ -237,7 +264,8 @@ fi
 
 **Primary roles:**
 1. Transcript analysis (model tracking, phrase detection, code review quality)
-2. Notification queue drain → emits `systemMessage` to display unlock notifications
+2. `cheevos drain` → emits `systemMessage` to display unlock notifications
+3. `cheevos leaderboard-sync &` → fire-and-forget score push (if leaderboard enabled)
 
 **Transcript analysis** reads the last 20 KB of the transcript via `tail -c 20000` and
 runs a single jq pass to extract multiple signals. The result is a JSON object:
@@ -279,54 +307,89 @@ New models are added to `state.models_used[]` and `counters.unique_models_used` 
 
 ### Notification System
 
-When `state-update.sh` unlocks achievements, it appends the full achievement objects to
-`notifications.json`. At the end of each turn, `stop.sh` drains that queue under lock,
-then emits a `systemMessage` JSON blob that Claude Code displays inline:
+When the engine unlocks achievements, it appends notification objects to
+`notifications.json`. At the end of each turn, `cheevos drain` drains that queue under
+lock, then emits a `systemMessage` JSON blob that Claude Code displays inline:
 
 ```json
 {"systemMessage": "🏆 Achievement Unlocked!\n  [Name +N pts] Description\nTotal Score: X pts"}
 ```
 
-`stop.sh` also fires desktop notifications:
+`cheevos drain` also fires desktop notifications:
 - **macOS** — `osascript` with `display notification` (uses "Glass" sound)
-- **WSL/Windows** — PowerShell Toast via `Windows.UI.Notifications`
+- **Linux** — `notify-send` (if available)
+- **Windows** — PowerShell Toast via `Windows.UI.Notifications`
 
 Multiple unlocks in one turn are batched into a single notification.
 
 ### Locking
 
-`with_lock` in `lib.sh` uses:
-- **macOS** — `lockf -k -t 5 "$LOCK_FILE"` (5-second timeout)
-- **Linux** — `flock -w 5 -x "$LOCK_FILE"`
+`go/internal/lock/lock.go` uses:
+- **macOS/Linux** — `syscall.Flock` with 5-second timeout, 100ms retry interval
+- **Windows** — `LockFileEx` via `golang.org/x/sys/windows`
 
-If the lock times out (e.g. two async hooks collide), the command fails silently and
-the counter update is lost for that event. This is acceptable for a fun achievement system.
+If the lock times out (e.g. two async hooks collide), `cheevos update` exits 1 and the
+hook propagates the error. This is acceptable for a fun achievement system.
 
-## state-update.sh — The Core Engine
+### HMAC Hook Validation
 
-Called under lock by every hook via `with_lock bash "$SCRIPTS_DIR/state-update.sh"`.
+Each hook signs its payload before calling `cheevos update`. The binary verifies the
+signature and rejects calls with a stale timestamp (> 10 seconds old).
 
-**Required env vars:** `_STATE_FILE`, `_DEFS_FILE`, `_NOTIFICATIONS_FILE`, `_COUNTER_UPDATES`
+The HMAC secret is baked into the binary at compile time (XOR-obfuscated so `strings`
+doesn't reveal it), and extracted into `lib.sh` at install time by `install.sh` via
+`cheevos print-hmac-secret`. The secret is visible in the installed `lib.sh` — this is
+intentional; the hooks are not a trust boundary. Real secrecy lives in the encrypted
+`state.json`.
 
-**Optional env vars:**
-- `_COUNTER_SETS` — JSON object of counter values to SET (not increment). Used for streak.
-- `_NEW_MODEL` — Model name to add to `models_used` if not already present.
-- `_SESSION_ID` — Records `last_session_model_check` in state.
+## cheevos Binary — The Core Engine
 
-**Order of operations:**
-1. Apply `_COUNTER_UPDATES` increments
-2. Apply `_COUNTER_SETS` absolute writes
-3. Handle `_NEW_MODEL` deduplication
-4. Record `_SESSION_ID`
-5. Check all achievements for newly met conditions
-6. Update `unlocked[]`, `unlock_times{}`, and `score`
-7. Append to `notifications.json`
-8. Write state atomically (temp file + mv)
+The binary (`go/cmd/cheevos/`) replaces all stateful bash scripts. All subcommands:
 
-`unlock_times` records a UTC ISO timestamp for each newly unlocked achievement ID in the
-same atomic write as the unlock itself.
+| Subcommand | Replaces / Purpose |
+|---|---|
+| `cheevos update` | state-update.sh — apply counters, check achievements, save encrypted state |
+| `cheevos init` | init_state() — create .key, state.json, notifications.json if absent |
+| `cheevos seed <cache>` | seed-state.sh — pre-unlock session achievements on first install |
+| `cheevos statusline` | statusline-wrapper.sh — render score for status bar |
+| `cheevos show [flags]` | show-achievements.sh — list achievements with ANSI formatting |
+| `cheevos learn` | learning-path.sh — tutorial progress display |
+| `cheevos award <counter>` | award.sh — manually increment a counter (Easter eggs) |
+| `cheevos drain` | Notification drain block in stop.sh — emit systemMessage + OS notify |
+| `cheevos update-defs [--force]` | check-updates.sh — fetch new defs from GitHub (once/day) |
+| `cheevos leaderboard-sync` | leaderboard-sync.sh — PUT score to leaderboard API |
+| `cheevos verify` | verify-install.sh — health check the installation |
+| `cheevos print-hmac-secret` | (install-time) extract HMAC secret for lib.sh injection |
 
-Newly unlocked notifications are drained by `stop.sh` and emitted as a `systemMessage`.
+**State encryption:** `go/internal/store/EncryptedJSONStore` wraps the `StateStore`
+interface. The on-disk format is `{"v":1,"n":"<nonce>","c":"<ciphertext>"}` — opaque to
+`jq`. To add SQLite later, implement `StateStore` in a new file and swap in `main.go`.
+
+**Definitions embed:** `go/internal/defs/definitions.json` is copied from `data/` by the
+Makefile before build. `cheevos show`, `cheevos learn`, and the engine always use this
+embedded copy. `cheevos update-defs` writes new achievements to an on-disk override at
+`~/.claude/achievements/definitions.json` which `defs.LoadWithOverride()` prefers.
+
+## Building the Binary
+
+```bash
+cd go
+
+# Development build (no HMAC key — validation is skipped)
+make build
+
+# Production build (requires CHEEVOS_HMAC_KEY)
+CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make prod
+
+# Cross-compile all platforms into ../dist/
+CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist
+
+# Run tests
+make test
+```
+
+`data/definitions.json` must be copied to `go/internal/defs/definitions.json` before
+building — the Makefile does this automatically. The copy is gitignored.
 
 ## All Known Counters
 
@@ -374,10 +437,10 @@ Newly unlocked notifications are drained by `stop.sh` and emitted as a `systemMe
 | `apologies` | stop.sh: "sorry" in last response |
 | `great_question_said` | stop.sh: "great question" in last response |
 | `lucky_sessions` | stop.sh: output_tokens == 777 |
-| `easter_egg_unlocks` | award.sh (manual) |
+| `easter_egg_unlocks` | award subcommand (manual) |
 | `self_reads` | Read: path contains /.claude/achievements/ |
 
-## state.json Schema
+## state.json Schema (encrypted — fields listed for reference)
 
 ```json
 {
@@ -388,14 +451,13 @@ Newly unlocked notifications are drained by `stop.sh` and emitted as a `systemMe
     "unlock_times": { "achievement_id": "2026-01-01T00:00:00Z", ... },
     "models_used": ["claude-...", ...],
     "last_session_model_check": "session-id-string",
+    "last_update_check_epoch": 0,
     "last_updated": "2026-01-01T00:00:00Z"
 }
 ```
 
-`unlock_times` maps achievement ID → ISO 8601 UTC timestamp of when it was unlocked.
-Achievements unlocked before this field was introduced have no entry (gracefully omitted from display).
-
-New counters are auto-created on first increment via `(.[$key] // 0) + 1` — no migration needed.
+The file is AES-256-GCM encrypted. `jq` on the raw file returns `null` for all fields.
+Use `cheevos show` to inspect state.
 
 ## Rank Achievement Chain
 
@@ -416,102 +478,81 @@ beyond_the_claudeverse                   — all_unlocked (every other achieveme
 meta_50 ("Achievement Unlocked: Achievement") — unlocked_count_gte: 50 (independent)
 ```
 
-`all_of_level` checks non-rank achievements only (`.category != "rank"`), so completing
-all beginner non-rank achievements unlocks `graduation_day` regardless of rank status.
-Rank achievements cascade naturally — unlocking one may make the next checkable, but
-since `state-update.sh` checks against the pre-update unlocked list, cascades take effect
-on the *next* tool call (one turn of latency).
+`all_of_level` checks non-rank achievements only (`.category != "rank"`).
+Rank achievements cascade naturally — since the engine checks against the pre-update
+unlocked list, cascades take effect on the *next* tool call (one turn of latency).
 
-## First Install: seed-state.sh
+## First Install: cheevos seed
 
-On first install (no existing `state.json`), `seed-state.sh` runs to pre-unlock any
-session achievements the user has already earned:
+On first install (no existing `state.json`), `cheevos seed` pre-unlocks any session
+achievements the user has already earned:
 
 1. Reads `totalSessions` from `~/.claude/stats-cache.json`
 2. Unlocks all session-based achievements whose threshold ≤ existing session count
 3. Calculates the starting score from those pre-unlocked achievements
-4. Writes the initial `state.json`
+4. Writes the initial encrypted `state.json`
 
-On upgrade (existing `state.json`), `seed-state.sh` is skipped entirely — state is preserved.
+On upgrade (existing `state.json`), seed is skipped — state is preserved.
+Plaintext `state.json` from the bash era is migrated to encrypted format transparently
+on the first `cheevos update` call.
 
-## Status Bar (statusline-wrapper.sh)
+## Status Bar
 
-`install.sh` wraps any existing `statusLine.command` with `statusline-wrapper.sh`.
-The wrapper outputs the score and, for 5 minutes after an unlock, the achievement name:
+`install.sh` sets `statusLine.command` to `~/.claude/achievements/cheevos statusline`.
+The binary outputs the score and, for 5 minutes after an unlock, the achievement name:
 
 ```
 🏆 560 pts
 🏆 710 pts (Power User!)    ← for 5 min after unlock
 ```
 
-The wrapper calls the original status line command first (if any), then appends the
-achievement score. The original command is saved to `.original-statusline` for uninstall.
+If the user had a custom statusLine before install, it's saved in `.original-statusline`
+and called first; the achievement segment is appended after `" | "`.
 
-## Tutorial System (learning-path.sh)
+## Tutorial System (cheevos learn)
 
 The tutorial is driven purely by `"tutorial": true` in `definitions.json`. To add/remove
-achievements from the tutorial path, set or unset that field — no script changes needed.
+achievements from the tutorial path, set or unset that flag — no code changes needed.
+Rebuild the binary after editing `data/definitions.json`.
 
 Current tutorial set (8 achievements, 165 pts):
 `first_session`, `back_again`, `web_search_first`, `files_written_10`,
 `laying_down_the_law`, `files_read_100`, `bash_calls_50`, `plan_mode_first`
 
-Tips are hardcoded in `learning-path.sh` inside the `get_tip()` case statement.
-Add a new branch for any new tutorial achievement:
-```bash
-# Inside get_tip() in learning-path.sh:
-        my_achievement_id) echo "How to unlock this: ..." ;;
+Tips are hardcoded in `go/cmd/cheevos/subcmd/learn.go` in the `tips` map.
+Add a new entry for any new tutorial achievement:
+```go
+"my_achievement_id": "How to unlock this: ...",
 ```
 
-## show-achievements.sh Filters
+## cheevos show Filters
 
 **Unlock status:** `--all` / `-a`, `--unlocked` / `-u`, `--locked` / `-l`
 
-**Skill level:** `--beginner` / `-B`, `--intermediate` / `-I`, `--experienced` / `-E`, `--master` / `-M`
+**Skill level:** `--beginner` / `-B`, `--intermediate` / `-I`, `--experienced` / `-E`, `--master` / `-M`, `--secret` / `-S`
 
-Flags are combinable: `show-achievements.sh --locked --beginner`
+Flags are combinable: `cheevos show --locked --beginner`
 
-When run in a terminal with **no flags**, it shows two sequential `select` prompts:
+When run in a terminal with **no flags**, it shows two sequential numbered prompts:
 1. Unlock status (All / Unlocked only / Locked only)
-2. Skill level filter (All levels / Beginner / Intermediate / Experienced / Master)
+2. Skill level filter (All levels / Beginner / Intermediate / Experienced / Master / Secret)
 
-Categories displayed in order (add new ones to the `CATS` array):
+Categories displayed in order (add new ones to the `categories` slice in `go/cmd/cheevos/subcmd/show.go`):
 `sessions`, `files`, `shell`, `search`, `mcp`, `plan_mode`, `tokens`, `commands`,
 `context`, `specs`, `reviews`, `tests`, `misc`, `rank`
 
-## Known Gaps (Future Work)
-
-All four previously untracked counters have now been wired up:
-
-| Counter | How it's now tracked |
-|---|---|
-| `plan_mode_sessions` | `post-tool-use.sh` — `ExitPlanMode` tool case increments once per completed plan |
-| `tokens_consumed` | `stop.sh` — `output_tokens` from the last assistant message added each turn |
-| `task_calls` | `post-tool-use.sh` — `Task` tool case |
-| `dangerous_launches` | `session-start.sh` — checks `ps -p $PPID -o args=` on startup for `--dangerously-skip-permissions` |
-
-**Notes:**
-- `tokens_consumed` tracks **output tokens per turn**, not total (input + output). Output tokens
-  are the cleanest measure (no double-counting from repeated context). At ~500 tokens/turn
-  average, Token Taster (100k) unlocks after ~200 turns, which is reasonable.
-- `dangerous_launches` detection depends on `$PPID` resolving to the Claude process. It fails
-  gracefully (no increment) if the process lookup fails or the flag isn't present.
-- `ExitPlanMode` fires when the user **approves** a plan and implementation begins, which is
-  the most meaningful signal for "entered plan mode intentionally."
-
-Still tracked in `README.md` TODO: **tamper protection** — add HMAC signature to `state.json`
-to prevent users from manually editing counters to cheat achievements.
-
 ## install.sh Checklist
 
-When adding new scripts, add a `cp` line in the shared-scripts block before `chmod +x`.
-When adding new hooks, add a `cp` line in the hooks block and add the hook registration
-to the jq merge block (Phase 2). The jq merge is idempotent — it checks for exact
-command string before adding.
+When adding new hook scripts, add a `cp` line in the hooks block in `go/install.sh`
+and add the hook registration to the jq merge block (Phase 2). The jq merge is
+idempotent — it checks for exact command string before adding.
 
-**Phase 6.5 — Leaderboard configuration** (added in leaderboard work stream):
-- `--token TOKEN` and `--api-url URL` args parsed before Phase 0 via a `while [[$# -gt 0]]` loop
-- If both args provided → generates a UUID (uuidgen / python3 / /proc fallback) → writes enabled `leaderboard.conf` → `chmod 600`
+When adding new utility scripts, add a `cp` line in the shared-scripts block before `chmod +x`,
+and add a thin shim in `go/scripts/`.
+
+**Phase 6.5 — Leaderboard configuration:**
+- `--token TOKEN` and `--api-url URL` args parsed before Phase 0
+- If both args provided → generates UUID → writes enabled `leaderboard.conf` → `chmod 600`
 - If no args and conf exists → preserves (upgrade path)
 - If no args and no conf → writes disabled stub
 - `leaderboard.conf` is never overwritten on upgrade unless `--token` is re-supplied
@@ -526,53 +567,37 @@ command string before adding.
   `grep`+`cut` lookups, or newline-delimited strings with `grep -qx` for set membership.
 - **Single quotes inside single-quoted jq strings:** The jq expressions in `stop.sh` and
   other hooks are passed as single-quoted strings (`'...'`). You **cannot** embed a literal
-  single quote inside a single-quoted bash string — it will silently break the quoting and
-  cause an `unexpected EOF` parse error far from the actual problem. Instead:
+  single quote inside a single-quoted bash string. Instead:
   - Use `.` (match any char) instead of a literal `'` in regex patterns: `i(.ve)?` not `i('ve)?`
   - Use `.?` instead of `'?`: `you.?re` not `you'?re`
-  - The `'"'"'` trick (end-quote, escaped-quote, re-open-quote) does **not** work inside
-    `$(...)` command substitutions nested within single-quoted strings.
   - **Always run `bash -n script.sh`** after editing any hook to catch these issues.
-- **Heredocs with mixed expansion:** When a heredoc contains both bash variables to expand
-  and literal `$` characters (e.g. PowerShell variables), use a **quoted** heredoc
-  (`<< 'EOF'`) with placeholder substitution via `sed`, rather than an unquoted heredoc
-  with `\$` escaping. The unquoted approach is fragile with nested `$(...)` subshells
-  and embedded single quotes.
-- **Locking:** All state writes go through `with_lock bash "$SCRIPTS_DIR/state-update.sh"`.
-  Never write state.json directly without the lock.
+- **Rebuild after changing definitions:** `data/definitions.json` is embedded at compile
+  time. Any change to it requires rebuilding the binary and redistributing `dist/`.
+- **Hook HMAC validation:** If a hook call fails HMAC verification, `cheevos update`
+  exits 1 and the hook propagates the error (hook error in Claude Code). This usually
+  means the HMAC secret in `lib.sh` doesn't match the binary — re-run `install.sh` to fix.
 - **Async hook race:** `post-tool-use.sh` is async. `stop.sh` is synchronous and runs
-  after the async hook — notifications are queued in notifications.json for this reason.
-- **jq null handling:** Missing counter fields default to 0 via `// 0`. Missing array
-  fields default to `[]` via `// []`. Rank achievements have `condition.threshold == null`
-  in the @tsv output — check for this in display code.
-- **COUNTER_UPDATES building:** Always start from a base JSON object and add keys with jq
-  `'. + {"key": 1}'`. This allows multiple counters per tool call without if/elif ladders.
+  after the async hook — notifications are queued in `notifications.json` for this reason.
+- **State file is encrypted:** Never try to read `state.json` with `jq` directly.
+  Use `cheevos show` or `cheevos verify` to inspect state.
 
 ## Verifying Changes
 
-After editing **any** hook or script, always run a syntax check before installing:
+After editing any hook or script:
 
 ```bash
-# Syntax-check all hooks and scripts (catches quoting errors, missing quotes, etc.)
+# Syntax-check all hooks and scripts
 for f in hooks/*.sh scripts/*.sh; do
     bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
 done
-```
 
-Then copy to the installed location and verify again:
-
-```bash
+# After installing
 bash install.sh
-for f in ~/.claude/achievements/hooks/*.sh ~/.claude/achievements/scripts/*.sh; do
-    bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
-done
+~/.claude/achievements/cheevos verify
 ```
 
 Common symptoms of quoting bugs:
 - `unexpected EOF while looking for matching \`"'` — an unescaped single quote inside a
-  single-quoted string (the error line number points to the *end* of the broken string,
-  not the offending quote)
-- `unexpected EOF while looking for matching \`)'` — same cause, but bash is looking for
-  the close of a `$(...)` subshell that was broken by a stray quote
-- `syntax error near unexpected token \`)'` — a `)` that bash sees as shell syntax
-  because the surrounding quotes were broken
+  single-quoted string (the error line number points to the *end* of the broken string)
+- `unexpected EOF while looking for matching \`)'` — same cause but inside `$(...)`
+- `syntax error near unexpected token \`)'` — broken surrounding quotes

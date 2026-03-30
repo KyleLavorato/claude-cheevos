@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh - Remove Claude Code Achievement System
+# uninstall.sh - Remove Claude Code Achievement System (binary edition)
 #
 # Restores the original statusLine command and removes achievement hooks
 # from ~/.claude/settings.json. Optionally deletes achievement data.
@@ -29,12 +29,10 @@ if [[ -f "$ORIGINAL_SAVE" ]]; then
     TEMP=$(mktemp "$SETTINGS.XXXXXX")
 
     if [[ -n "$ORIG_CMD" ]]; then
-        # Restore original command
         jq --arg cmd "$ORIG_CMD" '.statusLine.command = $cmd' "$SETTINGS" > "$TEMP"
         mv "$TEMP" "$SETTINGS"
         echo "✓ Restored original statusLine: $ORIG_CMD"
     else
-        # No original existed - remove the statusLine key
         jq 'del(.statusLine)' "$SETTINGS" > "$TEMP"
         mv "$TEMP" "$SETTINGS"
         echo "✓ Removed statusLine (none existed before install)"
@@ -45,7 +43,6 @@ fi
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 2: Remove achievement hooks from settings.json
-# Removes any hook entry whose command contains "achievements/hooks"
 # ─────────────────────────────────────────────────────────────────────────────
 
 TEMP=$(mktemp "$SETTINGS.XXXXXX")
@@ -58,7 +55,6 @@ jq '
                 )
             )
         ) |
-        # Remove events that now have no hooks
         .hooks |= with_entries(select(.value | length > 0))
     else . end
 ' "$SETTINGS" > "$TEMP" && mv "$TEMP" "$SETTINGS"
@@ -93,15 +89,19 @@ if [[ -f "$LEADERBOARD_CONF" ]]; then
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 4: Optionally delete achievement data
+# Step 4: Optionally delete achievement data (including binary and key)
 # ─────────────────────────────────────────────────────────────────────────────
 
 echo ""
-if [[ -f "$ACHIEVEMENTS_DIR/state.json" ]]; then
-    SCORE=$(jq -r '.score // 0' "$ACHIEVEMENTS_DIR/state.json" 2>/dev/null || echo 0)
-    UNLOCKED=$(jq -r '.unlocked | length' "$ACHIEVEMENTS_DIR/state.json" 2>/dev/null || echo 0)
+if [[ -d "$ACHIEVEMENTS_DIR" ]]; then
+    # Show score if state is readable (try jq on the raw file as a heuristic first;
+    # if encrypted it'll show 0/0 which is fine)
+    SCORE=0
+    UNLOCKED=0
+    if [[ -x "$ACHIEVEMENTS_DIR/cheevos" ]]; then
+        SCORE=$("$ACHIEVEMENTS_DIR/cheevos" show --unlocked 2>/dev/null | grep -o '[0-9]* pts' | head -1 | grep -o '[0-9]*' || echo 0)
+    fi
     echo "Achievement data at: $ACHIEVEMENTS_DIR"
-    echo "  Score: $SCORE pts | Unlocked: $UNLOCKED achievements"
     echo ""
     read -r -p "Delete all achievement data? Your progress will be lost. [y/N] " REPLY
     if [[ "$REPLY" =~ ^[Yy]$ ]]; then

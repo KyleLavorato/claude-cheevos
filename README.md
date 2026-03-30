@@ -10,9 +10,9 @@ usage milestones, awards points, and surfaces progress through three UIs and a l
 ## Requirements
 
 - [Claude Code](https://claude.ai/code) installed (`~/.claude/settings.json` must exist)
-- `bash` 3.2+ (macOS default is fine — but see [Bash 3.2 constraints](#bash-32-constraints-macos) below)
-- `jq` 1.6+
-- macOS or Linux (Windows via WSL)
+- `bash` 3.2+ and `jq` 1.6+
+- macOS, Linux, or Windows (via WSL)
+- No other runtime dependencies — the core engine is a pre-built Go binary
 
 ---
 
@@ -42,8 +42,9 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 
 ```
 ~/.claude/achievements/
-├── definitions.json          # All achievement definitions
-├── state.json                # Your score, counters, unlocked list
+├── cheevos                   # Pre-built Go binary — contains all achievement logic
+├── .key                      # Per-installation AES-256 encryption key (chmod 600)
+├── state.json                # Encrypted state (score, counters, unlocked list)
 ├── notifications.json        # Pending unlock queue ([] when empty)
 ├── state.lock                # Lock file (do not delete)
 ├── leaderboard.conf          # Leaderboard config: enabled, UUID, token, API URL (chmod 600)
@@ -56,19 +57,19 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 │   ├── pre-compact.sh        # Fires before context compaction
 │   └── stop.sh               # Fires at end of every assistant turn
 ├── scripts/
-│   ├── lib.sh                 # Shared paths and locking
-│   ├── state-update.sh        # Atomic state writer (always called under lock)
-│   ├── statusline-wrapper.sh  # Status bar output
-│   ├── seed-state.sh          # First-install state seeder
-│   ├── show-achievements.sh   # Full achievement list UI
-│   ├── learning-path.sh       # Guided tutorial UI
-│   ├── award.sh               # Manual Easter egg award tool
-│   ├── check-updates.sh       # Auto-update definitions from GitHub (runs once/day)
-│   ├── leaderboard-sync.sh    # Score push to leaderboard API (fire-and-forget)
-│   └── auto-update.sh         # Auto-update definitions.json from GitHub
+│   ├── lib.sh                 # Shared paths and HMAC helpers
+│   ├── statusline-wrapper.sh  # Thin shim → cheevos statusline
+│   ├── seed-state.sh          # Thin shim → cheevos seed
+│   ├── show-achievements.sh   # Thin shim → cheevos show
+│   ├── learning-path.sh       # Thin shim → cheevos learn
+│   ├── award.sh               # Thin shim → cheevos award
+│   └── verify-install.sh      # Thin shim → cheevos verify
 └── logs/
     └── leaderboard.log        # Append-only sync log (HTTP status per PUT, token never logged)
 ```
+
+> **State is encrypted.** `state.json` is AES-256-GCM encrypted — `jq` will not reveal your
+> score or counters. Use `cheevos show` to read your state.
 
 ### Uninstallation
 
@@ -81,24 +82,12 @@ optionally deletes `~/.claude/achievements/`.
 
 ### Verifying after install
 
-Run the verification script to check your installation:
-
 ```bash
-bash ~/.claude/achievements/scripts/verify-install.sh
+~/.claude/achievements/cheevos verify
 ```
 
-This validates all scripts, JSON files, hooks, and displays your current stats.
-
-Alternatively, manually check each script's syntax:
-
-```bash
-for f in ~/.claude/achievements/hooks/*.sh ~/.claude/achievements/scripts/*.sh; do
-    bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
-done
-```
-
-All scripts should report `OK`. If any report `FAIL`, see
-[Bash 3.2 constraints](#bash-32-constraints-macos) below for common causes.
+This checks the binary, encryption key, encrypted state, notifications file, hook
+registrations in `settings.json`, and statusLine configuration.
 
 ---
 
@@ -121,12 +110,12 @@ it and appends the score.
 
 ---
 
-## UI 1 — Achievement List (`show-achievements.sh`)
+## UI 1 — Achievement List (`cheevos show`)
 
 Browse your full achievement list with filters.
 
 ```bash
-bash ~/.claude/achievements/scripts/show-achievements.sh
+~/.claude/achievements/cheevos show
 ```
 
 **Interactive mode** (when run in a terminal with no flags): shows two prompts —
@@ -148,9 +137,9 @@ unlock status first, then skill level.
 -S / --secret
 
 # Examples
-bash show-achievements.sh --locked --beginner     # What beginner stuff is left?
-bash show-achievements.sh --unlocked              # Victory lap
-bash show-achievements.sh --locked --intermediate # Next targets
+cheevos show --locked --beginner     # What beginner stuff is left?
+cheevos show --unlocked              # Victory lap
+cheevos show --locked --intermediate # Next targets
 ```
 
 **What you'll see:**
@@ -174,13 +163,13 @@ Files
 
 ---
 
-## UI 2 — Tutorial (`learning-path.sh`)
+## UI 2 — Tutorial (`cheevos learn`)
 
 A guided walkthrough of the core beginner achievements, with tips, a progress bar, and
 an "Up Next" section showing your next three targets.
 
 ```bash
-bash ~/.claude/achievements/scripts/learning-path.sh
+~/.claude/achievements/cheevos learn
 ```
 
 **Example output:**
@@ -325,9 +314,9 @@ Multiple unlocks in the same turn are batched into one notification.
 New achievements are automatically downloaded from the public GitHub repo once per day when you start a new Claude Code session.
 
 **How it works:**
-1. On session startup, `session-start.sh` triggers `check-updates.sh` in the background
-2. The script checks for new achievement IDs in the remote `definitions.json`
-3. New achievements are merged into your local definitions (existing ones are never modified)
+1. On session startup, `session-start.sh` triggers `cheevos update-defs` in the background
+2. The binary checks for new achievement IDs in the remote `definitions.json`
+3. New achievements are merged into a local override file (existing ones are never modified)
 4. You get a desktop notification when new achievements are added
 5. Your progress and unlocked achievements are always preserved
 
@@ -335,12 +324,12 @@ New achievements are automatically downloaded from the public GitHub repo once p
 
 **Manual check:**
 ```bash
-bash ~/.claude/achievements/scripts/check-updates.sh --force
+~/.claude/achievements/cheevos update-defs --force
 ```
 
-**Configuration:** The update system fetches from `KyleLavorato/claude-cheevos/main/data/definitions.json`. To change the source repo or branch, edit `GITHUB_REPO` and `GITHUB_BRANCH` in `~/.claude/achievements/scripts/check-updates.sh`.
-
-**Disabling auto-updates:** Remove the auto-update trigger from `~/.claude/achievements/hooks/session-start.sh` (look for the `check-updates.sh &` line). You can still manually trigger updates with `--force`.
+**Disabling auto-updates:** Remove the `cheevos update-defs &` line from
+`~/.claude/achievements/hooks/session-start.sh`. You can still manually trigger
+updates with `--force`.
 
 See [`AUTO_UPDATE.md`](AUTO_UPDATE.md) for full details.
 
@@ -352,7 +341,7 @@ Some achievements can't be tracked automatically and require deliberately asking
 
 **Hey Unlock This** — ask Claude to unlock it. Claude will run:
 ```bash
-bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks
+~/.claude/achievements/cheevos award easter_egg_unlocks
 ```
 
 > **Note:** `award.sh` validates the counter name against `definitions.json` — only counters
@@ -408,7 +397,7 @@ To disable automatic updates, remove or comment out the auto-update line in `~/.
 
 ## Adding Custom Achievements
 
-Edit `data/definitions.json` in the repo and re-run `install.sh`. Your progress is preserved.
+Edit `data/definitions.json` in the repo, rebuild the binary (`cd go && make dist`), and re-run `install.sh`. Your progress is preserved.
 
 ```json
 {
@@ -490,11 +479,11 @@ enable GitHub Pages from `main → /docs`, and it's live.
 
 See `leaderboard-ui/README.md` for step-by-step setup.
 
-### 3. Cheevos sync (`leaderboard-sync.sh`)
+### 3. Cheevos sync (`cheevos leaderboard-sync`)
 
-Installed automatically with `--token` and `--api-url`. After every achievement unlock,
-`stop.sh` calls `leaderboard-sync.sh` in the background. It does a silent `PUT /users/{uuid}`
-with the current score — the token is never written to logs.
+Installed automatically with `--token` and `--api-url`. After every assistant turn,
+`stop.sh` calls `cheevos leaderboard-sync` in the background. It does a silent
+`PUT /users/{uuid}` with the current score — the token is never written to logs.
 
 ```bash
 # Verify your leaderboard config after install
