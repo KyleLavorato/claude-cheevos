@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Bronze shield for Beginner -->
+  <defs>
+    <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#CD7F32;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#B87333;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B6914;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Shield shape -->
+  <path d="M 60 10 L 90 25 L 90 65 Q 90 95, 60 110 Q 30 95, 30 65 L 30 25 Z"
+        fill="url(#bronzeGrad)" stroke="#654321" stroke-width="2" filter="url(#shadow)"/>
+
+  <!-- Inner border -->
+  <path d="M 60 15 L 85 28 L 85 65 Q 85 92, 60 105 Q 35 92, 35 65 L 35 28 Z"
+        fill="none" stroke="#FFD700" stroke-width="1" opacity="0.5"/>
+
+  <!-- Star icon -->
+  <polygon points="60,40 64,52 77,52 67,60 71,72 60,64 49,72 53,60 43,52 56,52"
+           fill="#FFE4B5" opacity="0.9"/>
+
+  <!-- Text -->
+  <text x="60" y="95" font-family="Arial, sans-serif" font-size="12" font-weight="bold"
+        fill="#FFE4B5" text-anchor="middle">BEGINNER</text>
+</svg>

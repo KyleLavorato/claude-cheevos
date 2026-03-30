@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Platinum crown for Master -->
+  <defs>
+    <linearGradient id="platinumGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E5E4E2;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#BCC6CC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#98A4AE;stop-opacity:1" />
+    </linearGradient>
+    <filter id="metallic">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
+      <feOffset dx="0" dy="1" result="offsetblur"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Crown base -->
+  <path d="M 25 60 L 30 85 L 90 85 L 95 60 Z"
+        fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="2" filter="url(#metallic)"/>
+
+  <!-- Crown points -->
+  <polygon points="30,60 35,35 40,60" fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="1.5"/>
+  <polygon points="45,60 50,25 55,60" fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="1.5"/>
+  <polygon points="60,60 65,20 70,60" fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="1.5"/>
+  <polygon points="75,60 80,25 85,60" fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="1.5"/>
+  <polygon points="90,60 95,35 100,60" fill="url(#platinumGrad)" stroke="#7F8C8D" stroke-width="1.5"/>
+
+  <!-- Jewels on crown -->
+  <circle cx="50" cy="25" r="4" fill="#FF6B6B"/>
+  <circle cx="65" cy="20" r="5" fill="#4ECDC4"/>
+  <circle cx="80" cy="25" r="4" fill="#95E1D3"/>
+
+  <!-- Text -->
+  <text x="60" y="105" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
+        fill="#5D6D7E" text-anchor="middle">MASTER</text>
+</svg>

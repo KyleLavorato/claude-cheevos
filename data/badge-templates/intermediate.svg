@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Silver star for Intermediate -->
+  <defs>
+    <linearGradient id="silverGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#E8E8E8;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#C0C0C0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#A8A8A8;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 5-point star -->
+  <polygon points="60,15 70,45 100,45 76,65 86,95 60,75 34,95 44,65 20,45 50,45"
+           fill="url(#silverGrad)" stroke="#808080" stroke-width="2" filter="url(#glow)"/>
+
+  <!-- Inner highlight -->
+  <polygon points="60,20 68,43 93,43 73,58 81,85 60,68 39,85 47,58 27,43 52,43"
+           fill="none" stroke="#FFFFFF" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Center circle -->
+  <circle cx="60" cy="55" r="12" fill="#4A90E2" stroke="#FFFFFF" stroke-width="2"/>
+
+  <!-- Text -->
+  <text x="60" y="112" font-family="Arial, sans-serif" font-size="10" font-weight="bold"
+        fill="#606060" text-anchor="middle">INTERMEDIATE</text>
+</svg>

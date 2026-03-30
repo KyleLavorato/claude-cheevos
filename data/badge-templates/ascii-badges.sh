@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# ascii-badges.sh - ASCII art badge templates for terminal display
+# Used as fallback when SVG/image display is not available
+
+show_badge() {
+    local tier="$1"
+
+    case "$tier" in
+        beginner)
+            cat << 'EOF'
+    ╔═══════════╗
+    ║   ◢█◣     ║
+    ║  ◢███◣    ║
+    ║ ◢█████◣   ║
+    ║ ███████   ║
+    ║  ◥███◤    ║
+    ║   ⭐️      ║
+    ║ BEGINNER  ║
+    ╚═══════════╝
+EOF
+            ;;
+        intermediate)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║      ★        ║
+    ║    ★ ★ ★      ║
+    ║  ★   ◉   ★    ║
+    ║    ★ ★ ★      ║
+    ║      ★        ║
+    ║               ║
+    ║ INTERMEDIATE  ║
+    ╚═══════════════╝
+EOF
+            ;;
+        experienced)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║   ⎧ ◉ ⎫       ║
+    ║   │▓▓▓│       ║
+    ║   │▓▓▓│       ║
+    ║   │▓▓▓│       ║
+    ║  ╱▔▔▔▔▔╲      ║
+    ║ ╱   ⭐️   ╲    ║
+    ║ EXPERIENCED   ║
+    ╚═══════════════╝
+EOF
+            ;;
+        master)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║  ♦ ♛ ♦        ║
+    ║ ◢███████◣     ║
+    ║ █████████     ║
+    ║ ◥███████◤     ║
+    ║  ╱▔▔▔▔▔╲      ║
+    ║ │ ★ ★ ★ │     ║
+    ║   MASTER      ║
+    ╚═══════════════╝
+EOF
+            ;;
+        impossible)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║     ◊         ║
+    ║    ◊◊◊        ║
+    ║   ◊◊◊◊◊       ║
+    ║  ◊◊◊◊◊◊◊      ║
+    ║   ◊◊◊◊◊       ║
+    ║    ◊◊◊    ✨  ║
+    ║  IMPOSSIBLE   ║
+    ╚═══════════════╝
+EOF
+            ;;
+        secret)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║  ┏━━━━━━━┓    ║
+    ║  ┃ ????? ┃    ║
+    ║  ┃   ?   ┃    ║
+    ║  ┃ ????? ┃    ║
+    ║  ┗━━━━━━━┛    ║
+    ║      🎁        ║
+    ║    SECRET     ║
+    ╚═══════════════╝
+EOF
+            ;;
+        rank)
+            cat << 'EOF'
+    ╔═══════════════╗
+    ║   👑 RANK 👑   ║
+    ║               ║
+    ║   ╔═══════╗   ║
+    ║   ║ ★ ★ ★ ║   ║
+    ║   ║  ★★★  ║   ║
+    ║   ╚═══════╝   ║
+    ║               ║
+    ╚═══════════════╝
+EOF
+            ;;
+        *)
+            echo "Unknown tier: $tier"
+            return 1
+            ;;
+    esac
+}
+
+# If called directly, show the requested badge
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    if [[ $# -lt 1 ]]; then
+        echo "Usage: $0 <tier>"
+        echo "Tiers: beginner, intermediate, experienced, master, impossible, secret, rank"
+        exit 1
+    fi
+    show_badge "$1"
+fi

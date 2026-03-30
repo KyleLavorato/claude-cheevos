@@ -96,10 +96,17 @@ cp "$REPO_DIR/scripts/check-updates.sh"      "$ACHIEVEMENTS_DIR/scripts/check-up
 cp "$REPO_DIR/scripts/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 cp "$REPO_DIR/scripts/leaderboard-sync.sh"   "$ACHIEVEMENTS_DIR/scripts/leaderboard-sync.sh"
 cp "$REPO_DIR/scripts/auto-update.sh"        "$ACHIEVEMENTS_DIR/scripts/auto-update.sh"
+cp "$REPO_DIR/scripts/show-badge.sh"         "$ACHIEVEMENTS_DIR/scripts/show-badge.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions (always update from repo to pick up new achievements)
 cp "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
+
+# Badge templates (SVG and ASCII)
+mkdir -p "$ACHIEVEMENTS_DIR/data/badge-templates"
+cp "$REPO_DIR/data/badge-templates"/*.svg "$ACHIEVEMENTS_DIR/data/badge-templates/" 2>/dev/null || true
+cp "$REPO_DIR/data/badge-templates/ascii-badges.sh" "$ACHIEVEMENTS_DIR/data/badge-templates/" 2>/dev/null || true
+chmod +x "$ACHIEVEMENTS_DIR/data/badge-templates/"*.sh 2>/dev/null || true
 
 echo "✓ Scripts installed to $ACHIEVEMENTS_DIR"
 

@@ -302,6 +302,15 @@ ACHIEVEMENT_LINES=$(jq -r '
     | join("\n")
 ' "$TEMP_NOTIFS")
 
+# Display ASCII badge for single achievement unlocks (if in terminal)
+if [[ "$COUNT" == "1" && -t 1 ]]; then
+    _badge_tier=$(jq -r '.[0].skill_level' "$TEMP_NOTIFS")
+    _badge_script="$(dirname "$SCRIPTS_DIR")/data/badge-templates/ascii-badges.sh"
+    if [[ -f "$_badge_script" ]]; then
+        bash "$_badge_script" "$_badge_tier" 2>/dev/null || true
+    fi
+fi
+
 # Fire system notification (macOS and WSL/Windows)
 if [[ "$(uname -s)" == "Darwin" ]]; then
     # macOS: native notification via osascript

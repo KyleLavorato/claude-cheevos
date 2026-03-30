@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <!-- Diamond artifact for Impossible -->
+  <defs>
+    <linearGradient id="diamondGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#B9F2FF;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A0E7FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#81D4FA;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="sparkle">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFFFFF;stop-opacity:0" />
+    </radialGradient>
+    <filter id="diamondGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Diamond top facet -->
+  <polygon points="60,20 80,45 60,50 40,45"
+           fill="url(#diamondGrad)" stroke="#0288D1" stroke-width="2" opacity="0.9"/>
+
+  <!-- Diamond middle -->
+  <polygon points="80,45 90,65 60,50"
+           fill="#A0E7FF" stroke="#0288D1" stroke-width="1.5"/>
+  <polygon points="40,45 30,65 60,50"
+           fill="#C5EFF7" stroke="#0288D1" stroke-width="1.5"/>
+
+  <!-- Diamond bottom -->
+  <polygon points="30,65 60,90 90,65 60,50"
+           fill="url(#diamondGrad)" stroke="#0288D1" stroke-width="2" filter="url(#diamondGlow)"/>
+
+  <!-- Sparkle effects -->
+  <circle cx="55" cy="35" r="3" fill="url(#sparkle)"/>
+  <circle cx="70" cy="55" r="2" fill="url(#sparkle)"/>
+  <circle cx="45" cy="60" r="2" fill="url(#sparkle)"/>
+
+  <!-- Light rays -->
+  <line x1="60" y1="20" x2="60" y2="10" stroke="#FFFFFF" stroke-width="2" opacity="0.7"/>
+  <line x1="70" y1="25" x2="78" y2="18" stroke="#FFFFFF" stroke-width="1.5" opacity="0.6"/>
+  <line x1="50" y1="25" x2="42" y2="18" stroke="#FFFFFF" stroke-width="1.5" opacity="0.6"/>
+
+  <!-- Text -->
+  <text x="60" y="108" font-family="Arial, sans-serif" font-size="12" font-weight="bold"
+        fill="#0277BD" text-anchor="middle">IMPOSSIBLE</text>
+</svg>
