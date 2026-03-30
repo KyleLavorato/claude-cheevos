@@ -468,7 +468,7 @@ tail -f ~/.claude/achievements/logs/leaderboard.log
 
 - [ ] Add tamper protection to `state.json` (e.g. HMAC signature) to prevent manually editing counters to cheat achievements
 - [x] ~~Protect the `award.sh` script so it can only be called for valid achievement counters~~ — `award.sh` now validates the counter name against `definitions.json`
-- [ ] Auto-update — have Claude check the public GitHub repo for new `definitions.json` entries and pull them down automatically when new achievements are published
+- [x] Auto-update — have Claude check the public GitHub repo for new `definitions.json` entries and pull them down automatically when new achievements are published
 - [ ] Dev mode — a flag or env var that bypasses tamper protection and lets you manually unlock any achievement by ID for testing purposes (e.g. `CHEEVOS_DEV=1 bash award.sh <achievement_id>`)
 - [ ] Encrypt `state.json` so achievement progress cannot be read or modified in plaintext — prevents cheating without requiring a full HMAC signature scheme
 - [ ] In dev mode, permanently flag `state.json` so the account is ineligible for leaderboard submission — dev-mode unlocks should never count toward any public rankings
