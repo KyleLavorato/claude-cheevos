@@ -21,8 +21,6 @@ type leaderboardConf struct {
     Username string
     Token    string
     APIURL   string
-    TeamID   string
-    TeamName string
 }
 
 // LeaderboardSync reads leaderboard.conf, reads the current score from encrypted
@@ -56,14 +54,12 @@ func LeaderboardSync(achievementsDir string) error {
         Score       int    `json:"score"`
         UnlockCount int    `json:"unlock_count"`
         LastUpdated string `json:"last_updated"`
-        TeamID      string `json:"team_id,omitempty"`
     }
     body, _ := json.Marshal(payload{
         Username:    conf.Username,
         Score:       st.Score,
         UnlockCount: unlockCount,
         LastUpdated: lastUpdated,
-        TeamID:      conf.TeamID,
     })
 
     url := strings.TrimRight(conf.APIURL, "/") + "/users/" + conf.UserID
@@ -127,10 +123,6 @@ func readLeaderboardConf(path string) (leaderboardConf, error) {
             conf.Token = v
         case "API_URL":
             conf.APIURL = v
-        case "TEAM_ID":
-            conf.TeamID = v
-        case "TEAM_NAME":
-            conf.TeamName = v
         }
     }
     return conf, scanner.Err()

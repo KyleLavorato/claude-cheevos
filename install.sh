@@ -17,15 +17,11 @@ set -euo pipefail
 # ─── Argument parsing ─────────────────────────────────────────────────────────
 ARG_TOKEN=""
 ARG_API_URL=""
-ARG_TEAM_ID=""
-ARG_TEAM_NAME=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --token)     ARG_TOKEN="${2:-}";     shift 2 ;;
-        --api-url)   ARG_API_URL="${2:-}";   shift 2 ;;
-        --team-id)   ARG_TEAM_ID="${2:-}";   shift 2 ;;
-        --team-name) ARG_TEAM_NAME="${2:-}"; shift 2 ;;
-        *) echo "Usage: bash install.sh [--token TOKEN] [--api-url URL] [--team-id ID] [--team-name NAME]"; exit 1 ;;
+        --token)   ARG_TOKEN="${2:-}";   shift 2 ;;
+        --api-url) ARG_API_URL="${2:-}"; shift 2 ;;
+        *) echo "Usage: bash install.sh [--token TOKEN] [--api-url URL]"; exit 1 ;;
     esac
 done
 
@@ -307,37 +303,12 @@ USER_ID=${USER_ID}
 USERNAME=${USERNAME}
 TOKEN=${ARG_TOKEN}
 API_URL=${ARG_API_URL}
-TEAM_ID=${ARG_TEAM_ID}
-TEAM_NAME=${ARG_TEAM_NAME}
 EOF
     chmod 600 "$LEADERBOARD_CONF"
-    if [[ -n "$ARG_TEAM_ID" ]]; then
-        echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID}, team: ${ARG_TEAM_NAME:-$ARG_TEAM_ID})"
-    else
-        echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID})"
-    fi
+    echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID})"
 elif [[ -f "$LEADERBOARD_CONF" ]]; then
-    # Case B: existing conf — preserve on upgrade, but add missing team fields if needed
-    if ! grep -q '^TEAM_ID=' "$LEADERBOARD_CONF" 2>/dev/null; then
-        # Old config format - append team fields
-        cat >> "$LEADERBOARD_CONF" << 'EOF'
-TEAM_ID=
-TEAM_NAME=
-EOF
-    fi
-    # If user provided team args on upgrade, update them
-    if [[ -n "$ARG_TEAM_ID" ]]; then
-        if [[ "$(uname -s)" == "Darwin" ]]; then
-            sed -i '' "s|^TEAM_ID=.*|TEAM_ID=${ARG_TEAM_ID}|" "$LEADERBOARD_CONF"
-            sed -i '' "s|^TEAM_NAME=.*|TEAM_NAME=${ARG_TEAM_NAME}|" "$LEADERBOARD_CONF"
-        else
-            sed -i "s|^TEAM_ID=.*|TEAM_ID=${ARG_TEAM_ID}|" "$LEADERBOARD_CONF"
-            sed -i "s|^TEAM_NAME=.*|TEAM_NAME=${ARG_TEAM_NAME}|" "$LEADERBOARD_CONF"
-        fi
-        echo "✓ Leaderboard config updated with team: ${ARG_TEAM_NAME:-$ARG_TEAM_ID}"
-    else
-        echo "✓ Leaderboard config preserved (upgrade)"
-    fi
+    # Case B: existing conf — preserve on upgrade
+    echo "✓ Leaderboard config preserved (upgrade)"
 else
     # Case C: no args, no conf — write disabled stub
     cat > "$LEADERBOARD_CONF" << 'EOF'
@@ -346,8 +317,6 @@ USER_ID=
 USERNAME=
 TOKEN=
 API_URL=
-TEAM_ID=
-TEAM_NAME=
 EOF
     chmod 600 "$LEADERBOARD_CONF"
     echo "✓ Leaderboard disabled (re-run with --token and --api-url to enable)"

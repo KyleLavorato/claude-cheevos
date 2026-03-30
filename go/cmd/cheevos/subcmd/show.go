@@ -28,7 +28,6 @@ var categories = []struct{ id, label string }{
     {"tests", "Testing"},
     {"misc", "Miscellaneous"},
     {"rank", "Rank Achievements"},
-    {"team", "Team Achievements"},
 }
 
 // Show lists achievements filtered by unlock status and skill level.

@@ -25,9 +25,6 @@ bash install.sh
 
 # Optional: enable leaderboard sync (pushes your score on every achievement unlock)
 bash install.sh --token <api-token> --api-url https://...execute-api.../prod
-
-# Optional: join a team for collaborative achievements
-bash install.sh --token <token> --api-url <url> --team-id <team-uuid> --team-name "Team Name"
 ```
 
 The installer is **idempotent** — safe to run again to upgrade scripts. Your score and progress
@@ -312,49 +309,9 @@ bash ~/.claude/achievements/scripts/tui.sh
 
 ---
 
-## 👥 Team Achievements
-
-Join a team to unlock collaborative achievements and compete on team leaderboards!
-
-**Quick start:**
-```bash
-bash install.sh \
-  --token <token> \
-  --api-url <url> \
-  --team-id <team-uuid> \
-  --team-name "Squad Jackal"
-```
-
-**View your team progress:**
-```bash
-~/.claude/achievements/cheevos team-stats
-```
-
-**Team achievement types:**
-
-1. **Collaborative** — Every team member must reach the goal individually
-   - *Example:* "Squad Goals" — All members hit 100 sessions (+500 pts)
-
-2. **Aggregate** — Team totals are summed across all members
-   - *Example:* "Knowledge Share" — Team reads 10,000 files collectively (+750 pts)
-   - *Example:* "Code Factory" — Team writes 5,000 files together (+600 pts)
-
-3. **Competitive** — Based on leaderboard rank
-   - *Example:* "Top Squad" — #1 team for 7 consecutive days (+2000 pts, secret)
-
-**How it works:**
-- Your team ID is stored in `~/.claude/achievements/leaderboard.conf`
-- Individual stats are synced to the leaderboard API with your team_id
-- Local `team-stats` command shows your contribution (no backend required)
-- Backend aggregation and team leaderboards coming soon
-
-**Current status:** Client-side ready. Team IDs are sent to the leaderboard API, but backend aggregation is pending. See [TEAMS.md](TEAMS.md) for full documentation, technical details, and roadmap.
-
----
-
 ## Achievement Categories
 
-There are **136+ achievements** across 15 categories:
+There are **85+ achievements** across 12 categories:
 
 | Category | Description |
 |---|---|
@@ -372,7 +329,6 @@ There are **136+ achievements** across 15 categories:
 | **Testing** | Writing test files and running test suites |
 | **Miscellaneous** | One-off events, Easter eggs, and fun milestones |
 | **Rank** | Meta-achievements for completing sets of other achievements |
-| **Team** | Collaborative achievements for teams (see [TEAMS.md](TEAMS.md)) |
 
 ### Skill levels
 
