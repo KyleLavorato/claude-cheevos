@@ -20,7 +20,8 @@ cheevos/
 │   ├── seed-state.sh            # First-install state seeder (reads stats-cache.json)
 │   ├── show-achievements.sh     # Achievement list UI with unlock/level filters
 │   ├── learning-path.sh         # Tutorial UI driven by "tutorial": true in definitions
-│   └── award.sh                 # Manual counter increment for Easter egg achievements
+│   ├── award.sh                 # Manual counter increment for Easter egg achievements
+│   └── verify-install.sh        # Installation verification and health check
 ├── install.sh                   # Idempotent installer — copies files, patches settings.json
 ├── uninstall.sh                 # Removes hooks from settings.json, optionally deletes state
 └── README.md
@@ -52,6 +53,9 @@ bash ~/.claude/achievements/scripts/learning-path.sh
 
 # Award an Easter egg counter manually
 bash ~/.claude/achievements/scripts/award.sh easter_egg_unlocks
+
+# Verify installation
+bash ~/.claude/achievements/scripts/verify-install.sh
 
 # Verify state
 jq . ~/.claude/achievements/state.json

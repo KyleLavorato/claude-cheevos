@@ -65,7 +65,15 @@ optionally deletes `~/.claude/achievements/`.
 
 ### Verifying after install
 
-Run a syntax check on every installed script to catch quoting or compatibility issues:
+Run the verification script to check your installation:
+
+```bash
+bash ~/.claude/achievements/scripts/verify-install.sh
+```
+
+This validates all scripts, JSON files, hooks, and displays your current stats.
+
+Alternatively, manually check each script's syntax:
 
 ```bash
 for f in ~/.claude/achievements/hooks/*.sh ~/.claude/achievements/scripts/*.sh; do

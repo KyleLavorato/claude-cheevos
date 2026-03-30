@@ -81,6 +81,7 @@ cp "$REPO_DIR/scripts/seed-state.sh"         "$ACHIEVEMENTS_DIR/scripts/seed-sta
 cp "$REPO_DIR/scripts/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achievements.sh"
 cp "$REPO_DIR/scripts/learning-path.sh"      "$ACHIEVEMENTS_DIR/scripts/learning-path.sh"
 cp "$REPO_DIR/scripts/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
+cp "$REPO_DIR/scripts/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions (always update from repo to pick up new achievements)
