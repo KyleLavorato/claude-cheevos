@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏆 Claude Code Achievements</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* Claude Code palette — warm darks, cream text, signature orange */
+  --bg:       #1c1a18;
+  --surface:  #252320;
+  --surface2: #2d2b28;
+  --border:   #3d3a36;
+  --text:     #ede8dc;
+  --muted:    #9a9286;
+  --green:    #56d364;
+  --yellow:   #f0b429;
+  --claude:   #cc785c;   /* Claude's signature warm orange — primary accent */
+  --purple:   #c4b5fd;
+  --red:      #fc8181;
+  --teal:     #4ecdc4;   /* intermediate level — freed from blue */
+}
+
+html { font-size: 15px; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* ── Sticky header ─────────────────────────────────────────────────────────── */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-top: 2px solid var(--claude);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px 10px;
+}
+
+.header-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.header-score {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--claude);
+}
+
+.header-meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  width: 190px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.search:focus { border-color: var(--claude); }
+.search::placeholder { color: var(--muted); }
+
+.divider { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+
+.btn-group { display: flex; gap: 4px; }
+
+.fbtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+}
+.fbtn:hover { border-color: var(--claude); color: var(--text); }
+.fbtn.active {
+  background: var(--claude);
+  border-color: var(--claude);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ── Content ───────────────────────────────────────────────────────────────── */
+.content {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+/* ── Category section ──────────────────────────────────────────────────────── */
+.cat-section { margin-bottom: 32px; }
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.cat-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cat-badge {
+  font-size: 0.72rem;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+
+.cat-pts {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Achievement grid ──────────────────────────────────────────────────────── */
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s, transform 0.12s, box-shadow 0.15s;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: #cc785c44;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+
+/* green top stripe for unlocked cards */
+.card.unlocked::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--green);
+}
+
+/* ── Card header ───────────────────────────────────────────────────────────── */
+.card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.card-icon { font-size: 1.25rem; flex-shrink: 0; line-height: 1.3; }
+
+.card-info { flex: 1; min-width: 0; }
+
+.card-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.card.unlocked .card-name { color: var(--green); }
+
+.card-pts {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-top: 1px;
+}
+.card.unlocked .card-pts { color: var(--green); opacity: 0.8; }
+
+/* ── Description ───────────────────────────────────────────────────────────── */
+.card-desc {
+  font-size: 0.79rem;
+  color: var(--muted);
+  line-height: 1.45;
+  /* clamp to 2 lines */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card.secret .card-desc { font-style: italic; opacity: 0.5; }
+
+/* ── Progress bar ──────────────────────────────────────────────────────────── */
+.prog-wrap { display: flex; flex-direction: column; gap: 4px; }
+
+.prog-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.prog-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  background: var(--claude);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.prog-fill.done { background: var(--green); }
+
+/* ── Footer chips ──────────────────────────────────────────────────────────── */
+.card-foot {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.chip {
+  font-size: 0.68rem;
+  padding: 2px 7px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+.chip.beginner    { border-color: #2a5e30; color: var(--green);  background: #141f15; }
+.chip.intermediate{ border-color: #2a6360; color: var(--teal);   background: #12201f; }
+.chip.experienced { border-color: #5b3f8a; color: var(--purple); background: #1c1429; }
+.chip.master      { border-color: #7a3030; color: var(--red);    background: #221111; }
+.chip.secret      { border-color: var(--border); color: var(--muted); }
+
+.chip.tutorial {
+  border-color: #7a5c00;
+  color: var(--yellow);
+  background: #211800;
+}
+
+.unlock-stamp {
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ── Empty / loading ───────────────────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ── Done button ───────────────────────────────────────────────────────────── */
+.done-btn {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.done-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: #1a0e0e;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-row">
+    <span class="header-title">🏆 Claude Code Achievements</span>
+    <span class="header-score" id="js-score">—</span>
+    <span class="header-meta" id="js-meta">Loading…</span>
+  </div>
+  <div class="filter-row">
+    <input class="search" id="js-search" type="search" placeholder="Search…" autocomplete="off">
+    <div class="divider"></div>
+    <div class="btn-group" id="js-status">
+      <button class="fbtn active" data-val="all">All</button>
+      <button class="fbtn"       data-val="unlocked">✅ Unlocked</button>
+      <button class="fbtn"       data-val="locked">🔒 Locked</button>
+    </div>
+    <div class="divider"></div>
+    <div class="btn-group" id="js-level">
+      <button class="fbtn active" data-val="all">All levels</button>
+      <button class="fbtn"        data-val="beginner">Beginner</button>
+      <button class="fbtn"        data-val="intermediate">Intermediate</button>
+      <button class="fbtn"        data-val="experienced">Experienced</button>
+      <button class="fbtn"        data-val="master">Master</button>
+      <button class="fbtn"        data-val="secret">🔮 Secret</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="js-content">
+  <div class="empty">Loading…</div>
+</div>
+
+<button class="done-btn" id="js-done">✕ Done</button>
+
+<script>
+const CATS = [
+  'sessions','files','shell','search','mcp','plan_mode',
+  'tokens','commands','context','specs','reviews','tests','misc','rank'
+];
+const CAT_LABEL = {
+  sessions:'Sessions', files:'Files', shell:'Shell', search:'Search',
+  mcp:'MCP', plan_mode:'Plan Mode', tokens:'Tokens', commands:'Commands',
+  context:'Context', specs:'Specs', reviews:'Reviews', tests:'Tests',
+  misc:'Misc', rank:'Rank'
+};
+
+let data = null;
+let filterStatus = 'all';
+let filterLevel  = 'all';
+let filterSearch = '';
+
+// ── Data fetch ────────────────────────────────────────────────────────────────
+async function load() {
+  try {
+    const r = await fetch('/api/data');
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    data = await r.json();
+    document.getElementById('js-score').textContent =
+      `${data.score.toLocaleString()} / ${data.total_pts.toLocaleString()} pts`;
+    document.getElementById('js-meta').textContent =
+      `· ${data.unlocked_count} / ${data.total_count} unlocked`;
+    render();
+  } catch (e) {
+    document.getElementById('js-content').innerHTML =
+      `<div class="empty">Error loading data: ${esc(e.message)}</div>`;
+  }
+}
+
+// ── Filtering ─────────────────────────────────────────────────────────────────
+function visible(a) {
+  if (filterStatus === 'unlocked' && !a.is_unlocked) return false;
+  if (filterStatus === 'locked'   &&  a.is_unlocked) return false;
+  if (filterLevel === 'secret') {
+    if (a.skill_level !== 'secret') return false;
+  } else if (filterLevel !== 'all') {
+    // Non-secret level filters exclude secret achievements
+    if (a.skill_level === 'secret') return false;
+    if (a.skill_level !== filterLevel) return false;
+  }
+  if (filterSearch) {
+    const q = filterSearch.toLowerCase();
+    if (!a.name.toLowerCase().includes(q) &&
+        !a.description.toLowerCase().includes(q)) return false;
+  }
+  return true;
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function cardIcon(a) {
+  if (a.is_unlocked)          return '✅';
+  if (a.skill_level==='secret') return '🔮';
+  return '🔒';
+}
+
+function pct(a) {
+  if (!a.threshold || a.threshold <= 0) return 0;
+  return Math.min(100, Math.round((a.current / a.threshold) * 100));
+}
+
+function renderCard(a) {
+  const isSecret = a.skill_level === 'secret' && !a.is_unlocked;
+  const desc = isSecret ? '???' : esc(a.description);
+
+  // progress bar (locked, has threshold, not secret)
+  let prog = '';
+  if (!a.is_unlocked && a.threshold != null && !isSecret) {
+    const p = pct(a);
+    prog = `
+      <div class="prog-wrap">
+        <div class="prog-labels">
+          <span>${esc(a.counter || 'progress')}</span>
+          <span>${a.current} / ${a.threshold}</span>
+        </div>
+        <div class="prog-track">
+          <div class="prog-fill${p >= 100 ? ' done' : ''}" style="width:${p}%"></div>
+        </div>
+      </div>`;
+  }
+
+  // footer chips
+  let chips = `<span class="chip ${esc(a.skill_level)}">${esc(a.skill_level)}</span>`;
+  if (a.tutorial) chips += `<span class="chip tutorial">tutorial</span>`;
+  const stamp = (a.is_unlocked && a.unlock_date)
+    ? `<span class="unlock-stamp">${esc(a.unlock_date)}</span>` : '';
+
+  const cls = ['card',
+    a.is_unlocked   ? 'unlocked' : '',
+    isSecret        ? 'secret'   : ''
+  ].filter(Boolean).join(' ');
+
+  return `
+    <div class="${cls}">
+      <div class="card-head">
+        <div class="card-icon">${cardIcon(a)}</div>
+        <div class="card-info">
+          <div class="card-name">${esc(a.name)}</div>
+          <div class="card-pts">+${a.points} pts</div>
+        </div>
+      </div>
+      <div class="card-desc">${desc}</div>
+      ${prog}
+      <div class="card-foot">${chips}${stamp}</div>
+    </div>`;
+}
+
+function render() {
+  if (!data) return;
+  const el = document.getElementById('js-content');
+  let html = '';
+
+  for (const cat of CATS) {
+    const all = data.achievements.filter(a => a.category === cat);
+    const shown = all.filter(visible);
+    if (!shown.length) continue;
+
+    const unlockedInCat = all.filter(a => a.is_unlocked).length;
+    const ptsEarned = all.filter(a => a.is_unlocked).reduce((s,a) => s + a.points, 0);
+    const ptsTotal  = all.reduce((s,a) => s + a.points, 0);
+
+    html += `
+      <div class="cat-section">
+        <div class="cat-header">
+          <span class="cat-name">${CAT_LABEL[cat] || cat}</span>
+          <span class="cat-badge">${unlockedInCat} / ${all.length} unlocked</span>
+          <span class="cat-pts">${ptsEarned} / ${ptsTotal} pts</span>
+        </div>
+        <div class="ach-grid">
+          ${shown.map(renderCard).join('')}
+        </div>
+      </div>`;
+  }
+
+  el.innerHTML = html || '<div class="empty">No achievements match the current filters.</div>';
+}
+
+// ── Filter wiring ─────────────────────────────────────────────────────────────
+function wireGroup(groupId, setter) {
+  document.getElementById(groupId).addEventListener('click', e => {
+    const btn = e.target.closest('.fbtn');
+    if (!btn) return;
+    document.querySelectorAll(`#${groupId} .fbtn`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    setter(btn.dataset.val);
+    render();
+  });
+}
+
+wireGroup('js-status', v => filterStatus = v);
+wireGroup('js-level',  v => filterLevel  = v);
+
+document.getElementById('js-search').addEventListener('input', e => {
+  filterSearch = e.target.value.trim();
+  render();
+});
+
+// ── Done / close ──────────────────────────────────────────────────────────────
+document.getElementById('js-done').addEventListener('click', async () => {
+  try { await fetch('/api/close', { method: 'POST' }); } catch (_) {}
+  window.close();
+});
+
+load();
+</script>
+</body>
+</html>

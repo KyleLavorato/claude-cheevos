@@ -127,9 +127,15 @@ cp "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achi
 cp "$SCRIPTS_DIR_SRC/learning-path.sh"      "$ACHIEVEMENTS_DIR/scripts/learning-path.sh"
 cp "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
 cp "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
+cp "$REPO_DIR/scripts/tui.sh"               "$ACHIEVEMENTS_DIR/scripts/tui.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # NOTE: definitions.json is now embedded in the binary and NOT copied to disk.
+
+# Uninstall script — copied so /uninstall-achievements slash command can find it
+# without needing to know the repo path
+cp "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
+chmod +x "$ACHIEVEMENTS_DIR/uninstall.sh"
 
 echo "✓ Scripts installed to $ACHIEVEMENTS_DIR"
 
@@ -161,6 +167,16 @@ else
     fi
     echo "✓ HMAC secret injected into lib.sh"
 fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 1.6: Install /achievements and /uninstall-achievements slash commands
+# ─────────────────────────────────────────────────────────────────────────────
+
+COMMANDS_DIR="$HOME/.claude/commands"
+mkdir -p "$COMMANDS_DIR"
+cp "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
+cp "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
+echo "✓ /achievements and /uninstall-achievements slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 2: Merge hooks into settings.json (idempotent)
@@ -325,8 +341,11 @@ echo ""
 echo "Restart Claude Code for hooks to take effect."
 echo ""
 echo "View your achievements:"
-echo "  $ACHIEVEMENTS_DIR/cheevos show"
-echo "  $ACHIEVEMENTS_DIR/cheevos learn"
+echo "  /achievements                              (slash command — opens web UI in browser)"
+echo "  $ACHIEVEMENTS_DIR/cheevos serve           (web UI, run directly)"
+echo "  bash $ACHIEVEMENTS_DIR/scripts/tui.sh     (terminal TUI)"
+echo "  $ACHIEVEMENTS_DIR/cheevos show            (static list)"
+echo "  $ACHIEVEMENTS_DIR/cheevos learn           (tutorial path)"
 echo ""
 echo "Verify install:"
 echo "  $ACHIEVEMENTS_DIR/cheevos verify"

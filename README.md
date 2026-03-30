@@ -34,6 +34,9 @@ disabled and everything else works normally.
 **Auto-updates are enabled by default** — new achievements will be automatically downloaded from
 the public GitHub repo once per day. See the [Auto-Updates](#auto-updates) section for details.
 
+The web UI (`cheevos serve`) is built into the main binary — no separate Go installation required
+to use it. Go is only needed if you are building the binary from source.
+
 Then **restart Claude Code** for hooks to take effect.
 
 ### What gets installed
@@ -51,6 +54,7 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 ├── .version                  # Installed version
 ├── .original-statusline      # Your previous statusLine command (restored on uninstall)
 ├── .last-update-check        # Timestamp of last auto-update check (unix epoch seconds)
+├── uninstall.sh              # Copy of uninstall.sh (used by the /uninstall-achievements command)
 ├── hooks/
 │   ├── session-start.sh      # Fires on session start/resume
 │   ├── post-tool-use.sh      # Fires after every tool call (async)
@@ -62,6 +66,7 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 │   ├── seed-state.sh          # Thin shim → cheevos seed
 │   ├── show-achievements.sh   # Thin shim → cheevos show
 │   ├── learning-path.sh       # Thin shim → cheevos learn
+│   ├── tui.sh                 # Interactive terminal TUI (arrow-key navigation)
 │   ├── award.sh               # Thin shim → cheevos award
 │   └── verify-install.sh      # Thin shim → cheevos verify
 └── logs/
@@ -71,6 +76,14 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 > **State is encrypted.** `state.json` is AES-256-GCM encrypted — `jq` will not reveal your
 > score or counters. Use `cheevos show` to read your state.
 
+Slash commands are also installed to `~/.claude/commands/`:
+
+```
+~/.claude/commands/
+├── achievements.md            # /achievements — opens web UI in browser
+└── uninstall-achievements.md  # /uninstall-achievements — interactive uninstall flow
+```
+
 ### Uninstallation
 
 ```bash
@@ -79,6 +92,9 @@ bash uninstall.sh
 
 Restores your original `statusLine`, removes all four hooks from `settings.json`, and
 optionally deletes `~/.claude/achievements/`.
+
+You can also uninstall from inside Claude Code using the `/uninstall-achievements` slash
+command — it walks you through the same steps with a confirmation dialog.
 
 ### Verifying after install
 
@@ -99,14 +115,30 @@ After install, your Claude Code status bar shows your current score at all times
 🏆 560 pts
 ```
 
-For **5 minutes after unlocking** an achievement, the name is shown:
-
-```
-🏆 710 pts (Power User!)
-```
-
 If you had an existing `statusLine` command before install, it still runs — cheevos wraps
 it and appends the score.
+
+---
+
+## Slash Commands
+
+Two slash commands are installed to `~/.claude/commands/` and are immediately available
+inside Claude Code after installation (no restart required for the commands themselves,
+though the hooks do require a restart).
+
+### `/achievements`
+
+Opens the achievement browser web UI in your default browser using `cheevos serve`.
+
+### `/uninstall-achievements`
+
+Runs an interactive uninstall flow entirely inside Claude Code:
+
+1. Checks whether you are registered on the leaderboard
+2. Shows a confirmation dialog (with a leaderboard warning if applicable) and a "heads up"
+   about needing to restart Claude Code
+3. Runs `uninstall.sh` with the appropriate flags based on your selection (keep data vs.
+   delete everything)
 
 ---
 
@@ -217,6 +249,63 @@ needed to add or remove achievements from it.
 | 8 | Laying Down the Law | Ask Claude to create a `CLAUDE.md` |
 
 Completing all 8 tutorial achievements unlocks the **Graduate** rank badge.
+
+---
+
+## UI 3 — Web UI (`cheevos serve`)
+
+An interactive achievement browser that runs as a local HTTP server and opens in your
+default browser automatically.
+
+**Run:**
+
+```bash
+~/.claude/achievements/cheevos serve
+# or from inside Claude Code:
+# /achievements
+```
+
+**Features:**
+
+- Dark theme using Claude Code's colour scheme (warm dark backgrounds, orange `#cc785c` accent)
+- Filter by status: All / Unlocked / Locked
+- Filter by skill level: All / Beginner / Intermediate / Experienced / Master / Secret
+- Search by name or description
+- Displays your score vs. total possible (e.g. `665 / 5600 pts`)
+- Progress bars for locked achievements showing `current / threshold`
+- "Done" button or Ctrl-C to stop the server
+- Listens on a random available localhost port (printed on startup)
+
+---
+
+## UI 4 — Terminal TUI (`tui.sh`)
+
+A pure-bash interactive terminal UI with arrow-key navigation — useful when a browser is not
+available or you prefer to stay in the terminal.
+
+**Run:**
+
+```bash
+bash ~/.claude/achievements/scripts/tui.sh
+```
+
+**Navigation:**
+
+| Key | Action |
+|---|---|
+| Arrow Up / `k` | Move selection up |
+| Arrow Down / `j` | Move selection down |
+| Enter | Open detail view for selected achievement |
+| Esc | Return from detail view to list |
+| `q` | Quit |
+
+**Features:**
+
+- Alternate-screen buffer (your terminal is restored on exit)
+- Category-grouped scrollable list
+- Colour-coded status icons for unlocked / in-progress / locked / secret achievements
+- Detail view shows description, skill level, progress bar, and unlock date (if applicable)
+- No external dependencies beyond `jq` and `tput`
 
 ---
 
@@ -357,44 +446,6 @@ Other fun ones to try:
 
 ---
 
-## Auto-Update
-
-The achievement system automatically checks for new achievement definitions from the public GitHub repository and keeps your local definitions up to date.
-
-### How it works
-
-- **Automatic checks**: On every Claude Code session start, the system checks for updates in the background (with a 1-hour cooldown to avoid excessive network calls)
-- **Silent by default**: Updates happen silently unless new achievements are found
-- **Notifications**: When new achievements are added, you'll see a message listing them with their point values
-- **Updates existing**: If achievement definitions change (e.g., point values, descriptions), your local copy will be updated to match the remote version
-- **Preserves progress**: Your `state.json` (score, unlocked achievements, counters) is never touched by auto-update
-
-### Manual update
-
-You can manually trigger an update check at any time:
-
-```bash
-# Check for updates and show results
-bash ~/.claude/achievements/scripts/auto-update.sh
-
-# Force check (skip 1-hour cooldown)
-bash ~/.claude/achievements/scripts/auto-update.sh --force
-
-# Silent mode (suppress output, only errors shown)
-bash ~/.claude/achievements/scripts/auto-update.sh --quiet
-```
-
-### Disabling auto-update
-
-To disable automatic updates, remove or comment out the auto-update line in `~/.claude/achievements/hooks/session-start.sh`:
-
-```bash
-# Auto-update achievement definitions from GitHub (runs asynchronously in background)
-# bash "$SCRIPTS_DIR/auto-update.sh" --quiet &
-```
-
----
-
 ## Adding Custom Achievements
 
 Edit `data/definitions.json` in the repo, rebuild the binary (`cd go && make dist`), and re-run `install.sh`. Your progress is preserved.
@@ -491,6 +542,10 @@ cat ~/.claude/achievements/leaderboard.conf
 tail -f ~/.claude/achievements/logs/leaderboard.log
 ```
 
+**Note:** A macOS bug where `head -n -1` (GNU-only behaviour) caused `leaderboard-sync.sh`
+to exit before logging successful API calls has been fixed. The script now uses `sed '$d'`
+instead, which is portable across macOS and Linux.
+
 ---
 
 ## TODO
@@ -499,5 +554,4 @@ tail -f ~/.claude/achievements/logs/leaderboard.log
 - [x] ~~Protect the `award.sh` script so it can only be called for valid achievement counters~~ — `award.sh` now validates the counter name against `definitions.json`
 - [x] Auto-update — have Claude check the public GitHub repo for new `definitions.json` entries and pull them down automatically when new achievements are published
 - [ ] Dev mode — a flag or env var that bypasses tamper protection and lets you manually unlock any achievement by ID for testing purposes (e.g. `CHEEVOS_DEV=1 bash award.sh <achievement_id>`)
-- [ ] Encrypt `state.json` so achievement progress cannot be read or modified in plaintext — prevents cheating without requiring a full HMAC signature scheme
 - [ ] In dev mode, permanently flag `state.json` so the account is ineligible for leaderboard submission — dev-mode unlocks should never count toward any public rankings
