@@ -323,7 +323,7 @@ if [[ "$(uname -s)" == "Darwin" ]]; then
         osascript -e "display notification \"${_notif_names}\" with title \"🏆 ${COUNT} Achievements Unlocked!\" sound name \"Glass\""
     fi
 elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-    # WSL: Windows toast notification with sound via PowerShell
+    # WSL: Windows balloon notification with sound via PowerShell
     # Build title and body strings
     if [[ "$COUNT" == "1" ]]; then
         _notif_title="🏆 Achievement Unlocked!"
@@ -332,24 +332,22 @@ elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/
         _notif_title="🏆 ${COUNT} Achievements Unlocked!"
         _notif_body=$(jq -r '[.[].name] | join(", ")' "$TEMP_NOTIFS")
     fi
-    # Write PS script to temp file to avoid shell/PS escaping issues
-    # Escape single quotes by doubling them, escape XML chars
+    # Escape single quotes by doubling them for PowerShell
     _title_esc=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
     _body_esc=$(printf '%s' "$_notif_body" | sed "s/'/''/g")
-    _ps_tmp=$(mktemp /tmp/cheevos-notif.XXXXXX.ps1)
-    cat > "$_ps_tmp" << PSEOF
-[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
-\$title = [System.Security.SecurityElement]::Escape('$_title_esc')
-\$body  = [System.Security.SecurityElement]::Escape('$_body_esc')
-\$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
-# Add audio element for notification sound (ms-winsoundevent:Notification.Default)
-\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual><audio src='ms-winsoundevent:Notification.Default'/></toast>")
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
-PSEOF
-    _win_ps_tmp=$(wslpath -w "$_ps_tmp")
-    powershell.exe -NonInteractive -NoProfile -WindowStyle Hidden -File "$_win_ps_tmp" 2>/dev/null &
-    # Clean up temp file after PS has had time to read it
-    { sleep 5; rm -f "$_ps_tmp"; } &
+    # Use balloon tip notification (more reliable than toast on WSL)
+    powershell.exe -ExecutionPolicy Bypass -Command "
+        Add-Type -AssemblyName System.Windows.Forms;
+        \$notification = New-Object System.Windows.Forms.NotifyIcon;
+        \$notification.Icon = [System.Drawing.SystemIcons]::Information;
+        \$notification.BalloonTipTitle = '$_title_esc';
+        \$notification.BalloonTipText = '$_body_esc';
+        \$notification.Visible = \$true;
+        \$notification.ShowBalloonTip(5000);
+        [System.Media.SystemSounds]::Beep.Play();
+        Start-Sleep -Seconds 6;
+        \$notification.Dispose();
+    " 2>/dev/null &
 fi
 
 rm -f "$TEMP_NOTIFS"
