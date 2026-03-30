@@ -355,6 +355,11 @@ spanning 60+ lines. A single stray `'` inside that block (e.g. in a regex patter
 silently breaks the quoting — bash reports `unexpected EOF` at the *end* of the file,
 not at the offending line. Always run `bash -n script.sh` after editing.
 
+**Troubleshooting:** If you see `declare: -A: invalid option` errors, ensure you are
+running the scripts with `bash` explicitly (not `sh`). All scripts include `#!/usr/bin/env bash`
+shebang lines and are designed to be Bash 3.2 compatible. Running them with `/bin/sh` will fail
+on macOS, as `/bin/sh` may map to a different shell. Always invoke: `bash script.sh`
+
 ---
 
 ## TODO
