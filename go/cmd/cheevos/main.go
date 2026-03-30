@@ -64,6 +64,8 @@ func main() {
         err = subcmd.LeaderboardSync(achievementsDir)
     case "verify":
         err = subcmd.Verify(achievementsDir)
+    case "team-stats":
+        err = subcmd.TeamStats(achievementsDir)
     case "print-hmac-secret":
         // Used by install.sh to inject the HMAC secret into lib.sh.
         if len(hmacSecret) == 0 {
@@ -93,6 +95,7 @@ Subcommands:
   statusline          Render achievement score for the status bar
   show [flags]        List achievements (--unlocked, --locked, --beginner, ...)
   learn               Show tutorial learning path
+  team-stats          Show your contribution to team achievements
   award <counter>     Manually increment a counter (Easter eggs)
   drain               Drain notification queue and emit systemMessage
   serve               Open achievement browser web UI in the system browser
