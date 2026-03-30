@@ -20,7 +20,7 @@ import (
 )
 
 // obfuscationNonce must match the value in internal/crypto/key.go.
-const obfuscationNonce = "R3VpbGRlbnN0ZXJuU3RyYXNzZW5iYWhuR3VpbGQ="
+const obfuscationNonce = "R3VpbGRlbnN0ZXJuU3RyYXNzZW5iYWhuR3VpbGQxMTE="
 
 func main() {
     // Generate a random 32-byte HMAC secret.

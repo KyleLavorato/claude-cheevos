@@ -393,19 +393,14 @@ embedded copy. `cheevos update-defs` writes new achievements to an on-disk overr
 ## Building the Binary
 
 ```bash
-cd go
+# Production build for current platform (auto-generates HMAC key)
+make prod
 
-# Development build (no HMAC key — validation is skipped)
-make build
-
-# Production build (requires CHEEVOS_HMAC_KEY)
-CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make prod
-
-# Cross-compile all platforms into ../dist/
-CHEEVOS_HMAC_KEY=$(go run ./tools/keygen) make dist
+# Cross-compile all platforms into dist/
+make dist
 
 # Run tests
-make test
+cd go && make test
 ```
 
 `data/definitions.json` must be copied to `go/internal/defs/definitions.json` before

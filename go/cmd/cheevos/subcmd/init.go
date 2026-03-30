@@ -3,18 +3,14 @@ package subcmd
 import (
     "crypto/rand"
     "encoding/base64"
-    "encoding/json"
     "fmt"
     "os"
     "path/filepath"
-
-    "github.com/user/claude-cheevos/internal/crypto"
-    "github.com/user/claude-cheevos/internal/store"
 )
 
-// Init creates the achievements directory structure, encryption key file,
-// notifications.json, and initial state if they don't already exist.
-// Safe to call multiple times (idempotent).
+// Init creates the achievements directory, encryption key file, and
+// notifications.json if they don't already exist. Safe to call multiple
+// times (idempotent). State creation is left to cheevos seed.
 func Init(achievementsDir string) error {
     if err := os.MkdirAll(achievementsDir, 0700); err != nil {
         return fmt.Errorf("init: mkdir %s: %w", achievementsDir, err)
@@ -31,6 +27,9 @@ func Init(achievementsDir string) error {
         if err := os.WriteFile(keyFile, []byte(encoded+"\n"), 0600); err != nil {
             return fmt.Errorf("init: write .key: %w", err)
         }
+        fmt.Println("✓ Encryption key generated")
+    } else {
+        fmt.Println("✓ Encryption key preserved")
     }
 
     // Create empty notification queue.
@@ -39,36 +38,9 @@ func Init(achievementsDir string) error {
         if err := os.WriteFile(notifFile, []byte("[]"), 0600); err != nil {
             return fmt.Errorf("init: create notifications.json: %w", err)
         }
-    }
-
-    // Create initial encrypted state.
-    stateFile := filepath.Join(achievementsDir, "state.json")
-    if _, err := os.Stat(stateFile); os.IsNotExist(err) {
-        key, err := crypto.LoadKeyFromFile(achievementsDir)
-        if err != nil {
-            return err
-        }
-        st := store.NewState()
-        if err := store.NewEncryptedJSONStore(stateFile, key).Save(st); err != nil {
-            return fmt.Errorf("init: create state: %w", err)
-        }
+        fmt.Println("✓ Notifications queue created")
     }
 
     return nil
 }
 
-// readNotifications reads the current notification queue from disk.
-func readNotifications(path string) ([]json.RawMessage, error) {
-    data, err := os.ReadFile(path)
-    if os.IsNotExist(err) {
-        return nil, nil
-    }
-    if err != nil {
-        return nil, err
-    }
-    var msgs []json.RawMessage
-    if err := json.Unmarshal(data, &msgs); err != nil {
-        return nil, err
-    }
-    return msgs, nil
-}

@@ -32,7 +32,7 @@ done
 VERSION="2.0.0"
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
 # dist/ lives at the repo root (one level up from go/)
-DIST_DIR="$REPO_DIR/../dist"
+DIST_DIR="$REPO_DIR/dist"
 HOOKS_DIR="$REPO_DIR/hooks"
 SCRIPTS_DIR_SRC="$REPO_DIR/scripts"
 ACHIEVEMENTS_DIR="$HOME/.claude/achievements"
@@ -144,18 +144,12 @@ chmod +x "$ACHIEVEMENTS_DIR/uninstall.sh"
 echo "✓ Scripts installed to $ACHIEVEMENTS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 1.5: Generate encryption key and inject HMAC secret into lib.sh
+# Phase 1.5: Initialize runtime directory and inject HMAC secret into lib.sh
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Generate encryption key (never overwrite on upgrade — preserves existing state).
-KEY_FILE="$ACHIEVEMENTS_DIR/.key"
-if [[ ! -f "$KEY_FILE" ]]; then
-    head -c 32 /dev/urandom | base64 | tr -d '\n=' > "$KEY_FILE"
-    chmod 0600 "$KEY_FILE"
-    echo "✓ Encryption key generated"
-else
-    echo "✓ Encryption key preserved (upgrade)"
-fi
+# Initialize runtime directory: creates .key and notifications.json if absent.
+# Idempotent — safe on upgrades.
+"$ACHIEVEMENTS_DIR/cheevos" init
 
 # Extract HMAC secret from the just-built binary and write it into lib.sh.
 HMAC_SECRET=$("$ACHIEVEMENTS_DIR/cheevos" print-hmac-secret 2>/dev/null || echo "")
