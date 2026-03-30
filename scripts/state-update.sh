@@ -14,6 +14,8 @@
 #                         and increments unique_models_used counter
 #   _SESSION_ID         - session ID to record as last_session_model_check (used by
 #                         stop.sh to avoid re-reading transcript every turn)
+#   _UPDATE_CHECK_EPOCH - unix epoch timestamp to record as last_update_check_epoch
+#                         (used by check-updates.sh for rate limiting)
 
 set -euo pipefail
 
@@ -58,6 +60,14 @@ if [[ -n "${_SESSION_ID:-}" ]]; then
     NEW_STATE=$(printf '%s' "$NEW_STATE" | jq \
         --arg sid "$_SESSION_ID" '
         .last_session_model_check = $sid
+    ')
+fi
+
+# Record update check timestamp (used by check-updates.sh for rate limiting)
+if [[ -n "${_UPDATE_CHECK_EPOCH:-}" ]]; then
+    NEW_STATE=$(printf '%s' "$NEW_STATE" | jq \
+        --argjson epoch "$_UPDATE_CHECK_EPOCH" '
+        .last_update_check_epoch = $epoch
     ')
 fi
 

@@ -31,6 +31,9 @@ The installer is **idempotent** — safe to run again to upgrade scripts. Your s
 are never touched on reinstall. If `--token`/`--api-url` are omitted, leaderboard sync is
 disabled and everything else works normally.
 
+**Auto-updates are enabled by default** — new achievements will be automatically downloaded from
+the public GitHub repo once per day. See the [Auto-Updates](#auto-updates) section for details.
+
 Then **restart Claude Code** for hooks to take effect.
 
 ### What gets installed
@@ -59,6 +62,7 @@ Everything is copied to `~/.claude/achievements/` so the repo can be deleted aft
 │   ├── show-achievements.sh   # Full achievement list UI
 │   ├── learning-path.sh       # Guided tutorial UI
 │   ├── award.sh               # Manual Easter egg award tool
+│   ├── check-updates.sh       # Auto-update definitions from GitHub (runs once/day)
 │   └── leaderboard-sync.sh    # Score push to leaderboard API (fire-and-forget)
 └── logs/
     └── leaderboard.log        # Append-only sync log (HTTP status per PUT, token never logged)
@@ -265,7 +269,7 @@ Four Claude Code hooks fire automatically as you work:
 
 | Hook | Event | Mode | Tracks |
 |---|---|---|---|
-| `session-start.sh` | `SessionStart` | Sync | New sessions, session resumes, streak, concurrent sessions, time-of-day events, `--dangerously-skip-permissions` flag |
+| `session-start.sh` | `SessionStart` | Sync | New sessions, session resumes, streak, concurrent sessions, time-of-day events, `--dangerously-skip-permissions` flag. Also triggers auto-update check (background) |
 | `post-tool-use.sh` | `PostToolUse` | **Async** | Every tool call — file writes, bash commands, searches, MCP calls, skills, tasks, plan mode exits |
 | `pre-compact.sh` | `PreCompact` | Sync | Auto-compacts vs manual compacts, 1M-token context fills |
 | `stop.sh` | `Stop` | Sync | Model tracking, transcript phrase detection, code review quality, token accumulation, notification display |
@@ -311,6 +315,32 @@ When an achievement unlocks you get:
    - **WSL/Windows** — Windows Toast notification via PowerShell
 
 Multiple unlocks in the same turn are batched into one notification.
+
+---
+
+## Auto-Updates
+
+New achievements are automatically downloaded from the public GitHub repo once per day when you start a new Claude Code session.
+
+**How it works:**
+1. On session startup, `session-start.sh` triggers `check-updates.sh` in the background
+2. The script checks for new achievement IDs in the remote `definitions.json`
+3. New achievements are merged into your local definitions (existing ones are never modified)
+4. You get a desktop notification when new achievements are added
+5. Your progress and unlocked achievements are always preserved
+
+**Rate limiting:** Update checks only run once per 24 hours to avoid GitHub API rate limits.
+
+**Manual check:**
+```bash
+bash ~/.claude/achievements/scripts/check-updates.sh --force
+```
+
+**Configuration:** The update system fetches from `KyleLavorato/claude-cheevos/main/data/definitions.json`. To change the source repo or branch, edit `GITHUB_REPO` and `GITHUB_BRANCH` in `~/.claude/achievements/scripts/check-updates.sh`.
+
+**Disabling auto-updates:** Remove the auto-update trigger from `~/.claude/achievements/hooks/session-start.sh` (look for the `check-updates.sh &` line). You can still manually trigger updates with `--force`.
+
+See [`AUTO_UPDATE.md`](AUTO_UPDATE.md) for full details.
 
 ---
 
@@ -434,7 +464,6 @@ tail -f ~/.claude/achievements/logs/leaderboard.log
 
 - [ ] Add tamper protection to `state.json` (e.g. HMAC signature) to prevent manually editing counters to cheat achievements
 - [ ] Protect the `award.sh` script so it can only be called for the specific Easter egg achievement (`easter_egg_unlocks`) — prevent Claude from using it to unlock arbitrary achievements on request
-- [ ] Auto-update — have Claude check the public GitHub repo for new `definitions.json` entries and pull them down automatically when new achievements are published
 - [ ] Dev mode — a flag or env var that bypasses tamper protection and lets you manually unlock any achievement by ID for testing purposes (e.g. `CHEEVOS_DEV=1 bash award.sh <achievement_id>`)
 - [ ] Encrypt `state.json` so achievement progress cannot be read or modified in plaintext — prevents cheating without requiring a full HMAC signature scheme
 - [ ] In dev mode, permanently flag `state.json` so the account is ineligible for leaderboard submission — dev-mode unlocks should never count toward any public rankings

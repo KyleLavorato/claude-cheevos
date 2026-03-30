@@ -101,4 +101,8 @@ export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
 
 with_lock bash "$SCRIPTS_DIR/state-update.sh"
 
+# ─── Auto-update check (once per day, runs in background) ────────────────────
+# Check for new achievement definitions from the public GitHub repo
+bash "$SCRIPTS_DIR/check-updates.sh" &
+
 exit 0
