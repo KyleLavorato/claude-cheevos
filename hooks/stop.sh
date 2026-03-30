@@ -51,14 +51,14 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             sorry:         ($text | ascii_downcase | test("sorry")),
             great_question: ($text | ascii_downcase | test("great question")),
             hal_9000:       ($text | ascii_downcase | test("sorry, dave")),
-            youre_right:    ($text | ascii_downcase | test("you'?re right|you are right")),
+            youre_right:    ($text | ascii_downcase | test("you.?re right|you are right")),
             barnacles:      ($text | ascii_downcase | test("barnacles")),
             twenty_questions: ($user_text | ascii_downcase | test("20 questions|twenty questions")),
             magic_conch:      ($user_text | ascii_downcase | test("help me decide|help me choose|help me make a decision|which should i|what should i (do|pick|choose|use)")),
             inner_machinations: ($user_text | ascii_downcase | test("explain (this |the )?(codebase|code|repo|project)|summarize (this |the )?(codebase|code|repo|project)|give me an overview|walk me through (this |the )?(codebase|code|repo)|how does (this |the )?(codebase|code|project) work")),
             tic_tac_toe: (
                 ($user_text | ascii_downcase | test("tic.?tac.?toe")) and
-                ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i('ve)? won"))
+                ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i(.ve)? won"))
             ),
             code_smell: ($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")),
             doctor_run: ($user_text | ascii_downcase | test("^/doctor|\\s/doctor")),
@@ -328,14 +328,24 @@ elif [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/
     # Single quotes in values are doubled for PS single-quoted strings;
     # XML special chars are handled by SecurityElement::Escape inside PS.
     _ps_tmp=$(mktemp /tmp/cheevos-notif.XXXXXX.ps1)
-    cat > "$_ps_tmp" << PSEOF
+    # Escape single quotes for PS single-quoted strings (double them)
+    _ps_title=$(printf '%s' "$_notif_title" | sed "s/'/''/g")
+    _ps_body=$(printf '%s' "$_notif_body" | sed "s/'/''/g")
+    # Use a quoted heredoc so bash does NOT expand $variables or
+    # interpret quotes inside the body — then patch in the two values
+    # via sed after writing.
+    cat > "$_ps_tmp" << 'PSEOF'
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
-\$title = [System.Security.SecurityElement]::Escape('$(printf '%s' "$_notif_title" | sed "s/'/\'\'/g")')
-\$body  = [System.Security.SecurityElement]::Escape('$(printf '%s' "$_notif_body"  | sed "s/'/\'\'/g")')
-\$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
-\$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>\$title</text><text>\$body</text></binding></visual></toast>")
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new(\$xml))
+$title = [System.Security.SecurityElement]::Escape('__TITLE__')
+$body  = [System.Security.SecurityElement]::Escape('__BODY__')
+$xml   = New-Object Windows.Data.Xml.Dom.XmlDocument
+$xml.LoadXml("<toast><visual><binding template='ToastGeneric'><text>$title</text><text>$body</text></binding></visual></toast>")
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('Claude Cheevos').Show([Windows.UI.Notifications.ToastNotification]::new($xml))
 PSEOF
+    # Substitute placeholders with actual values (sed delimiter chosen
+    # to avoid clashing with notification text)
+    sed -i.bak "s|__TITLE__|${_ps_title}|g;s|__BODY__|${_ps_body}|g" "$_ps_tmp"
+    rm -f "${_ps_tmp}.bak"
     _win_ps_tmp=$(wslpath -w "$_ps_tmp")
     powershell.exe -NonInteractive -NoProfile -WindowStyle Hidden -File "$_win_ps_tmp" 2>/dev/null &
     # Clean up temp file after PS has had time to read it

@@ -28,27 +28,32 @@ else
 fi
 
 # ─── Tips (keyed by achievement ID) ──────────────────────────────────────────
-declare -A TIPS
-TIPS[first_session]="Just open your terminal and run 'claude' to start your first session."
-TIPS[session_10]="Keep using Claude Code daily — sessions accumulate quickly!"
-TIPS[web_search_first]="Ask Claude a question that needs current info: 'What's the latest version of Node.js?'"
-TIPS[back_again]="Resume a past session: run 'claude --resume' or type /resume inside Claude Code."
-TIPS[files_written_10]="Ask Claude to create files: 'Create a utils.py with a helper function'"
-TIPS[laying_down_the_law]="Ask Claude: 'Create a CLAUDE.md in this project with instructions for working on this codebase'"
-TIPS[spec_first]="Ask Claude to design an API spec first: 'Create an OpenAPI spec for a user auth service'"
-TIPS[files_read_100]="Ask Claude to read and analyze code: 'Explain what this file does' on any source file."
-TIPS[bash_calls_50]="Ask Claude to run shell commands: 'Run the tests and show me the output'"
-TIPS[git_er_done]="Ask Claude to commit your work: 'Stage and commit these changes with a good message'"
-TIPS[glob_grep_50]="Ask Claude to search your codebase: 'Find all files that import React'"
-TIPS[web_search_25]="Ask research questions regularly: 'What are the best practices for X?'"
-TIPS[tokens_100k]="Just keep using Claude — tokens accumulate naturally with regular use."
-TIPS[spring_cleaning]="Type /compact inside Claude Code to manually compact the conversation context."
-TIPS[github_first]="Ask Claude about a GitHub repo: 'Show me the open PRs in this repo'"
-TIPS[pull_request_pioneer]="Ask Claude to open a PR for you: 'Create a pull request for this branch'"
-TIPS[jira_first]="Ask Claude to look up a Jira ticket: 'What's the status of PROJ-123?'"
-TIPS[delegation_station]="Give Claude a broad research task — Claude will launch a sub-agent automatically."
-TIPS[plan_mode_first]="Ask Claude to plan before implementing: 'Plan how you would add auth to this app'"
-TIPS[plan_mode_10]="Use plan mode for any significant feature — it leads to better outcomes."
+# Bash 3.2 compatible: use a case statement instead of associative arrays
+get_tip() {
+    case "$1" in
+        first_session)        echo "Just open your terminal and run 'claude' to start your first session." ;;
+        session_10)           echo "Keep using Claude Code daily — sessions accumulate quickly!" ;;
+        web_search_first)     echo "Ask Claude a question that needs current info: 'What's the latest version of Node.js?'" ;;
+        back_again)           echo "Resume a past session: run 'claude --resume' or type /resume inside Claude Code." ;;
+        files_written_10)     echo "Ask Claude to create files: 'Create a utils.py with a helper function'" ;;
+        laying_down_the_law)  echo "Ask Claude: 'Create a CLAUDE.md in this project with instructions for working on this codebase'" ;;
+        spec_first)           echo "Ask Claude to design an API spec first: 'Create an OpenAPI spec for a user auth service'" ;;
+        files_read_100)       echo "Ask Claude to read and analyze code: 'Explain what this file does' on any source file." ;;
+        bash_calls_50)        echo "Ask Claude to run shell commands: 'Run the tests and show me the output'" ;;
+        git_er_done)          echo "Ask Claude to commit your work: 'Stage and commit these changes with a good message'" ;;
+        glob_grep_50)         echo "Ask Claude to search your codebase: 'Find all files that import React'" ;;
+        web_search_25)        echo "Ask research questions regularly: 'What are the best practices for X?'" ;;
+        tokens_100k)          echo "Just keep using Claude — tokens accumulate naturally with regular use." ;;
+        spring_cleaning)      echo "Type /compact inside Claude Code to manually compact the conversation context." ;;
+        github_first)         echo "Ask Claude about a GitHub repo: 'Show me the open PRs in this repo'" ;;
+        pull_request_pioneer) echo "Ask Claude to open a PR for you: 'Create a pull request for this branch'" ;;
+        jira_first)           echo "Ask Claude to look up a Jira ticket: 'What's the status of PROJ-123?'" ;;
+        delegation_station)   echo "Give Claude a broad research task — Claude will launch a sub-agent automatically." ;;
+        plan_mode_first)      echo "Ask Claude to plan before implementing: 'Plan how you would add auth to this app'" ;;
+        plan_mode_10)         echo "Use plan mode for any significant feature — it leads to better outcomes." ;;
+        *)                    echo "" ;;
+    esac
+}
 
 # ─── Load data ────────────────────────────────────────────────────────────────
 STATE=$(cat "$STATE_FILE")
@@ -64,19 +69,18 @@ PATH_COUNT=${#PATH_IDS[@]}
 TOTAL_PTS=$(printf '%s' "$DEFS" | jq '[.achievements[] | select(.tutorial == true) | .points] | add // 0')
 
 # Single jq @tsv pass to index all achievement definitions
-declare -A ACH_NAME ACH_DESC ACH_PTS ACH_COUNTER ACH_THRESHOLD
-
-while IFS=$'\t' read -r id name desc pts counter threshold; do
-    ACH_NAME[$id]="$name"
-    ACH_DESC[$id]="$desc"
-    ACH_PTS[$id]="$pts"
-    ACH_COUNTER[$id]="$counter"
-    ACH_THRESHOLD[$id]="$threshold"
-done < <(printf '%s' "$DEFS" | jq -r '
+# Stored as newline-delimited TSV rows; looked up via grep+cut (Bash 3.2 compatible)
+ACH_TSV=$(printf '%s' "$DEFS" | jq -r '
     .achievements[] |
     [.id, .name, .description, (.points | tostring),
      .condition.counter, (.condition.threshold | tostring)] |
     @tsv')
+
+# Lookup helper: get_ach <id> <field_number>
+#   field 1=id, 2=name, 3=description, 4=points, 5=counter, 6=threshold
+get_ach() {
+    printf '%s\n' "$ACH_TSV" | grep "^${1}	" | cut -f"$2"
+}
 
 UNLOCKED_IDS=$(printf '%s' "$STATE" | jq -c '.unlocked')
 
@@ -89,19 +93,21 @@ for id in "${PATH_IDS[@]}"; do
     is_unlocked=$(printf '%s' "$UNLOCKED_IDS" | jq --arg id "$id" 'index($id) != null')
     if [[ "$is_unlocked" == "true" ]]; then
         COMPLETED=$(( COMPLETED + 1 ))
-        EARNED_PTS=$(( EARNED_PTS + ACH_PTS[$id] ))
+        pts=$(get_ach "$id" 4)
+        EARNED_PTS=$(( EARNED_PTS + pts ))
     else
         LOCKED_IDS+=("$id")
     fi
 done
 
-# ─── Build UP_NEXT_SET (first 3 locked, for O(1) lookup) ─────────────────────
-declare -A UP_NEXT_SET
+# ─── Build UP_NEXT list (first 3 locked) + newline-delimited set for lookup ──
 UP_NEXT_LIST=()
+UP_NEXT_SET=""
 for id in "${LOCKED_IDS[@]}"; do
     if (( ${#UP_NEXT_LIST[@]} < 3 )); then
-        UP_NEXT_SET[$id]=1
         UP_NEXT_LIST+=("$id")
+        UP_NEXT_SET="${UP_NEXT_SET}${id}
+"
     else
         break
     fi
@@ -130,12 +136,12 @@ if [[ ${#UP_NEXT_LIST[@]} -eq 0 ]]; then
     printf "  🎉 All tutorial achievements complete!\n"
 else
     for id in "${UP_NEXT_LIST[@]}"; do
-        name="${ACH_NAME[$id]}"
-        desc="${ACH_DESC[$id]}"
-        pts="${ACH_PTS[$id]}"
-        counter="${ACH_COUNTER[$id]}"
-        threshold="${ACH_THRESHOLD[$id]}"
-        tip="${TIPS[$id]:-}"
+        name=$(get_ach "$id" 2)
+        desc=$(get_ach "$id" 3)
+        pts=$(get_ach "$id" 4)
+        counter=$(get_ach "$id" 5)
+        threshold=$(get_ach "$id" 6)
+        tip=$(get_tip "$id")
 
         current=$(printf '%s' "$STATE" | jq -r --arg c "$counter" '.counters[$c] // 0')
 
@@ -157,11 +163,11 @@ printf -- "───────────────────────
 idx=0
 for id in "${PATH_IDS[@]}"; do
     idx=$(( idx + 1 ))
-    name="${ACH_NAME[$id]}"
-    desc="${ACH_DESC[$id]}"
-    pts="${ACH_PTS[$id]}"
-    counter="${ACH_COUNTER[$id]}"
-    threshold="${ACH_THRESHOLD[$id]}"
+    name=$(get_ach "$id" 2)
+    desc=$(get_ach "$id" 3)
+    pts=$(get_ach "$id" 4)
+    counter=$(get_ach "$id" 5)
+    threshold=$(get_ach "$id" 6)
     pts_str="+${pts} pts"
 
     is_unlocked=$(printf '%s' "$UNLOCKED_IDS" | jq --arg id "$id" 'index($id) != null')
@@ -169,7 +175,7 @@ for id in "${PATH_IDS[@]}"; do
     if [[ "$is_unlocked" == "true" ]]; then
         printf "  ${GREEN}✅${RESET}  %2d. %-24s ${YELLOW}%-10s${RESET}  %s\n" \
             "$idx" "$name" "$pts_str" "$desc"
-    elif [[ "${UP_NEXT_SET[$id]+isset}" ]]; then
+    elif printf '%s' "$UP_NEXT_SET" | grep -qx "$id"; then
         current=$(printf '%s' "$STATE" | jq -r --arg c "$counter" '.counters[$c] // 0')
         printf "  ${YELLOW}⭐${RESET}  %2d. %-24s ${YELLOW}%-10s${RESET}  ${DIM}[%s/%s]${RESET}\n" \
             "$idx" "$name" "$pts_str" "$current" "$threshold"

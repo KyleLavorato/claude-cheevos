@@ -435,10 +435,11 @@ Current tutorial set (8 achievements, 165 pts):
 `first_session`, `back_again`, `web_search_first`, `files_written_10`,
 `laying_down_the_law`, `files_read_100`, `bash_calls_50`, `plan_mode_first`
 
-Tips are hardcoded in `learning-path.sh` keyed by achievement ID. Add a tip for any
-new tutorial achievement:
+Tips are hardcoded in `learning-path.sh` inside the `get_tip()` case statement.
+Add a new branch for any new tutorial achievement:
 ```bash
-TIPS[my_achievement_id]="How to unlock this: ..."
+# Inside get_tip() in learning-path.sh:
+        my_achievement_id) echo "How to unlock this: ..." ;;
 ```
 
 ## show-achievements.sh Filters
@@ -493,6 +494,22 @@ command string before adding.
   or `$(( ))` assignment forms. Never use `(( var++ ))` when `var` might be 0.
 - **Bash 3.2 compat (macOS):** No `${var^^}` (uppercase). Use `grep -qi` or `tr '[:lower:]' '[:upper:]'`.
   No `mapfile`/`readarray`. Use `while IFS= read -r line; do ... done < <(...)`.
+  No `declare -A` (associative arrays). Use `case` statements, TSV variables with
+  `grep`+`cut` lookups, or newline-delimited strings with `grep -qx` for set membership.
+- **Single quotes inside single-quoted jq strings:** The jq expressions in `stop.sh` and
+  other hooks are passed as single-quoted strings (`'...'`). You **cannot** embed a literal
+  single quote inside a single-quoted bash string — it will silently break the quoting and
+  cause an `unexpected EOF` parse error far from the actual problem. Instead:
+  - Use `.` (match any char) instead of a literal `'` in regex patterns: `i(.ve)?` not `i('ve)?`
+  - Use `.?` instead of `'?`: `you.?re` not `you'?re`
+  - The `'"'"'` trick (end-quote, escaped-quote, re-open-quote) does **not** work inside
+    `$(...)` command substitutions nested within single-quoted strings.
+  - **Always run `bash -n script.sh`** after editing any hook to catch these issues.
+- **Heredocs with mixed expansion:** When a heredoc contains both bash variables to expand
+  and literal `$` characters (e.g. PowerShell variables), use a **quoted** heredoc
+  (`<< 'EOF'`) with placeholder substitution via `sed`, rather than an unquoted heredoc
+  with `\$` escaping. The unquoted approach is fragile with nested `$(...)` subshells
+  and embedded single quotes.
 - **Locking:** All state writes go through `with_lock bash "$SCRIPTS_DIR/state-update.sh"`.
   Never write state.json directly without the lock.
 - **Async hook race:** `post-tool-use.sh` is async. `stop.sh` is synchronous and runs
@@ -502,3 +519,32 @@ command string before adding.
   in the @tsv output — check for this in display code.
 - **COUNTER_UPDATES building:** Always start from a base JSON object and add keys with jq
   `'. + {"key": 1}'`. This allows multiple counters per tool call without if/elif ladders.
+
+## Verifying Changes
+
+After editing **any** hook or script, always run a syntax check before installing:
+
+```bash
+# Syntax-check all hooks and scripts (catches quoting errors, missing quotes, etc.)
+for f in hooks/*.sh scripts/*.sh; do
+    bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
+done
+```
+
+Then copy to the installed location and verify again:
+
+```bash
+bash install.sh
+for f in ~/.claude/achievements/hooks/*.sh ~/.claude/achievements/scripts/*.sh; do
+    bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
+done
+```
+
+Common symptoms of quoting bugs:
+- `unexpected EOF while looking for matching \`"'` — an unescaped single quote inside a
+  single-quoted string (the error line number points to the *end* of the broken string,
+  not the offending quote)
+- `unexpected EOF while looking for matching \`)'` — same cause, but bash is looking for
+  the close of a `$(...)` subshell that was broken by a stray quote
+- `syntax error near unexpected token \`)'` — a `)` that bash sees as shell syntax
+  because the surrounding quotes were broken

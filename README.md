@@ -8,7 +8,7 @@ usage milestones, awards points, and surfaces progress through three UIs and a l
 ## Requirements
 
 - [Claude Code](https://claude.ai/code) installed (`~/.claude/settings.json` must exist)
-- `bash` 3.2+ (macOS default is fine)
+- `bash` 3.2+ (macOS default is fine — but see [Bash 3.2 constraints](#bash-32-constraints-macos) below)
 - `jq` 1.6+
 - macOS or Linux (Windows via WSL)
 
@@ -62,6 +62,19 @@ bash uninstall.sh
 
 Restores your original `statusLine`, removes all four hooks from `settings.json`, and
 optionally deletes `~/.claude/achievements/`.
+
+### Verifying after install
+
+Run a syntax check on every installed script to catch quoting or compatibility issues:
+
+```bash
+for f in ~/.claude/achievements/hooks/*.sh ~/.claude/achievements/scripts/*.sh; do
+    bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
+done
+```
+
+All scripts should report `OK`. If any report `FAIL`, see
+[Bash 3.2 constraints](#bash-32-constraints-macos) below for common causes.
 
 ---
 
@@ -322,6 +335,25 @@ Add `"tutorial": true` to include it in the learning path UI.
 
 For the full list of available counters, condition types, and hook extension patterns,
 see [`CLAUDE.md`](CLAUDE.md).
+
+---
+
+## Bash 3.2 Constraints (macOS)
+
+macOS ships with Bash 3.2 due to GPLv3 licensing. All scripts in this project must
+be compatible with Bash 3.2. Key restrictions:
+
+| Feature | Bash 4+ only | Bash 3.2 alternative |
+|---|---|---|
+| `declare -A` (associative arrays) | Yes | `case` statements, TSV variables with `grep`+`cut`, or newline-delimited strings with `grep -qx` |
+| `${var^^}` (uppercase) | Yes | `echo "$var" \| tr '[:lower:]' '[:upper:]'` or `grep -qi` |
+| `mapfile` / `readarray` | Yes | `while IFS= read -r line; do ... done < <(...)` |
+| Single quotes inside `'...'` jq strings | N/A (bash limitation in all versions) | Use `.` or `.?` in regex instead of literal `'` (e.g. `you.?re` not `you'?re`) |
+
+**Quoting pitfall:** The jq expressions in `stop.sh` are wrapped in single quotes
+spanning 60+ lines. A single stray `'` inside that block (e.g. in a regex pattern)
+silently breaks the quoting — bash reports `unexpected EOF` at the *end* of the file,
+not at the offending line. Always run `bash -n script.sh` after editing.
 
 ---
 
