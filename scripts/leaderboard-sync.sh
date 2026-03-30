@@ -74,7 +74,9 @@ CURL_OUT=$(curl -s -w "\n__HTTP_CODE__%{http_code}" \
     "${API_URL}/users/${USER_ID}" 2>/dev/null || true)
 
 # Split body and status code (last line is __HTTP_CODE__NNN)
-BODY=$(printf '%s' "$CURL_OUT" | head -n -1)
+# sed '$d' removes the last line — portable across BSD (macOS) and GNU sed,
+# unlike 'head -n -1' which GNU-only and exits non-zero on macOS under set -e.
+BODY=$(printf '%s' "$CURL_OUT" | sed '$d')
 HTTP_LINE=$(printf '%s' "$CURL_OUT" | tail -n 1)
 HTTP_CODE=$(printf '%s' "$HTTP_LINE" | sed 's/__HTTP_CODE__//')
 

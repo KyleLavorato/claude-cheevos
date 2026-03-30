@@ -22,13 +22,18 @@ cheevos/
 │   ├── statusline-wrapper.sh    # Thin shim → cheevos statusline
 │   ├── seed-state.sh            # Thin shim → cheevos seed
 │   ├── show-achievements.sh     # Thin shim → cheevos show
+│   ├── tui.sh                   # Interactive terminal TUI — arrow-key navigation, detail view
 │   ├── learning-path.sh         # Thin shim → cheevos learn
 │   ├── award.sh                 # Thin shim → cheevos award
 │   └── verify-install.sh        # Thin shim → cheevos verify
+├── commands/
+│   ├── achievements.md          # /achievements slash command — runs cheevos serve, opens browser
+│   └── uninstall-achievements.md # /uninstall-achievements slash command — interactive uninstall
 ├── go/                          # Go source for the cheevos binary
 │   ├── go.mod / go.sum
 │   ├── Makefile                 # cross-compile matrix (requires CHEEVOS_HMAC_KEY env var)
 │   ├── cmd/cheevos/             # CLI entrypoint + subcommand handlers
+│   │   └── subcmd/serve.go      # (to be added) — achievement browser web UI
 │   ├── internal/
 │   │   ├── store/               # EncryptedJSONStore (AES-256-GCM), StateStore interface
 │   │   ├── crypto/              # AES helpers, key loading, HMAC key deobfuscation
@@ -70,8 +75,16 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 | `.version` | Installed version string — used by install.sh for upgrade detection |
 | `.original-statusline` | Prior `statusLine.command` value saved for uninstall restoration |
 | `hooks/`, `scripts/` | All scripts copied from repo (safe to overwrite on upgrade) |
+| `uninstall.sh` | Copy of uninstall.sh — referenced by `/uninstall-achievements` slash command |
 | `leaderboard.conf` | Leaderboard config: enabled flag, user UUID, token, API URL (chmod 600) |
-| `logs/leaderboard.log` | Append-only sync log — HTTP status per PUT, token never written |
+| `logs/leaderboard.log` | Append-only sync log — every PUT attempt logged (success and failure) |
+
+Slash commands are installed to `~/.claude/commands/` (not inside `achievements/`):
+
+| File | Purpose |
+|---|---|
+| `~/.claude/commands/achievements.md` | `/achievements` — runs `cheevos serve` in background, opens browser |
+| `~/.claude/commands/uninstall-achievements.md` | `/uninstall-achievements` — interactive uninstall with leaderboard warning |
 
 ## Install and Test
 
@@ -86,9 +99,15 @@ bash uninstall.sh
 # Leaderboard-enabled install (generates UUID, writes leaderboard.conf)
 bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 
-# View achievements
-~/.claude/achievements/cheevos show [--unlocked] [--beginner]
-~/.claude/achievements/cheevos learn
+# View achievements — choose your UI:
+/achievements                                                  # slash command — opens web UI in browser
+~/.claude/achievements/cheevos serve                          # web UI directly (opens browser)
+bash ~/.claude/achievements/scripts/tui.sh                    # terminal TUI (arrow-key navigation)
+~/.claude/achievements/cheevos show [--unlocked] [--beginner] # static list
+~/.claude/achievements/cheevos learn                          # guided tutorial path
+
+# Uninstall via slash command (interactive, leaderboard-aware)
+/uninstall-achievements
 
 # Award an Easter egg counter manually
 ~/.claude/achievements/cheevos award easter_egg_unlocks
@@ -101,7 +120,7 @@ bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 
 # Verify leaderboard config (token stored plaintext, chmod 600)
 cat ~/.claude/achievements/leaderboard.conf
-tail -f ~/.claude/achievements/logs/leaderboard.log  # watch syncs live
+tail -f ~/.claude/achievements/logs/leaderboard.log  # watch syncs live (all calls, not just failures)
 ```
 
 After install, restart Claude Code for hooks to take effect.
@@ -354,6 +373,7 @@ The binary (`go/cmd/cheevos/`) replaces all stateful bash scripts. All subcomman
 | `cheevos statusline` | statusline-wrapper.sh — render score for status bar |
 | `cheevos show [flags]` | show-achievements.sh — list achievements with ANSI formatting |
 | `cheevos learn` | learning-path.sh — tutorial progress display |
+| `cheevos serve` | (to be added) — launch achievement browser web UI, open browser |
 | `cheevos award <counter>` | award.sh — manually increment a counter (Easter eggs) |
 | `cheevos drain` | Notification drain block in stop.sh — emit systemMessage + OS notify |
 | `cheevos update-defs [--force]` | check-updates.sh — fetch new defs from GitHub (once/day) |
@@ -503,7 +523,6 @@ The binary outputs the score and, for 5 minutes after an unlock, the achievement
 
 ```
 🏆 560 pts
-🏆 710 pts (Power User!)    ← for 5 min after unlock
 ```
 
 If the user had a custom statusLine before install, it's saved in `.original-statusline`
@@ -550,6 +569,11 @@ idempotent — it checks for exact command string before adding.
 When adding new utility scripts, add a `cp` line in the shared-scripts block before `chmod +x`,
 and add a thin shim in `go/scripts/`.
 
+**Phase 1.6 — Slash commands:** copies `commands/achievements.md` and
+`commands/uninstall-achievements.md` to `~/.claude/commands/`. Also copies
+`uninstall.sh` itself into `$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command
+can find it without knowing the repo path.
+
 **Phase 6.5 — Leaderboard configuration:**
 - `--token TOKEN` and `--api-url URL` args parsed before Phase 0
 - If both args provided → generates UUID → writes enabled `leaderboard.conf` → `chmod 600`
@@ -580,6 +604,14 @@ and add a thin shim in `go/scripts/`.
   after the async hook — notifications are queued in `notifications.json` for this reason.
 - **State file is encrypted:** Never try to read `state.json` with `jq` directly.
   Use `cheevos show` or `cheevos verify` to inspect state.
+- **`head -n -1` is GNU-only:** BSD head (macOS) does not support negative line counts and
+  exits non-zero, which under `set -euo pipefail` kills the script before the next line runs.
+  Use `sed '$d'` to strip the last line instead — it is POSIX and works on both macOS and Linux.
+  This bug caused `leaderboard-sync.sh` to silently skip the log write on every *successful*
+  API call (non-empty curl output), so only failures (empty output) ever reached the log.
+- **`commands/` slash commands are not inside `~/.claude/achievements/`:** They live in
+  `~/.claude/commands/` and are installed by Phase 1.6. The uninstall slash command references
+  `~/.claude/achievements/uninstall.sh` (a copy placed there by install.sh), not the repo file.
 
 ## Verifying Changes
 
@@ -590,6 +622,9 @@ After editing any hook or script:
 for f in hooks/*.sh scripts/*.sh; do
     bash -n "$f" && echo "OK: $f" || echo "FAIL: $f"
 done
+
+# After any Go changes, verify the build compiles:
+cd go && go vet ./... && go build ./...
 
 # After installing
 bash install.sh

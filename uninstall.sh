@@ -62,6 +62,22 @@ jq '
 echo "✓ Removed achievement hooks from settings.json"
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Step 2.5: Remove slash commands
+# ─────────────────────────────────────────────────────────────────────────────
+
+COMMAND_FILE="$HOME/.claude/commands/achievements.md"
+if [[ -f "$COMMAND_FILE" ]]; then
+    rm -f "$COMMAND_FILE"
+    echo "✓ Removed /achievements slash command"
+fi
+
+UNINSTALL_COMMAND_FILE="$HOME/.claude/commands/uninstall-achievements.md"
+if [[ -f "$UNINSTALL_COMMAND_FILE" ]]; then
+    rm -f "$UNINSTALL_COMMAND_FILE"
+    echo "✓ Removed /uninstall-achievements slash command"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Step 3: Remove from leaderboard (if enabled)
 # ─────────────────────────────────────────────────────────────────────────────
 

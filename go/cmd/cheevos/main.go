@@ -58,6 +58,8 @@ func main() {
     case "update-defs":
         force := len(args) > 0 && args[0] == "--force"
         err = subcmd.UpdateDefs(achievementsDir, force)
+    case "serve":
+        err = subcmd.Serve(achievementsDir)
     case "leaderboard-sync":
         err = subcmd.LeaderboardSync(achievementsDir)
     case "verify":
@@ -93,6 +95,7 @@ Subcommands:
   learn               Show tutorial learning path
   award <counter>     Manually increment a counter (Easter eggs)
   drain               Drain notification queue and emit systemMessage
+  serve               Open achievement browser web UI in the system browser
   update-defs [--force]  Fetch new achievement definitions from GitHub (once/day)
   leaderboard-sync    Push score to leaderboard API (reads leaderboard.conf)
   verify              Verify the installation is healthy
