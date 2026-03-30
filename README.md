@@ -17,8 +17,8 @@ usage milestones, awards points, and surfaces progress through three UIs and a l
 ## Installation
 
 ```bash
-git clone https://github.com/yourusername/cheevos.git
-cd cheevos
+git clone https://github.com/KyleLavorato/claude-cheevos.git
+cd claude-cheevos
 bash install.sh
 ```
 
