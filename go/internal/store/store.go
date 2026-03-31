@@ -7,10 +7,12 @@ type State struct {
     Counters              map[string]int64  `json:"counters"`
     Unlocked              []string          `json:"unlocked"`
     UnlockTimes           map[string]string `json:"unlock_times"`
-    ModelsUsed            []string          `json:"models_used"`
-    LastSessionModelCheck string            `json:"last_session_model_check"`
-    LastUpdateCheckEpoch  int64             `json:"last_update_check_epoch,omitempty"`
-    LastUpdated           string            `json:"last_updated"`
+    ModelsUsed                 []string          `json:"models_used"`
+    LastSessionModelCheck      string            `json:"last_session_model_check"`
+    LastUpdateCheckEpoch       int64             `json:"last_update_check_epoch,omitempty"`
+    LastBinaryUpdateCheckEpoch int64             `json:"last_binary_update_check_epoch,omitempty"`
+    InstalledVersion           string            `json:"installed_version,omitempty"`
+    LastUpdated                string            `json:"last_updated"`
 }
 
 // StateStore abstracts the state persistence layer.

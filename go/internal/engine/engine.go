@@ -24,6 +24,12 @@ type UpdateParams struct {
     // UpdateCheckEpoch, when non-zero, is written to state.LastUpdateCheckEpoch
     // for rate-limiting the daily auto-update check.
     UpdateCheckEpoch int64
+    // BinaryUpdateCheckEpoch, when non-zero, is written to state.LastBinaryUpdateCheckEpoch
+    // for rate-limiting the daily binary auto-update check.
+    BinaryUpdateCheckEpoch int64
+    // InstalledVersion, when non-empty, is written to state.InstalledVersion
+    // to track the currently installed binary version.
+    InstalledVersion string
 }
 
 // Notification is the structure appended to notifications.json when an achievement unlocks.
@@ -59,6 +65,14 @@ func Update(st *State, d *defs.Definitions, params UpdateParams) ([]Notification
     // Record update-check timestamp.
     if params.UpdateCheckEpoch > 0 {
         st.LastUpdateCheckEpoch = params.UpdateCheckEpoch
+    }
+    // Record binary update-check timestamp.
+    if params.BinaryUpdateCheckEpoch > 0 {
+        st.LastBinaryUpdateCheckEpoch = params.BinaryUpdateCheckEpoch
+    }
+    // Record installed version.
+    if params.InstalledVersion != "" {
+        st.InstalledVersion = params.InstalledVersion
     }
 
     st.LastUpdated = now

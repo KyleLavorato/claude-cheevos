@@ -117,18 +117,30 @@ Multiple unlocks in the same turn are batched into one notification.
 
 ## Auto-Updates
 
-New achievements are automatically downloaded from the public GitHub repo once per day on
-session start. Your progress is always preserved.
+The system automatically updates both achievement definitions and the `cheevos` binary once
+per day on session start. Your progress is always preserved.
+
+- **Achievement definitions:** New achievements are fetched from GitHub
+- **Binary updates:** The `cheevos` binary is updated to the latest release
+- **Custom compilations:** Binary auto-updates are disabled if you built from source
 
 ```bash
-# Force an immediate check
+# Force an immediate check for both
+~/.claude/achievements/cheevos check-updates --force
+
+# Check only definitions or binary
 ~/.claude/achievements/cheevos update-defs --force
+~/.claude/achievements/cheevos update-binary --force
 ```
 
-To disable, remove the `cheevos update-defs &` line from
-`~/.claude/achievements/hooks/session-start.sh`.
+**Opt out of binary auto-updates:**
 
-See [docs/auto-update.md](docs/auto-update.md) for full details.
+```bash
+touch ~/.claude/achievements/.no-auto-update
+```
+
+See [docs/auto-update.md](docs/auto-update.md) for full details including security, rollback,
+and disabling updates.
 
 ---
 

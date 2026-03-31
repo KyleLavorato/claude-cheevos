@@ -108,6 +108,6 @@ export _CHEEVOS_TS
 "$CHEEVOS" update
 
 # Auto-update check (once per day, runs in background — rate-limited inside the binary)
-"$CHEEVOS" update-defs &
+"$CHEEVOS" check-updates &
 
 exit 0

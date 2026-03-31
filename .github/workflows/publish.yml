@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 
 env:
-    MAJOR: 0
+    MAJOR: 2
 
 jobs:
     release:
@@ -34,7 +34,33 @@ jobs:
             - name: Build all platforms
               env:
                   CHEEVOS_HMAC_KEY: ${{ secrets.CHEEVOS_HMAC_KEY }}
-              run: make dist-zip
+              run: VERSION=${{ steps.version.outputs.version }} make dist-zip
+
+            - name: Stamp version into install.sh
+              run: |
+                  # Extract install.sh from each zip, stamp version, and repackage
+                  cd dist
+                  for zipfile in claude-cheevos-*.zip; do
+                      # Create temp dir for this zip
+                      tmpdir=$(mktemp -d)
+                      unzip -q "$zipfile" -d "$tmpdir"
+
+                      # Stamp version into install.sh
+                      sed -i "s/^VERSION=.*/VERSION=\"${{ steps.version.outputs.version }}\"/" "$tmpdir/install.sh"
+
+                      # Repackage
+                      rm "$zipfile"
+                      (cd "$tmpdir" && zip -r -q "../$zipfile" .)
+                      rm -rf "$tmpdir"
+                  done
+                  cd ..
+
+            - name: Generate SHA256 checksums
+              run: |
+                  cd dist
+                  sha256sum claude-cheevos-*.zip > SHA256SUMS
+                  cat SHA256SUMS
+                  cd ..
 
             - name: Create release
               uses: softprops/action-gh-release@v2
@@ -50,3 +76,4 @@ jobs:
                       dist/claude-cheevos-linux-amd64.zip
                       dist/claude-cheevos-linux-arm64.zip
                       dist/claude-cheevos-windows-amd64.zip
+                      dist/SHA256SUMS

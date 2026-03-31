@@ -3,8 +3,6 @@ package subcmd
 import (
     "encoding/json"
     "fmt"
-    "io"
-    "net/http"
     "os"
     "path/filepath"
     "time"
@@ -14,6 +12,7 @@ import (
     "github.com/user/claude-cheevos/internal/lock"
     "github.com/user/claude-cheevos/internal/notify"
     "github.com/user/claude-cheevos/internal/store"
+    "github.com/user/claude-cheevos/internal/update"
 )
 
 const (
@@ -41,18 +40,9 @@ func UpdateDefs(achievementsDir string, force bool, key [32]byte) error {
     }
 
     // Fetch remote definitions.json.
-    client := &http.Client{Timeout: 10 * time.Second}
-    resp, err := client.Get(githubDefsURL)
+    remoteData, err := update.DownloadAsset(githubDefsURL, 10*time.Second)
     if err != nil {
         return nil // network unavailable — exit silently
-    }
-    defer resp.Body.Close()
-    if resp.StatusCode != http.StatusOK {
-        return nil
-    }
-    remoteData, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return nil
     }
 
     // Validate remote JSON.

@@ -3,9 +3,11 @@ ARTIFACT_NAME := claude-cheevos
 GO_DIR     := ./go
 CMD        := $(GO_DIR)/cmd/cheevos
 DIST_DIR   := ./dist
+VERSION    ?= dev
 
 # Strip debug info from release builds.
 LDFLAGS_BASE := -s -w
+LDFLAGS      := $(LDFLAGS_BASE) -X 'main.appVersion=$(VERSION)'
 
 # Platforms to cross-compile for.
 PLATFORMS := \
@@ -28,7 +30,7 @@ prod:
 	$(eval _OUT  := $(DIST_DIR)/$(BINARY)-$(_OS)-$(_ARCH)$(_EXT))
 	@mkdir -p $(DIST_DIR)
 	cd $(GO_DIR) && GOOS=$(_OS) GOARCH=$(_ARCH) go build \
-		-ldflags "$(LDFLAGS_BASE) -X 'main.hmacSecretRaw=$(_KEY)'" \
+		-ldflags "$(LDFLAGS) -X 'main.hmacSecretRaw=$(_KEY)'" \
 		-o ../$(_OUT) ./cmd/cheevos
 	@echo "Built $(_OUT) with HMAC key"
 
@@ -46,7 +48,7 @@ dist:
 		[ "$$OS" = "windows" ] && OUT="$$OUT.exe"; \
 		echo "Building $$OUT..."; \
 		cd $(GO_DIR) && GOOS=$$OS GOARCH=$$ARCH go build \
-			-ldflags "$(LDFLAGS_BASE) -X 'main.hmacSecretRaw=$(_KEY)'" \
+			-ldflags "$(LDFLAGS) -X 'main.hmacSecretRaw=$(_KEY)'" \
 			-o ../$$OUT ./cmd/cheevos; \
 		cd ..; \
 	done
