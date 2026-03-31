@@ -70,11 +70,12 @@ func Drain(achievementsDir string, key [32]byte) error {
         lines = append(lines, fmt.Sprintf("  [%s +%d pts] %s", n.Name, n.Points, n.Description))
     }
 
-    // Fire OS notification.
-    var notifTitle, notifBody string
+    // Fire OS notification with tier-based icon.
+    var notifTitle, notifBody, tier string
     if len(drained) == 1 {
         notifTitle = "🏆 Achievement Unlocked!"
         notifBody = fmt.Sprintf("%s (+%d pts)", drained[0].Description, drained[0].Points)
+        tier = drained[0].SkillLevel
     } else {
         names := make([]string, len(drained))
         for i, n := range drained {
@@ -82,8 +83,9 @@ func Drain(achievementsDir string, key [32]byte) error {
         }
         notifTitle = fmt.Sprintf("🏆 %d Achievements Unlocked!", len(drained))
         notifBody = strings.Join(names, ", ")
+        tier = "" // Multiple achievements - no specific tier
     }
-    _ = notify.Send(notifTitle, notifBody) // best-effort; ignore error
+    _ = notify.SendWithTier(notifTitle, notifBody, tier) // best-effort; ignore error
 
     // Emit systemMessage JSON to stdout for Claude Code to display inline.
     header := "🏆 Achievement Unlocked!"

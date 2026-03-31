@@ -25,3 +25,8 @@ $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
 
     return exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script).Run()
 }
+
+// SendWithTier is the same as Send on Windows (tier icons not implemented).
+func SendWithTier(title, body, tier string) error {
+    return Send(title, body)
+}

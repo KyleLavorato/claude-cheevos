@@ -14,3 +14,8 @@ func Send(title, body string) error {
     }
     return exec.Command("notify-send", title, body).Run()
 }
+
+// SendWithTier is the same as Send on Linux (tier icons not implemented).
+func SendWithTier(title, body, tier string) error {
+    return Send(title, body)
+}

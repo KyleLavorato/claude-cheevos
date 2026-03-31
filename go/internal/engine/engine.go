@@ -32,6 +32,7 @@ type Notification struct {
     Name        string `json:"name"`
     Points      int    `json:"points"`
     Description string `json:"description"`
+    SkillLevel  string `json:"skill_level"`
 }
 
 // Update applies counter increments/sets, checks achievements, appends notifications,
@@ -82,6 +83,7 @@ func Update(st *State, d *defs.Definitions, params UpdateParams) ([]Notification
                 Name:        ach.Name,
                 Points:      ach.Points,
                 Description: ach.Description,
+                SkillLevel:  ach.SkillLevel,
             })
         }
     }

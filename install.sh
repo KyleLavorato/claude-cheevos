@@ -48,6 +48,25 @@ for cmd in jq bash; do
     fi
 done
 
+# macOS: Auto-install terminal-notifier for enhanced notification icons
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    if ! command -v terminal-notifier >/dev/null 2>&1; then
+        echo "Installing terminal-notifier for tier-based notification icons..."
+        if command -v brew >/dev/null 2>&1; then
+            brew install terminal-notifier || {
+                echo "WARNING: Failed to install terminal-notifier"
+                echo "         Notifications will use osascript (no custom icons)"
+            }
+        else
+            echo "WARNING: Homebrew not found"
+            echo "         Install: brew install terminal-notifier"
+            echo "         Notifications will use osascript (no custom icons)"
+        fi
+    else
+        echo "✓ terminal-notifier already installed"
+    fi
+fi
+
 if [[ ! -f "$SETTINGS" ]]; then
     echo "ERROR: $SETTINGS not found. Is Claude Code installed?"
     exit 1
@@ -132,6 +151,10 @@ chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 # Achievement definitions — always overwritten on install/upgrade so the binary
 # always has a current copy to read from disk.
 cp "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
+
+# Notification icons (PNG) for terminal-notifier on macOS
+mkdir -p "$ACHIEVEMENTS_DIR/data/icons"
+cp "$REPO_DIR/data/icons"/*.png "$ACHIEVEMENTS_DIR/data/icons/" 2>/dev/null || true
 
 # Uninstall script — copied so /uninstall-achievements slash command can find it
 # without needing to know the repo path
