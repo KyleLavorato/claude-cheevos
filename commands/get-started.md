@@ -1,3 +1,8 @@
+---
+description: Interactive guided tour for new users (18 tutorial achievements)
+model: claude-haiku-4-5
+---
+
 # Claude Code Guided Tour
 
 You are conducting an interactive guided tour of Claude Code's achievement system. This tour teaches new users how to use Claude Code effectively through hands-on practice with 18 core achievements.
@@ -32,19 +37,20 @@ The guided tour follows this specific order, designed for progressive learning:
 5. **web_search_first** - Curious Mind (5 pts)
 6. **glob_grep_first** - Code Detective (5 pts)
 7. **skill_calls_1** - Shortcut Savvy (5 pts)
-8. **back_again** - Back Again (10 pts)
-9. **check_your_vitals** - Check Your Vitals (5 pts)
-10. **laying_down_the_law** - Laying Down the Law (10 pts)
-11. **git_er_done** - Git Er Done (10 pts)
-12. **plan_mode_first** - Think First (10 pts)
-13. **code_review_1** - Code Critic (10 pts)
-14. **test_driven** - Test Driven (10 pts)
-15. **spring_cleaning** - Spring Cleaning (5 pts)
-16. **github_first** - Open Source Hero (15 pts)
-17. **delegation_station** - Delegation Station (15 pts)
-18. **inner_machinations** - The Inner Machinations of My Mind Are an Enigma (10 pts)
+8. **model_citizen** - Model Citizen (5 pts)
+9. **back_again** - Back Again (10 pts)
+10. **check_your_vitals** - Check Your Vitals (5 pts)
+11. **laying_down_the_law** - Laying Down the Law (10 pts)
+12. **git_er_done** - Git Er Done (10 pts)
+13. **plan_mode_first** - Think First (10 pts)
+14. **code_review_1** - Code Critic (10 pts)
+15. **test_driven** - Test Driven (10 pts)
+16. **spring_cleaning** - Spring Cleaning (5 pts)
+17. **github_first** - Open Source Hero (15 pts)
+18. **delegation_station** - Delegation Station (15 pts)
+19. **inner_machinations** - The Inner Machinations of My Mind Are an Enigma (10 pts)
 
-**Total: 155 points**
+**Total: 160 points**
 
 ## Behavior Modes
 
@@ -59,7 +65,7 @@ If all 18 tutorial achievements are unlocked, display a congratulatory trophy ca
 ║                    🏆 TROPHY CASE 🏆                       ║
 ╚════════════════════════════════════════════════════════════╝
 
-You've unlocked all 18 tutorial achievements and earned 155 points!
+You've unlocked all 19 tutorial achievements and earned 160 points!
 
 ✅ Core Skills Mastered:
    • File Operations (Read, Write, Edit)
@@ -87,7 +93,7 @@ Display an overview showing progress, then start guiding from the first uncomple
 ```
 🗺️  Claude Code Getting Started Tour
 
-Progress: [X/18] achievements complete (Y/155 pts)
+Progress: [X/19] achievements complete (Y/160 pts)
 
 ✅ Completed:
    1. ✅ Hello, World (+5 pts)
@@ -112,7 +118,7 @@ Display a welcome message with the full overview, then start with the first achi
 ```
 🗺️  Welcome to the Claude Code Getting Started Tour!
 
-This interactive guide will teach you how to use Claude Code effectively through 18 hands-on achievements. You'll learn:
+This interactive guide will teach you how to use Claude Code effectively through 19 hands-on achievements. You'll learn:
 
    • File operations (reading, writing, editing code)
    • Running shell commands and git workflows
@@ -120,7 +126,7 @@ This interactive guide will teach you how to use Claude Code effectively through
    • Advanced features (plan mode, code reviews, testing)
    • Collaboration tools (GitHub, Jira, delegation)
 
-Progress: [0/18] achievements (0/155 pts)
+Progress: [0/19] achievements (0/160 pts)
 
 Let's begin! I'll guide you through each achievement step-by-step. When you complete one, I'll automatically move to the next. You can type "skip" at any time to move ahead.
 
@@ -305,9 +311,31 @@ How to use slash commands (skills) for quick actions. Skills are shortcuts that 
 Since you ran /get-started to start this tour, you've already unlocked this achievement! 🎉
 ```
 
-#### 8. back_again - Back Again (10 pts)
+#### 8. model_citizen - Model Citizen (5 pts)
 ```
-⭐ Achievement 8/18: Back Again (+10 pts)
+⭐ Achievement 8/19: Model Citizen (+5 pts)
+
+📋 What you'll learn:
+How to use the /model skill to view and switch the Claude model for your session. Choosing the right model for the task — a smaller one for quick work, a larger one for complex reasoning — is a key power-user skill.
+
+📝 Step-by-step guide:
+1. Type /model in the chat
+2. Claude Code will open the model picker
+3. Browse the available models (you don't have to switch — just opening it counts!)
+4. Achievement unlocked! ✨
+
+💡 Example:
+• Just type: /model
+
+✨ What happens next:
+Opening the /model picker unlocks this achievement instantly! Or type "skip" to move ahead.
+```
+
+────────────────────────────────────────────────────────────
+
+#### 9. back_again - Back Again (10 pts)
+```
+⭐ Achievement 9/19: Back Again (+10 pts)
 
 📋 What you'll learn:
 How to resume previous Claude Code sessions. Sessions preserve your conversation history and context.
@@ -328,9 +356,9 @@ How to resume previous Claude Code sessions. Sessions preserve your conversation
 After you resume a session, this achievement unlocks. For now, let's continue to the next one...
 ```
 
-#### 9. check_your_vitals - Check Your Vitals (5 pts)
+#### 10. check_your_vitals - Check Your Vitals (5 pts)
 ```
-⭐ Achievement 9/18: Check Your Vitals (+5 pts)
+⭐ Achievement 10/19: Check Your Vitals (+5 pts)
 
 📋 What you'll learn:
 How to verify your Cheevos installation and check system health.
@@ -347,9 +375,9 @@ How to verify your Cheevos installation and check system health.
 I'll run: ~/.claude/achievements/cheevos verify
 ```
 
-#### 10. laying_down_the_law - Laying Down the Law (10 pts)
+#### 11. laying_down_the_law - Laying Down the Law (10 pts)
 ```
-⭐ Achievement 10/18: Laying Down the Law (+10 pts)
+⭐ Achievement 11/19: Laying Down the Law (+10 pts)
 
 📋 What you'll learn:
 How to create a CLAUDE.md file with project-specific instructions for Claude. This tells Claude how to work on your codebase (coding standards, test requirements, architecture, etc.).
@@ -369,9 +397,9 @@ How to create a CLAUDE.md file with project-specific instructions for Claude. Th
 After I create a CLAUDE.md file, you'll unlock this achievement!
 ```
 
-#### 11. git_er_done - Git Er Done (10 pts)
+#### 12. git_er_done - Git Er Done (10 pts)
 ```
-⭐ Achievement 11/18: Git Er Done (+10 pts)
+⭐ Achievement 12/19: Git Er Done (+10 pts)
 
 📋 What you'll learn:
 How to have Claude execute git commits. I can stage files, write commit messages, and commit changes for you.
@@ -393,9 +421,9 @@ How to have Claude execute git commits. I can stage files, write commit messages
 After I run a git commit command, this achievement unlocks!
 ```
 
-#### 12. plan_mode_first - Think First (10 pts)
+#### 13. plan_mode_first - Think First (10 pts)
 ```
-⭐ Achievement 12/18: Think First (+10 pts)
+⭐ Achievement 13/19: Think First (+10 pts)
 
 📋 What you'll learn:
 How to use Plan Mode for complex tasks. Plan Mode lets Claude create a detailed implementation plan before writing code, ensuring better architecture and avoiding mistakes.
@@ -415,9 +443,9 @@ How to use Plan Mode for complex tasks. Plan Mode lets Claude create a detailed 
 After I use Plan Mode (EnterPlanMode tool), you'll unlock this achievement!
 ```
 
-#### 13. code_review_1 - Code Critic (10 pts)
+#### 14. code_review_1 - Code Critic (10 pts)
 ```
-⭐ Achievement 13/18: Code Critic (+10 pts)
+⭐ Achievement 14/19: Code Critic (+10 pts)
 
 📋 What you'll learn:
 How to get code reviews from Claude. I can review code for bugs, performance issues, security vulnerabilities, and style improvements.
@@ -437,9 +465,9 @@ How to get code reviews from Claude. I can review code for bugs, performance iss
 After I perform a code review, you'll unlock this achievement!
 ```
 
-#### 14. test_driven - Test Driven (10 pts)
+#### 15. test_driven - Test Driven (10 pts)
 ```
-⭐ Achievement 14/18: Test Driven (+10 pts)
+⭐ Achievement 15/19: Test Driven (+10 pts)
 
 📋 What you'll learn:
 How to create test files with Claude. Testing is crucial for code quality and I can help write unit tests, integration tests, and more.
@@ -459,9 +487,9 @@ How to create test files with Claude. Testing is crucial for code quality and I 
 After I create a test file, this achievement unlocks!
 ```
 
-#### 15. spring_cleaning - Spring Cleaning (5 pts)
+#### 16. spring_cleaning - Spring Cleaning (5 pts)
 ```
-⭐ Achievement 15/18: Spring Cleaning (+5 pts)
+⭐ Achievement 16/19: Spring Cleaning (+5 pts)
 
 📋 What you'll learn:
 How to manually compact the conversation context. When conversations get long, compacting helps preserve important context while clearing old messages.
@@ -478,9 +506,9 @@ How to manually compact the conversation context. When conversations get long, c
 After you run /compact, this achievement unlocks instantly!
 ```
 
-#### 16. github_first - Open Source Hero (15 pts)
+#### 17. github_first - Open Source Hero (15 pts)
 ```
-⭐ Achievement 16/18: Open Source Hero (+15 pts)
+⭐ Achievement 17/19: Open Source Hero (+15 pts)
 
 📋 What you'll learn:
 How to use Claude's GitHub integration via MCP (Model Context Protocol) tools. I can read repos, check issues, review PRs, and more.
@@ -502,9 +530,9 @@ How to use Claude's GitHub integration via MCP (Model Context Protocol) tools. I
 After I use a GitHub MCP tool, you'll unlock this achievement!
 ```
 
-#### 17. delegation_station - Delegation Station (15 pts)
+#### 18. delegation_station - Delegation Station (15 pts)
 ```
-⭐ Achievement 17/18: Delegation Station (+15 pts)
+⭐ Achievement 18/19: Delegation Station (+15 pts)
 
 📋 What you'll learn:
 How to leverage sub-agents for complex research or parallel tasks. Claude can spawn specialized agents to handle specific work independently.
@@ -524,9 +552,9 @@ How to leverage sub-agents for complex research or parallel tasks. Claude can sp
 When I spawn a sub-agent for you, this achievement unlocks!
 ```
 
-#### 18. inner_machinations - The Inner Machinations of My Mind Are an Enigma (10 pts)
+#### 19. inner_machinations - The Inner Machinations of My Mind Are an Enigma (10 pts)
 ```
-⭐ Achievement 18/18: The Inner Machinations of My Mind Are an Enigma (+10 pts)
+⭐ Achievement 19/19: The Inner Machinations of My Mind Are an Enigma (+10 pts)
 
 📋 What you'll learn:
 How to have Claude read its own achievement system files. This is a fun meta-achievement — Claude analyzing the system that tracks Claude!

@@ -176,6 +176,9 @@ case "$TOOL" in
         if printf '%s' "$SKILL_NAME" | grep -qi "review" 2>/dev/null; then
             COUNTER_UPDATES=$(printf '%s' "$COUNTER_UPDATES" | jq '. + {"code_reviews": 1}')
         fi
+        if printf '%s' "$SKILL_NAME" | grep -qi "^model$" 2>/dev/null; then
+            COUNTER_UPDATES=$(printf '%s' "$COUNTER_UPDATES" | jq '. + {"model_switch_calls": 1}')
+        fi
         ;;
     Task)
         COUNTER_UPDATES='{"task_calls": 1}'
