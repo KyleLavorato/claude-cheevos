@@ -64,6 +64,7 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             code_smell: ($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")),
             doctor_run: ($user_text | ascii_downcase | test("^/doctor|\\s/doctor")),
             context_command: ($user_text | ascii_downcase | test("^/context|\\s/context")),
+            model_command:   ($user_text | ascii_downcase | test("^/model|\\s/model")),
             deja_vu:    ($user_text != "" and $user_text == $prev_user_text),
             chess:      ($user_text | ascii_downcase | test("chess")),
             slow_response: (
@@ -93,7 +94,7 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                 )
             )
         }
-    ' 2>/dev/null || echo '{"model":"","sorry":false,"great_question":false,"hal_9000":false,"youre_right":false,"barnacles":false,"twenty_questions":false,"magic_conch":false,"inner_machinations":false,"tic_tac_toe":false,"code_smell":false,"doctor_run":false,"context_command":false,"deja_vu":false,"chess":false,"slow_response":false,"wrote_claude_md":false,"context_high":false,"output_tokens":0,"lucky":false,"no_issues":false,"many_issues":false,"code_review_turn":false}')
+    ' 2>/dev/null || echo '{"model":"","sorry":false,"great_question":false,"hal_9000":false,"youre_right":false,"barnacles":false,"twenty_questions":false,"magic_conch":false,"inner_machinations":false,"tic_tac_toe":false,"code_smell":false,"doctor_run":false,"context_command":false,"model_command":false,"deja_vu":false,"chess":false,"slow_response":false,"wrote_claude_md":false,"context_high":false,"output_tokens":0,"lucky":false,"no_issues":false,"many_issues":false,"code_review_turn":false}')
 
     MODEL=$(printf '%s' "$TRANSCRIPT_INFO"                | jq -r '.model')
     SAID_SORRY=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.sorry')
@@ -108,6 +109,7 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     CODE_SMELL=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.code_smell')
     DOCTOR_RUN=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.doctor_run')
     CONTEXT_COMMAND=$(printf '%s' "$TRANSCRIPT_INFO"      | jq -r '.context_command')
+    MODEL_COMMAND=$(printf '%s' "$TRANSCRIPT_INFO"         | jq -r '.model_command')
     DEJA_VU=$(printf '%s' "$TRANSCRIPT_INFO"              | jq -r '.deja_vu')
     CHESS=$(printf '%s' "$TRANSCRIPT_INFO"                | jq -r '.chess')
     SLOW_RESPONSE=$(printf '%s' "$TRANSCRIPT_INFO"        | jq -r '.slow_response')
@@ -188,6 +190,11 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     # /context command
     if [[ "$CONTEXT_COMMAND" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"context_command_run": 1}')
+    fi
+
+    # /model command
+    if [[ "$MODEL_COMMAND" == "true" ]]; then
+        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"model_switch_calls": 1}')
     fi
 
     # Deja Vu
