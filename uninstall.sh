@@ -62,7 +62,19 @@ jq '
 echo "✓ Removed achievement hooks from settings.json"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Step 2.5: Remove slash commands
+# Step 2.5: Remove cheevos binary from permissions allow list
+# ─────────────────────────────────────────────────────────────────────────────
+
+TEMP=$(mktemp "$SETTINGS.XXXXXX")
+jq '
+    if .permissions.allow then
+        .permissions.allow |= map(select(test("achievements/cheevos") | not))
+    else . end
+' "$SETTINGS" > "$TEMP" && mv "$TEMP" "$SETTINGS"
+echo "✓ Removed cheevos from permissions allow list"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Step 2.6: Remove slash commands
 # ─────────────────────────────────────────────────────────────────────────────
 
 COMMAND_FILE="$HOME/.claude/commands/achievements.md"

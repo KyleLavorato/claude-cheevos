@@ -245,6 +245,30 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Phase 3.5: Add cheevos binary to Claude Code auto-allow list
+# ─────────────────────────────────────────────────────────────────────────────
+
+CHEEVOS_ALLOW="Bash($ACHIEVEMENTS_DIR/cheevos:*)"
+
+TEMP=$(mktemp "$SETTINGS.XXXXXX")
+jq --arg allow "$CHEEVOS_ALLOW" '
+    .permissions //= {} |
+    .permissions.allow //= [] |
+    if (.permissions.allow | any(. == $allow)) then .
+    else .permissions.allow += [$allow]
+    end
+' "$SETTINGS" > "$TEMP"
+
+if ! jq empty "$TEMP" 2>/dev/null; then
+    rm -f "$TEMP"
+    echo "ERROR: Failed to add cheevos to allow list - produced invalid JSON."
+    exit 1
+fi
+
+mv "$TEMP" "$SETTINGS"
+echo "✓ cheevos binary added to permissions allow list"
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Phase 4: Validate final settings.json
 # ─────────────────────────────────────────────────────────────────────────────
 
