@@ -662,6 +662,19 @@
             "tutorial": true
         },
         {
+            "id": "model_citizen",
+            "name": "Model Citizen",
+            "description": "Open the /model skill to view or switch Claude models",
+            "points": 5,
+            "category": "commands",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "model_switch_calls",
+                "threshold": 1
+            },
+            "tutorial": true
+        },
+        {
             "id": "skill_calls_5",
             "name": "Slash Artist",
             "description": "Invoke 5 skills",

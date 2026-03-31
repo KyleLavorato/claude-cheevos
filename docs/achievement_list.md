@@ -89,6 +89,7 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/get
 | Context King | Consume 50,000,000 tokens with Claude | 150 | tokens | Master |  |
 | The Singularity | Consume 500,000,000 tokens with Claude | 300 | tokens | Impossible |  |
 | Shortcut Savvy | Invoke your first skill | 5 | commands | Beginner | ✓ |
+| Model Citizen | Open the /model skill to view or switch Claude models | 5 | commands | Beginner | ✓ |
 | Slash Artist | Invoke 5 skills | 10 | commands | Beginner |  |
 | Command Center | Invoke 15 skills | 25 | commands | Intermediate |  |
 | Roll Your Own | Create your first custom slash command | 15 | commands | Beginner |  |
