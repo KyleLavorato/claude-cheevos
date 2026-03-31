@@ -85,21 +85,15 @@ LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
 if [[ -f "$LEADERBOARD_CONF" ]]; then
     LEADERBOARD_ENABLED=$(grep -m1 '^LEADERBOARD_ENABLED=' "$LEADERBOARD_CONF" | cut -d= -f2-)
     if [[ "$LEADERBOARD_ENABLED" == "true" ]]; then
-        USER_ID=$(grep -m1 '^USER_ID='  "$LEADERBOARD_CONF" | cut -d= -f2-)
-        TOKEN=$(grep -m1   '^TOKEN='    "$LEADERBOARD_CONF" | cut -d= -f2-)
-        API_URL=$(grep -m1 '^API_URL='  "$LEADERBOARD_CONF" | cut -d= -f2-)
-
-        if [[ -n "$USER_ID" && -n "$TOKEN" && -n "$API_URL" ]]; then
-            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-                --connect-timeout 5 --max-time 10 \
-                -X DELETE \
-                -H "Authorization: Bearer ${TOKEN}" \
-                "${API_URL}/users/${USER_ID}" 2>/dev/null || true)
-            if [[ "$HTTP_CODE" == "200" ]]; then
+        USER_ID=$(grep -m1 '^USER_ID=' "$LEADERBOARD_CONF" | cut -d= -f2-)
+        if [[ -x "$ACHIEVEMENTS_DIR/cheevos" ]]; then
+            if "$ACHIEVEMENTS_DIR/cheevos" leaderboard-delete 2>/dev/null; then
                 echo "✓ Removed from leaderboard (user: $USER_ID)"
             else
-                echo "  (Leaderboard removal skipped — HTTP $HTTP_CODE)"
+                echo "  (Leaderboard removal failed — check logs/leaderboard.log)"
             fi
+        else
+            echo "  (Leaderboard removal skipped — cheevos binary not found)"
         fi
     fi
 fi

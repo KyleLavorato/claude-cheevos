@@ -103,6 +103,61 @@ func LeaderboardSync(achievementsDir string, key [32]byte) error {
 	return nil
 }
 
+// LeaderboardDelete reads leaderboard.conf, decrypts credentials, and sends a DELETE
+// request to remove the user's entry from the leaderboard. Exits silently (nil error) if
+// leaderboard is disabled or not configured. Returns an error if the HTTP call was made
+// but returned a non-200 status, so the caller can report failure to the user.
+func LeaderboardDelete(achievementsDir string, key [32]byte) error {
+	conf, err := readLeaderboardConf(filepath.Join(achievementsDir, "leaderboard.conf"))
+	if err != nil || !conf.Enabled {
+		return nil
+	}
+	if conf.Secret == "" || conf.UserID == "" {
+		return nil
+	}
+
+	creds, err := decryptLeaderboardCreds(conf.Secret, key)
+	if err != nil || creds.Token == "" || creds.APIURL == "" {
+		return fmt.Errorf("leaderboard-delete: could not decrypt credentials: %w", err)
+	}
+
+	url := strings.TrimRight(creds.APIURL, "/") + "/users/" + conf.UserID
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("leaderboard-delete: failed to build request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+creds.Token)
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	httpCode := 0
+	respBody := ""
+	if err != nil {
+		return fmt.Errorf("leaderboard-delete: request failed: %w", err)
+	}
+	httpCode = resp.StatusCode
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(resp.Body)
+	resp.Body.Close()
+	respBody = strings.TrimSpace(buf.String())
+
+	// Append to log.
+	logDir := filepath.Join(achievementsDir, "logs")
+	os.MkdirAll(logDir, 0700)
+	logFile := filepath.Join(logDir, "leaderboard.log")
+	if f, lerr := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600); lerr == nil {
+		ts := time.Now().UTC().Format(time.RFC3339)
+		fmt.Fprintf(f, "[%s] DELETE /users/%s http=%d body=%s\n",
+			ts, conf.UserID, httpCode, respBody)
+		f.Close()
+	}
+
+	if httpCode != 200 {
+		return fmt.Errorf("leaderboard-delete: server returned HTTP %d", httpCode)
+	}
+	return nil
+}
+
 // decryptLeaderboardCreds decrypts a blob produced by leaderboard-keygen and returns
 // the API token and URL. The blob is base64(nonce || ciphertext) where nonce is 12 bytes.
 // Credentials exist only in memory and are never written to disk or logs.

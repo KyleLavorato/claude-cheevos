@@ -64,6 +64,8 @@ func main() {
         err = subcmd.Serve(achievementsDir, stateKey)
     case "leaderboard-sync":
         err = subcmd.LeaderboardSync(achievementsDir, stateKey)
+    case "leaderboard-delete":
+        err = subcmd.LeaderboardDelete(achievementsDir, stateKey)
     case "verify":
         err = subcmd.Verify(achievementsDir, stateKey)
     case "print-hmac-secret":
@@ -100,6 +102,7 @@ Subcommands:
   serve               Open achievement browser web UI in the system browser
   update-defs [--force]  Fetch new achievement definitions from GitHub (once/day)
   leaderboard-sync    Push score to leaderboard API (reads leaderboard.conf)
+  leaderboard-delete  Remove user entry from leaderboard API (used by uninstall)
   verify              Verify the installation is healthy
   print-hmac-secret   Print HMAC secret (hex) for install.sh`)
 }
