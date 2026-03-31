@@ -1,4 +1,5 @@
-BINARY     := cheevos
+BINARY        := cheevos
+ARTIFACT_NAME := claude-cheevos
 GO_DIR     := ./go
 CMD        := $(GO_DIR)/cmd/cheevos
 DEFS_SRC   := ./data/definitions.json
@@ -60,29 +61,34 @@ dist: defs
 	done
 	@echo "All binaries in $(DIST_DIR)/"
 
-# ─── Create distributable zip (run after dist) ─────────────────────────────
-# Bundles everything install.sh needs into dist/cheevos-release.zip.
-# The zip unpacks to cheevos/ — users run: unzip cheevos-release.zip && bash cheevos/install.sh
+# ─── Create per-platform zips (run after dist) ─────────────────────────────
+# Creates one zip per platform. Each zip contains everything install.sh needs:
+#   hooks/, scripts/, commands/, data/definitions.json, install.sh, uninstall.sh,
+#   and the single platform binary at dist/cheevos-{os}-{arch}[.exe].
+# Users download the zip for their platform, unzip it, and run: bash install.sh
 # Usage: make dist-zip  (auto-generates key, or prefix with CHEEVOS_HMAC_KEY=...)
 .PHONY: dist-zip
 dist-zip: dist
-	@echo "Creating dist/cheevos-release.zip..."
-	@rm -f $(DIST_DIR)/cheevos-release.zip
-	@ZIP_ROOT=cheevos; \
-	zip -r $(DIST_DIR)/cheevos-release.zip \
-		install.sh \
-		uninstall.sh \
-		$(DIST_DIR)/$(BINARY)-darwin-amd64 \
-		$(DIST_DIR)/$(BINARY)-darwin-arm64 \
-		$(DIST_DIR)/$(BINARY)-linux-amd64 \
-		$(DIST_DIR)/$(BINARY)-linux-arm64 \
-		$(DIST_DIR)/$(BINARY)-windows-amd64.exe \
-		hooks/ \
-		scripts/ \
-		data/definitions.json \
-		-x "*.DS_Store" -x "__MACOSX/*"
-	@echo "Created $(DIST_DIR)/cheevos-release.zip"
-	@echo "  → unzip cheevos-release.zip && bash install.sh"
+	@echo "Creating per-platform zips in $(DIST_DIR)/..."
+	@for p in $(PLATFORMS); do \
+		OS=$${p%/*}; ARCH=$${p#*/}; \
+		BIN=$(DIST_DIR)/$(BINARY)-$$OS-$$ARCH; \
+		[ "$$OS" = "windows" ] && BIN="$$BIN.exe"; \
+		ZIP=$(DIST_DIR)/$(ARTIFACT_NAME)-$$OS-$$ARCH.zip; \
+		echo "Packaging $$ZIP..."; \
+		rm -f "$$ZIP"; \
+		zip -r "$$ZIP" \
+			install.sh \
+			uninstall.sh \
+			hooks/ \
+			scripts/ \
+			commands/ \
+			data/definitions.json \
+			"$$BIN" \
+			-x "*.DS_Store" -x "__MACOSX/*"; \
+	done
+	@echo "Per-platform zips created in $(DIST_DIR)/"
+	@echo "  → unzip claude-cheevos-<os>-<arch>.zip && bash install.sh"
 
 # ─── Tests ─────────────────────────────────────────────────────────────────
 # Usage: make test

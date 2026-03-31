@@ -1,0 +1,50 @@
+name: Publish Release
+
+on:
+    workflow_dispatch:
+
+env:
+    MAJOR: 0
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set up Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version-file: go/go.mod
+
+            - name: Calculate version
+              id: version
+              run: |
+                  COMMIT_COUNT=$(git rev-list --count HEAD)
+                  VERSION="v${MAJOR}.${COMMIT_COUNT}"
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+                  echo "Version: ${VERSION}"
+
+            - name: Build all platforms
+              run: make dist-zip
+
+            - name: Create release
+              uses: softprops/action-gh-release@v2
+              with:
+                  tag_name: ${{ steps.version.outputs.version }}
+                  name: ${{ steps.version.outputs.version }}
+                  draft: false
+                  prerelease: false
+                  generate_release_notes: true
+                  files: |
+                      dist/claude-cheevos-darwin-amd64.zip
+                      dist/claude-cheevos-darwin-arm64.zip
+                      dist/claude-cheevos-linux-amd64.zip
+                      dist/claude-cheevos-linux-arm64.zip
+                      dist/claude-cheevos-windows-amd64.zip
