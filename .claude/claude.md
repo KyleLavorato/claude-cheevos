@@ -613,10 +613,18 @@ idempotent — it checks for exact command string before adding.
 When adding new utility scripts, add a `cp` line in the shared-scripts block before `chmod +x`,
 and add a thin shim in `go/scripts/`.
 
-**Phase 1.6 — Slash commands:** copies `commands/achievements.md` and
-`commands/uninstall-achievements.md` to `~/.claude/commands/`. Also copies
-`uninstall.sh` itself into `$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command
-can find it without knowing the repo path.
+**Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
+`commands/get-started.md`, and `commands/uninstall-achievements.md` to
+`~/.claude/commands/`. Also copies `uninstall.sh` itself into
+`$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command can find it without knowing
+the repo path.
+
+**Phase 3.5 — Auto-allowed commands:** adds permission patterns for `cheevos drain`
+and `cheevos show` to the allow list. These commands are used repeatedly during the
+`/get-started` interactive tutorial. The patterns use wildcards (`*/.claude/achievements/cheevos`)
+to match any path expansion (tilde, $HOME, or full path) and trailing `*` to match
+flags, pipes, and redirects. This prevents repetitive permission prompts during the
+tutorial flow and improves user experience.
 
 **Phase 6.5 — Leaderboard configuration:**
 - `--leaderboard-secret SECRET` arg parsed before Phase 0
