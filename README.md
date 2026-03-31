@@ -90,7 +90,7 @@ New to Claude Code? Start a Claude session and run the **interactive guided tour
 claude
 
 # Then inside the Claude session, run:
-/get-started
+/achievements-tutorial
 ```
 
 This walks you through **19 core achievements** (160 points) with step-by-step instructions:

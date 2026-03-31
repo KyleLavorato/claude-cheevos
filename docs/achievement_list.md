@@ -36,7 +36,7 @@ Rank achievements form a progression chain:
 
 ## Full Achievement Table
 
-The **Tutorial** column marks achievements in the interactive guided tour (`/get-started`). To change the tutorial set, toggle `"tutorial": true` on any achievement in `definitions.json`.
+The **Tutorial** column marks achievements in the interactive guided tour (`/achievements-tutorial`). To change the tutorial set, toggle `"tutorial": true` on any achievement in `definitions.json`.
 
 > **Keep in sync:** This table must be updated whenever `data/definitions.json` changes.
 > Point values, descriptions, and skill levels here must match the JSON exactly.

@@ -168,7 +168,7 @@ fi
 COMMANDS_DIR="$HOME/.claude/commands"
 mkdir -p "$COMMANDS_DIR"
 cp "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
-cp "$REPO_DIR/commands/get-started.md" "$COMMANDS_DIR/get-started.md"
+cp "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
 cp "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
 echo "✓ Slash commands installed to $COMMANDS_DIR"
 
@@ -248,7 +248,7 @@ fi
 # Phase 3.5: Add cheevos commands to Claude Code auto-allow list
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Add permission patterns for cheevos commands used during /get-started tutorial
+# Add permission patterns for cheevos commands used during /achievements-tutorial tutorial
 # Patterns cover both ~ and $HOME expansions, with and without pipes/redirects
 CHEEVOS_DRAIN="Bash(*/.claude/achievements/cheevos drain*)"
 CHEEVOS_SHOW="Bash(*/.claude/achievements/cheevos show*)"
@@ -377,7 +377,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 echo "View your achievements (inside a Claude session):"
 echo "  /achievements                              (opens web UI in browser)"
-echo "  /get-started                               (interactive guided tour)"
+echo "  /achievements-tutorial                               (interactive guided tour)"
 echo ""
 echo "View your achievements (from terminal):"
 echo "  $ACHIEVEMENTS_DIR/cheevos serve           (opens web UI in browser)"

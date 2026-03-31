@@ -308,17 +308,17 @@ After I search your codebase using Glob or Grep, this achievement unlocks!
 How to use slash commands (skills) for quick actions. Skills are shortcuts that start with "/" and trigger special behaviors.
 
 📝 Step-by-step guide:
-1. Type any slash command (e.g., /help, /achievements, /get-started)
+1. Type any slash command (e.g., /help, /achievements, /achievements-tutorial)
 2. The skill executes its specific action
 3. Achievement unlocked! ✨
 
 💡 Examples (try one):
 • Type "/help" to see available commands
 • Type "/achievements" to view the achievement browser
-• You've already used "/get-started" to launch this tour!
+• You've already used "/achievements-tutorial" to launch this tour!
 
 ✨ What happens next:
-Since you ran /get-started to start this tour, you've already unlocked this achievement! 🎉
+Since you ran /achievements-tutorial to start this tour, you've already unlocked this achievement! 🎉
 ```
 
 #### 8. model_citizen - Model Citizen (5 pts)
