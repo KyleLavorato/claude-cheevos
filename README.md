@@ -9,7 +9,7 @@ usage milestones, awards points, and surfaces progress through a live status bar
 
 ## Contents
 
-[Requirements](#requirements) · [Installation](#installation) · [Slash Commands](#slash-commands) · [Tutorial](#tutorial) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Uninstallation](#uninstallation) · [Contributing](#contributing)
+[Requirements](#requirements) · [Installation](#installation) · [Uninstallation](#uninstallation) · [Tutorial](#tutorial) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Contributing](#contributing)
 
 ---
 
@@ -61,12 +61,10 @@ bash install.sh --token <api-token> --api-url https://...execute-api.../prod
 
 ---
 
-## Slash Commands
+## Uninstallation
 
-Two commands are available inside Claude Code immediately after installation:
-
-- `/achievements` — opens the achievement browser in your default browser
-- `/uninstall-achievements` — interactive uninstall flow inside Claude Code
+Use `/uninstall-achievements` inside Claude Code. It removes hooks, optionally deletes
+state, and restores your original status line.
 
 ---
 
@@ -130,19 +128,14 @@ session start. Your progress is always preserved.
 To disable, remove the `cheevos update-defs &` line from
 `~/.claude/achievements/hooks/session-start.sh`.
 
+See [docs/auto-update.md](docs/auto-update.md) for full details.
+
 ---
 
 ## Leaderboard
 
 An optional live leaderboard lets you compare scores with teammates. See
 [microservice/README.md](microservice/README.md) for deployment and setup instructions.
-
----
-
-## Uninstallation
-
-Use `/uninstall-achievements` inside Claude Code. It removes hooks, optionally deletes
-state, and restores your original status line.
 
 ---
 
