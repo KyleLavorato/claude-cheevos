@@ -127,7 +127,6 @@ cp "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achi
 cp "$SCRIPTS_DIR_SRC/learning-path.sh"      "$ACHIEVEMENTS_DIR/scripts/learning-path.sh"
 cp "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
 cp "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
-cp "$REPO_DIR/scripts/tui.sh"               "$ACHIEVEMENTS_DIR/scripts/tui.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # NOTE: definitions.json is now embedded in the binary and NOT copied to disk.
@@ -337,7 +336,6 @@ echo ""
 echo "View your achievements:"
 echo "  /achievements                              (slash command — opens web UI in browser)"
 echo "  $ACHIEVEMENTS_DIR/cheevos serve           (web UI, run directly)"
-echo "  bash $ACHIEVEMENTS_DIR/scripts/tui.sh     (terminal TUI)"
 echo "  $ACHIEVEMENTS_DIR/cheevos show            (static list)"
 echo "  $ACHIEVEMENTS_DIR/cheevos learn           (tutorial path)"
 echo ""

@@ -1,8 +1,42 @@
 # Achievement List
 
-This table includes all achievements in the Claude Cheevos system. The **Tutorial** column marks achievements included in the guided tutorial path (`bash ~/.claude/achievements/scripts/learning-path.sh`). To change the tutorial set, set `"tutorial": true` on any achievement in `definitions.json`.
+## Categories
 
-**Secret** achievements display as `🔮 ???` in the UI until unlocked — the name and points are visible but the description and progress are hidden.
+There are **85+ achievements** across 14 categories:
+
+| Category | Description |
+|---|---|
+| **Sessions** | Starting and completing Claude Code sessions |
+| **Files** | Writing and reading files through Claude |
+| **Shell** | Running bash commands through Claude |
+| **Search** | Web searches and glob/grep searches |
+| **MCP Integrations** | GitHub, Jira/Confluence, and other MCP tool calls |
+| **Plan Mode** | Using Claude's plan mode workflow |
+| **Token Consumption** | Total tokens consumed across sessions |
+| **Commands & Skills** | Invoking skills and creating custom slash commands |
+| **Context & Compaction** | Filling and compacting the context window |
+| **API Specs** | Writing OpenAPI, Swagger, and AsyncAPI spec files |
+| **Code Reviews** | Running code reviews and their quality outcomes |
+| **Testing** | Writing test files and running test suites |
+| **Miscellaneous** | One-off events, Easter eggs, and fun milestones |
+| **Rank** | Meta-achievements for completing sets of other achievements |
+
+## Skill Levels
+
+Every achievement has a level: **Beginner → Intermediate → Experienced → Master → Impossible**
+
+There is also a **Secret** tier. Secret achievements show as `🔮 ???` in the UI until
+unlocked — you can see they exist and their point value, but not what you need to do
+to earn them.
+
+Rank achievements form a progression chain:
+**Graduate** → **Graduation Day** → **Middle Management** → **Elite Operator** → **Efficiency Grandmaster** → **Beyond the Claudeverse**
+
+---
+
+## Full Achievement Table
+
+The **Tutorial** column marks achievements in the guided path (`cheevos learn`). To change the tutorial set, toggle `"tutorial": true` on any achievement in `definitions.json`.
 
 | **Achievement Name** | **Description** | **Claude Score** | **Category** | **Skill Level** | **Tutorial** |
 | --- | --- | --- | --- | --- | --- |

@@ -14,7 +14,7 @@ fi
 ```
 
 **If the output is "BINARY_NOT_FOUND":**
-Tell the user the cheevos binary isn't installed yet. They need to run `bash install.sh` from the cheevos repo. Terminal TUI fallback in the meantime: `bash ~/.claude/achievements/scripts/tui.sh`
+Tell the user the cheevos binary isn't installed yet. They need to download and install from the [latest release](https://github.com/KyleLavorato/claude-cheevos/releases/latest).
 
 **If the output is "LAUNCHED":**
 Reply with a single short line telling the user the browser opened (or is opening) and they can close the tab when done. Do not wait for any further output. Do not run any more commands.
