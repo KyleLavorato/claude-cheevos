@@ -26,7 +26,7 @@ cheevos/
 │   └── verify-install.sh        # Thin shim → cheevos verify
 ├── commands/
 │   ├── achievements.md          # /achievements slash command — runs cheevos serve, opens browser
-│   ├── get-started.md           # /get-started slash command — interactive guided tour
+│   ├── achievements-tutorial.md # /achievements-tutorial slash command — interactive guided tour
 │   └── uninstall-achievements.md # /uninstall-achievements slash command — interactive uninstall
 ├── go/                          # Go source for the cheevos binary
 │   ├── go.mod / go.sum
@@ -86,7 +86,7 @@ Slash commands are installed to `~/.claude/commands/` (not inside `achievements/
 | File | Purpose |
 |---|---|
 | `~/.claude/commands/achievements.md` | `/achievements` — runs `cheevos serve` in background, opens browser |
-| `~/.claude/commands/get-started.md` | `/get-started` — interactive guided tour for new users (18 tutorial achievements) |
+| `~/.claude/commands/achievements-tutorial.md` | `/achievements-tutorial` — interactive guided tour for new users (18 tutorial achievements) |
 | `~/.claude/commands/uninstall-achievements.md` | `/uninstall-achievements` — interactive uninstall with leaderboard warning |
 
 ## Install and Test
@@ -104,7 +104,7 @@ bash install.sh --leaderboard-secret <secret>
 
 # View achievements (inside a Claude session — run 'claude' first):
 /achievements                                                  # opens web UI in browser
-/get-started                                                   # interactive guided tour (18 tutorial achievements)
+/achievements-tutorial                                                   # interactive guided tour (18 tutorial achievements)
 
 # View achievements (from terminal):
 ~/.claude/achievements/cheevos serve                          # opens web UI in browser
@@ -219,7 +219,7 @@ Rules of thumb:
 - `lucky_7s` is intentionally **77 pts** — thematic exceptions are fine, but document why
 - Rank/completion achievements use fixed values; do not invent new points for those
 
-**Tutorial flag:** Add `"tutorial": true` to include in `/get-started` guided tour. The
+**Tutorial flag:** Add `"tutorial": true` to include in `/achievements-tutorial` guided tour. The
 interactive tour includes 18 beginner achievements and is driven by this flag.
 
 **Secret achievements:** Add `"secret": true` — `cheevos show` renders `???` for the
@@ -561,14 +561,14 @@ The binary outputs the score and, for 5 minutes after an unlock, the achievement
 If the user had a custom statusLine before install, it's saved in `.original-statusline`
 and called first; the achievement segment is appended after `" | "`.
 
-## Interactive Guided Tour (/get-started)
+## Interactive Guided Tour (/achievements-tutorial)
 
-The `/get-started` slash command provides an interactive guided tour for new users. It walks
+The `/achievements-tutorial` slash command provides an interactive guided tour for new users. It walks
 them through 19 core tutorial achievements with step-by-step instructions, auto-detecting
 completion and advancing automatically.
 
 **Tutorial achievements** are marked with `"tutorial": true` in `definitions.json`. The
-guided tour follows a hardcoded optimal order defined in `commands/get-started.md`.
+guided tour follows a hardcoded optimal order defined in `commands/achievements-tutorial.md`.
 
 Current tutorial set (19 achievements, 160 pts):
 `first_session`, `files_written_first`, `files_read_first`, `bash_first`, `web_search_first`,
@@ -577,14 +577,14 @@ Current tutorial set (19 achievements, 160 pts):
 `spring_cleaning`, `github_first`, `delegation_station`, `inner_machinations`
 
 **How it works:**
-1. User runs `/get-started` in a Claude Code session
+1. User runs `/achievements-tutorial` in a Claude Code session
 2. Claude checks which tutorial achievements are already unlocked
 3. Claude displays an overview, then guides the user through each uncompleted achievement
 4. After each achievement unlocks, Claude automatically moves to the next one
 5. User can type "skip" to move ahead without completing an achievement
 6. When all 18 are complete, Claude displays a trophy case celebration
 
-**To modify the tour:** Edit `commands/get-started.md`. Each achievement has a detailed
+**To modify the tour:** Edit `commands/achievements-tutorial.md`. Each achievement has a detailed
 step-by-step guide with examples. The optimal order and all instructional content is defined
 in that file — no Go code changes needed for tutorial content updates.
 
@@ -614,14 +614,14 @@ When adding new utility scripts, add a `cp` line in the shared-scripts block bef
 and add a thin shim in `go/scripts/`.
 
 **Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
-`commands/get-started.md`, and `commands/uninstall-achievements.md` to
+`commands/achievements-tutorial.md`, and `commands/uninstall-achievements.md` to
 `~/.claude/commands/`. Also copies `uninstall.sh` itself into
 `$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command can find it without knowing
 the repo path.
 
 **Phase 3.5 — Auto-allowed commands:** adds permission patterns for `cheevos drain`
 and `cheevos show` to the allow list. These commands are used repeatedly during the
-`/get-started` interactive tutorial. The patterns use wildcards (`*/.claude/achievements/cheevos`)
+`/achievements-tutorial` interactive tutorial. The patterns use wildcards (`*/.claude/achievements/cheevos`)
 to match any path expansion (tilde, $HOME, or full path) and trailing `*` to match
 flags, pipes, and redirects. This prevents repetitive permission prompts during the
 tutorial flow and improves user experience.

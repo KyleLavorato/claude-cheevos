@@ -105,7 +105,7 @@ Edit `data/definitions.json`, rebuild (`make dist`), and re-run `install.sh`. Pr
 }
 ```
 
-Add `"tutorial": true` to include the achievement in the `/get-started` guided tour.
+Add `"tutorial": true` to include the achievement in the `/achievements-tutorial` guided tour.
 
 For the full list of counters, condition types, and hook extension patterns,
 see [`.claude/CLAUDE.md`](.claude/CLAUDE.md).
