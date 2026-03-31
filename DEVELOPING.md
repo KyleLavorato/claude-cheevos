@@ -77,8 +77,9 @@ cd go && CHEEVOS_HMAC_KEY=<existing-key> go run ./tools/keygen --token <api-toke
 Run `go run ./go/tools/keygen --help` for the full usage reference.
 
 **Via GitHub Actions:** Use the `Generate Leaderboard Secret` workflow dispatch in the
-repo. Supply your HMAC key, token, and API URL as inputs — all three are masked in logs
-and the secret is delivered as a 1-day artifact.
+repo. Supply the token and API URL as inputs — the HMAC key is read from the
+`CHEEVOS_HMAC_KEY` repository secret. All sensitive values are masked in logs and the
+secret is delivered as a 1-day artifact.
 
 Distribute the blob to users:
 ```bash
