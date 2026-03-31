@@ -2,7 +2,7 @@
 
 ## Categories
 
-There are **85+ achievements** across 14 categories:
+There are **125+ achievements** across 14 categories:
 
 | Category | Description |
 |---|---|
