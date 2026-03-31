@@ -2,8 +2,6 @@ BINARY        := cheevos
 ARTIFACT_NAME := claude-cheevos
 GO_DIR     := ./go
 CMD        := $(GO_DIR)/cmd/cheevos
-DEFS_SRC   := ./data/definitions.json
-DEFS_DST   := $(GO_DIR)/internal/defs/definitions.json
 DIST_DIR   := ./dist
 
 # Strip debug info from release builds.
@@ -17,19 +15,12 @@ PLATFORMS := \
     linux/arm64  \
     windows/amd64
 
-# ─── Copy definitions before any build ─────────────────────────────────────
-$(DEFS_DST): $(DEFS_SRC)
-	cp $(DEFS_SRC) $(DEFS_DST)
-
-.PHONY: defs
-defs: $(DEFS_DST)
-
 # ─── Production build for current platform into dist/ ───────────────────────
 # Usage:
 #   make prod                                          # auto-generates key
 #   CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen) make prod  # supply key
 .PHONY: prod
-prod: defs
+prod:
 	$(eval _KEY := $(or $(CHEEVOS_HMAC_KEY),$(shell cd $(GO_DIR) && go run ./tools/keygen)))
 	$(eval _OS   := $(shell go env GOOS))
 	$(eval _ARCH := $(shell go env GOARCH))
@@ -46,7 +37,7 @@ prod: defs
 #   make dist                                          # auto-generates key
 #   CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen) make dist  # supply key
 .PHONY: dist
-dist: defs
+dist:
 	$(eval _KEY := $(or $(CHEEVOS_HMAC_KEY),$(shell cd $(GO_DIR) && go run ./tools/keygen)))
 	@mkdir -p $(DIST_DIR)
 	@for p in $(PLATFORMS); do \
@@ -93,11 +84,10 @@ dist-zip: dist
 # ─── Tests ─────────────────────────────────────────────────────────────────
 # Usage: make test
 .PHONY: test
-test: defs
+test:
 	cd $(GO_DIR) && go test ./...
 
 # ─── Clean ─────────────────────────────────────────────────────────────────
 .PHONY: clean
 clean:
-	rm -f $(DEFS_DST)
 	rm -rf $(DIST_DIR)/

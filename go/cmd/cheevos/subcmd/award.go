@@ -40,7 +40,7 @@ func Award(achievementsDir string, args []string) error {
         return fmt.Errorf("award: load state: %w", err)
     }
 
-    d, err := defs.LoadWithOverride(achievementsDir)
+    d, err := defs.Load(achievementsDir)
     if err != nil {
         return err
     }

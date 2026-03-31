@@ -87,7 +87,7 @@ func Show(achievementsDir string, args []string) error {
     if err != nil {
         return fmt.Errorf("show: load state: %w", err)
     }
-    d, err := defs.Load()
+    d, err := defs.Load(achievementsDir)
     if err != nil {
         return err
     }

@@ -63,7 +63,7 @@ func buildAPIResponse(achievementsDir string) (*serveAPIResponse, error) {
 		return nil, fmt.Errorf("serve: %w", err)
 	}
 
-	d, err := defs.LoadWithOverride(achievementsDir)
+	d, err := defs.Load(achievementsDir)
 	if err != nil {
 		return nil, fmt.Errorf("serve: %w", err)
 	}

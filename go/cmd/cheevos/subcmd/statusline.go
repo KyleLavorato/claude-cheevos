@@ -69,7 +69,7 @@ func buildSegment(achievementsDir string) (string, error) {
         lastUpdated, err := time.Parse(time.RFC3339, st.LastUpdated)
         if err == nil && time.Since(lastUpdated) < 5*time.Minute {
             lastID := st.Unlocked[len(st.Unlocked)-1]
-            d, derr := defs.Load()
+            d, derr := defs.Load(achievementsDir)
             if derr == nil {
                 if ach := d.ByID(lastID); ach != nil {
                     return fmt.Sprintf("🏆 %d pts (%s!)", score, ach.Name), nil

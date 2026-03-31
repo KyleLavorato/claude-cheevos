@@ -67,7 +67,7 @@ func UpdateDefs(achievementsDir string, force bool) error {
     }
 
     // Load local definitions (override file or embedded).
-    localDefs, err := defs.LoadWithOverride(achievementsDir)
+    localDefs, err := defs.Load(achievementsDir)
     if err != nil {
         return nil
     }
@@ -119,8 +119,8 @@ func UpdateDefs(achievementsDir string, force bool) error {
         CounterUpdates:   map[string]int64{},
         UpdateCheckEpoch: now,
     }
-    updatedDefs, _ := defs.LoadWithOverride(achievementsDir)
-    if updatedDefs == nil {
+    updatedDefs, err := defs.Load(achievementsDir)
+    if err != nil {
         updatedDefs = localDefs
     }
     engine.Update(st, updatedDefs, params) //nolint:errcheck — no-op counters

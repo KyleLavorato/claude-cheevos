@@ -44,7 +44,7 @@ func Seed(achievementsDir string, args []string) error {
     }
 
     // Load definitions.
-    d, err := defs.Load()
+    d, err := defs.Load(achievementsDir)
     if err != nil {
         return err
     }

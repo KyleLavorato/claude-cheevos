@@ -55,7 +55,7 @@ func Learn(achievementsDir string) error {
     if err != nil {
         return fmt.Errorf("learn: load state: %w", err)
     }
-    d, err := defs.Load()
+    d, err := defs.Load(achievementsDir)
     if err != nil {
         return err
     }

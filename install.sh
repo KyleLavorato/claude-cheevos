@@ -129,14 +129,16 @@ cp "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
 cp "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
-# NOTE: definitions.json is now embedded in the binary and NOT copied to disk.
+# Achievement definitions — always overwritten on install/upgrade so the binary
+# always has a current copy to read from disk.
+cp "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
 
 # Uninstall script — copied so /uninstall-achievements slash command can find it
 # without needing to know the repo path
 cp "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
 chmod +x "$ACHIEVEMENTS_DIR/uninstall.sh"
 
-echo "✓ Scripts installed to $ACHIEVEMENTS_DIR"
+echo "✓ Scripts and definitions installed to $ACHIEVEMENTS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 1.5: Initialize runtime directory and inject HMAC secret into lib.sh
