@@ -35,8 +35,8 @@ cheevos_sign() {
     local session_id="${4:-}"
     local ts="${5:-}"
     local sep
-    sep=$'\x00'
+    sep='|'
     local payload="${counter_updates}${sep}${counter_sets}${sep}${new_model}${sep}${session_id}${sep}${ts}"
-    printf '%s' "$payload" | openssl dgst -sha256 -hmac "$_CHEEVOS_HMAC_SECRET" -binary 2>/dev/null \
+    printf '%s' "$payload" | openssl dgst -sha256 -mac hmac -macopt hexkey:"$_CHEEVOS_HMAC_SECRET" -binary 2>/dev/null \
         | base64 | tr -d '\n'
 }

@@ -56,6 +56,8 @@ func Verify(secret []byte, counterUpdates, counterSets, newModel, sessionID, tsS
 }
 
 func buildPayload(counterUpdates, counterSets, newModel, sessionID, tsStr string) string {
-    sep := "\x00"
+    // Use "|" as separator instead of NUL byte — bash variables cannot store NUL bytes,
+    // so the shell-side cheevos_sign() must use the same printable separator.
+    sep := "|"
     return counterUpdates + sep + counterSets + sep + newModel + sep + sessionID + sep + tsStr
 }
