@@ -61,8 +61,6 @@ func main() {
         err = subcmd.Statusline(achievementsDir, stateKey)
     case "show":
         err = subcmd.Show(achievementsDir, args, stateKey)
-    case "learn":
-        err = subcmd.Learn(achievementsDir, stateKey)
     case "award":
         err = subcmd.Award(achievementsDir, args, stateKey)
     case "drain":
@@ -113,7 +111,6 @@ Subcommands:
   seed <cache>        Pre-unlock achievements based on existing session count
   statusline          Render achievement score for the status bar
   show [flags]        List achievements (--unlocked, --locked, --beginner, ...)
-  learn               Show tutorial learning path
   award <counter>     Manually increment a counter (Easter eggs)
   drain               Drain notification queue and emit systemMessage
   serve               Open achievement browser web UI in the system browser
