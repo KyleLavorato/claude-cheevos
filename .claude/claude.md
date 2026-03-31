@@ -168,8 +168,13 @@ echo '{"session_id":"x","transcript_path":""}' \
 Every achievement needs:
 1. An entry in `data/definitions.json`
 2. Something that increments its counter (hook or stop.sh)
-3. A row added to `docs/achievement_list.md`
+3. A row added to `docs/achievement_list.md` — **name, description, points, category, skill level, and tutorial flag must match the JSON exactly**
 4. Rebuild the binary: `make dist`
+
+> **Keep in sync:** `data/definitions.json` is the source of truth. Any time you add,
+> remove, or modify an achievement (including changing point values, descriptions, or
+> skill levels), you **must** make the matching update in `docs/achievement_list.md`.
+> These two files are not auto-generated from each other.
 
 ### 1. definitions.json entry
 
@@ -189,6 +194,27 @@ Every achievement needs:
 `commands`, `context`, `specs`, `reviews`, `tests`, `misc`, `rank`
 
 **Skill levels:** `beginner`, `intermediate`, `experienced`, `master`, `impossible`, `secret`
+
+**Point values** should reflect the effort required, modelled on Xbox/Steam conventions.
+Use the table below as the baseline — pick a value within the range based on how hard
+the specific action is relative to others at that tier:
+
+| Skill level | Points range | Guidance |
+|---|---|---|
+| `beginner` | 5–20 | Trivial first-time actions = 5; easy counters = 10; moderate effort = 15–20 |
+| `intermediate` | 25–50 | Requires consistent use or some deliberate setup |
+| `experienced` | 50–75 | High-volume milestones or intentional/obscure actions |
+| `master` | 100–175 | Sustained heavy use; rare or difficult to reach thresholds |
+| `impossible` | 250–300 | Practically unreachable for most users |
+| `secret` | 15–25 | Hidden achievements; value based on difficulty, not rarity alone |
+| `rank` (completion) | 50 / 100 / 150 / 250 / 500 | Fixed ladder: beginner → intermediate → experienced → master → all |
+
+Rules of thumb:
+- A trivial single-action unlock (first use of a tool, reading any file of a type) = **5 pts**
+- "Do X once" beginner achievements ≤ **15 pts**; "Do X 5–10 times" ≤ **20 pts**
+- Counter milestones scale: the 10× version of a beginner achievement is intermediate, 100× is experienced, 1000× is master
+- `lucky_7s` is intentionally **77 pts** — thematic exceptions are fine, but document why
+- Rank/completion achievements use fixed values; do not invent new points for those
 
 **Tutorial flag:** Add `"tutorial": true` to include in `cheevos learn`. The learning
 path is driven entirely by this flag — no code changes needed.

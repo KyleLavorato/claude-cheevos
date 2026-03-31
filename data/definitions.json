@@ -5,7 +5,7 @@
             "id": "first_session",
             "name": "Hello, World",
             "description": "Start your first Claude Code session",
-            "points": 10,
+            "points": 5,
             "category": "sessions",
             "skill_level": "beginner",
             "condition": {
@@ -18,7 +18,7 @@
             "id": "session_10",
             "name": "Frequent Flier",
             "description": "Complete 10 Claude Code sessions",
-            "points": 25,
+            "points": 15,
             "category": "sessions",
             "skill_level": "beginner",
             "condition": {
@@ -30,7 +30,7 @@
             "id": "session_50",
             "name": "Committed",
             "description": "Complete 50 Claude Code sessions",
-            "points": 75,
+            "points": 30,
             "category": "sessions",
             "skill_level": "intermediate",
             "condition": {
@@ -42,7 +42,7 @@
             "id": "session_100",
             "name": "Power User",
             "description": "Complete 100 Claude Code sessions",
-            "points": 150,
+            "points": 50,
             "category": "sessions",
             "skill_level": "experienced",
             "condition": {
@@ -54,7 +54,7 @@
             "id": "session_300",
             "name": "Veteran",
             "description": "Complete 300 Claude Code sessions",
-            "points": 300,
+            "points": 100,
             "category": "sessions",
             "skill_level": "master",
             "condition": {
@@ -66,7 +66,7 @@
             "id": "files_written_10",
             "name": "Code Sculptor",
             "description": "Write 10 files with Claude",
-            "points": 20,
+            "points": 10,
             "category": "files",
             "skill_level": "beginner",
             "condition": {
@@ -79,7 +79,7 @@
             "id": "files_written_100",
             "name": "Prolific Author",
             "description": "Write 100 files with Claude",
-            "points": 100,
+            "points": 40,
             "category": "files",
             "skill_level": "intermediate",
             "condition": {
@@ -91,7 +91,7 @@
             "id": "files_written_500",
             "name": "Ghostwriter",
             "description": "Write 500 files with Claude",
-            "points": 175,
+            "points": 60,
             "category": "files",
             "skill_level": "experienced",
             "condition": {
@@ -103,7 +103,7 @@
             "id": "files_written_2000",
             "name": "Publishing House",
             "description": "Write 2,000 files with Claude",
-            "points": 350,
+            "points": 100,
             "category": "files",
             "skill_level": "master",
             "condition": {
@@ -115,7 +115,7 @@
             "id": "files_read_100",
             "name": "Bookworm",
             "description": "Read 100 files with Claude",
-            "points": 50,
+            "points": 15,
             "category": "files",
             "skill_level": "beginner",
             "condition": {
@@ -128,7 +128,7 @@
             "id": "files_read_500",
             "name": "Deep Diver",
             "description": "Read 500 files with Claude",
-            "points": 150,
+            "points": 40,
             "category": "files",
             "skill_level": "intermediate",
             "condition": {
@@ -140,7 +140,7 @@
             "id": "files_read_2000",
             "name": "Voracious Reader",
             "description": "Read 2,000 files with Claude",
-            "points": 250,
+            "points": 75,
             "category": "files",
             "skill_level": "experienced",
             "condition": {
@@ -152,7 +152,7 @@
             "id": "files_read_10000",
             "name": "Library of Alexandria",
             "description": "Read 10,000 files with Claude",
-            "points": 500,
+            "points": 150,
             "category": "files",
             "skill_level": "master",
             "condition": {
@@ -164,7 +164,7 @@
             "id": "bash_calls_50",
             "name": "Shell Jockey",
             "description": "Run 50 bash commands through Claude",
-            "points": 30,
+            "points": 15,
             "category": "shell",
             "skill_level": "beginner",
             "condition": {
@@ -177,7 +177,7 @@
             "id": "bash_calls_500",
             "name": "Terminal Warrior",
             "description": "Run 500 bash commands through Claude",
-            "points": 100,
+            "points": 40,
             "category": "shell",
             "skill_level": "intermediate",
             "condition": {
@@ -189,7 +189,7 @@
             "id": "bash_calls_2000",
             "name": "Automation Guru",
             "description": "Run 2,000 bash commands through Claude",
-            "points": 175,
+            "points": 75,
             "category": "shell",
             "skill_level": "experienced",
             "condition": {
@@ -201,7 +201,7 @@
             "id": "bash_calls_10000",
             "name": "Shell God",
             "description": "Run 10,000 bash commands through Claude",
-            "points": 400,
+            "points": 150,
             "category": "shell",
             "skill_level": "master",
             "condition": {
@@ -213,7 +213,7 @@
             "id": "web_search_first",
             "name": "Curious Mind",
             "description": "Perform your first web search via Claude",
-            "points": 10,
+            "points": 5,
             "category": "search",
             "skill_level": "beginner",
             "condition": {
@@ -226,7 +226,7 @@
             "id": "web_search_25",
             "name": "Research Mode",
             "description": "Perform 25 web searches via Claude",
-            "points": 40,
+            "points": 15,
             "category": "search",
             "skill_level": "beginner",
             "condition": {
@@ -238,7 +238,7 @@
             "id": "web_search_100",
             "name": "Fact Checker",
             "description": "Perform 100 web searches via Claude",
-            "points": 75,
+            "points": 30,
             "category": "search",
             "skill_level": "intermediate",
             "condition": {
@@ -250,7 +250,7 @@
             "id": "web_search_500",
             "name": "Web Crawler",
             "description": "Perform 500 web searches via Claude",
-            "points": 150,
+            "points": 60,
             "category": "search",
             "skill_level": "experienced",
             "condition": {
@@ -262,7 +262,7 @@
             "id": "web_search_2000",
             "name": "Search Engine",
             "description": "Perform 2,000 web searches via Claude",
-            "points": 300,
+            "points": 100,
             "category": "search",
             "skill_level": "master",
             "condition": {
@@ -274,7 +274,7 @@
             "id": "glob_grep_50",
             "name": "Code Archaeologist",
             "description": "Run 50 glob or grep searches",
-            "points": 35,
+            "points": 20,
             "category": "search",
             "skill_level": "beginner",
             "condition": {
@@ -286,7 +286,7 @@
             "id": "glob_grep_200",
             "name": "Pattern Master",
             "description": "Run 200 glob or grep searches",
-            "points": 100,
+            "points": 40,
             "category": "search",
             "skill_level": "intermediate",
             "condition": {
@@ -298,7 +298,7 @@
             "id": "glob_grep_1000",
             "name": "Needle Finder",
             "description": "Run 1,000 glob or grep searches",
-            "points": 175,
+            "points": 75,
             "category": "search",
             "skill_level": "experienced",
             "condition": {
@@ -310,7 +310,7 @@
             "id": "glob_grep_5000",
             "name": "Haystack Hunter",
             "description": "Run 5,000 glob or grep searches",
-            "points": 400,
+            "points": 150,
             "category": "search",
             "skill_level": "master",
             "condition": {
@@ -322,7 +322,7 @@
             "id": "github_first",
             "name": "Open Source Hero",
             "description": "Make your first GitHub MCP call",
-            "points": 20,
+            "points": 15,
             "category": "mcp",
             "skill_level": "beginner",
             "condition": {
@@ -334,7 +334,7 @@
             "id": "jira_first",
             "name": "Ticket Tracker",
             "description": "Make your first Jira/Confluence MCP call",
-            "points": 20,
+            "points": 15,
             "category": "mcp",
             "skill_level": "beginner",
             "condition": {
@@ -346,7 +346,7 @@
             "id": "mcp_calls_100",
             "name": "Integration Champion",
             "description": "Make 100 total MCP tool calls",
-            "points": 75,
+            "points": 30,
             "category": "mcp",
             "skill_level": "intermediate",
             "condition": {
@@ -358,7 +358,7 @@
             "id": "mcp_calls_500",
             "name": "API Virtuoso",
             "description": "Make 500 total MCP tool calls",
-            "points": 175,
+            "points": 60,
             "category": "mcp",
             "skill_level": "experienced",
             "condition": {
@@ -370,7 +370,7 @@
             "id": "mcp_calls_2000",
             "name": "Integration Legend",
             "description": "Make 2,000 total MCP tool calls",
-            "points": 400,
+            "points": 125,
             "category": "mcp",
             "skill_level": "master",
             "condition": {
@@ -382,7 +382,7 @@
             "id": "plan_mode_first",
             "name": "Think First",
             "description": "Enter plan mode for the first time",
-            "points": 15,
+            "points": 10,
             "category": "plan_mode",
             "skill_level": "beginner",
             "condition": {
@@ -395,7 +395,7 @@
             "id": "plan_mode_10",
             "name": "Strategic Mind",
             "description": "Enter plan mode 10 times",
-            "points": 40,
+            "points": 20,
             "category": "plan_mode",
             "skill_level": "beginner",
             "condition": {
@@ -407,7 +407,7 @@
             "id": "plan_mode_50",
             "name": "Architect",
             "description": "Enter plan mode 50 times",
-            "points": 100,
+            "points": 40,
             "category": "plan_mode",
             "skill_level": "intermediate",
             "condition": {
@@ -419,7 +419,7 @@
             "id": "plan_mode_200",
             "name": "Grand Designer",
             "description": "Enter plan mode 200 times",
-            "points": 200,
+            "points": 75,
             "category": "plan_mode",
             "skill_level": "experienced",
             "condition": {
@@ -431,7 +431,7 @@
             "id": "plan_mode_500",
             "name": "Visionary",
             "description": "Enter plan mode 500 times",
-            "points": 450,
+            "points": 150,
             "category": "plan_mode",
             "skill_level": "master",
             "condition": {
@@ -455,7 +455,7 @@
             "id": "code_review_10",
             "name": "Review Board",
             "description": "Run 10 code reviews with Claude",
-            "points": 30,
+            "points": 25,
             "category": "reviews",
             "skill_level": "intermediate",
             "condition": {
@@ -467,7 +467,7 @@
             "id": "code_review_50",
             "name": "Quality Gatekeeper",
             "description": "Run 50 code reviews with Claude",
-            "points": 75,
+            "points": 60,
             "category": "reviews",
             "skill_level": "experienced",
             "condition": {
@@ -503,7 +503,7 @@
             "id": "back_again",
             "name": "Back Again",
             "description": "Resume a previous Claude session",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -516,7 +516,7 @@
             "id": "delegation_station",
             "name": "Delegation Station",
             "description": "Launch your first sub-agent with the Task tool",
-            "points": 25,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -528,7 +528,7 @@
             "id": "dangerously_skip_permissions",
             "name": "Hold My Beer",
             "description": "Launch Claude with --dangerously-skip-permissions",
-            "points": 75,
+            "points": 50,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -540,7 +540,7 @@
             "id": "tokens_100k",
             "name": "Token Taster",
             "description": "Consume 100,000 tokens with Claude",
-            "points": 25,
+            "points": 10,
             "category": "tokens",
             "skill_level": "beginner",
             "condition": {
@@ -552,7 +552,7 @@
             "id": "tokens_1m",
             "name": "Million Dollar Mind",
             "description": "Consume 1,000,000 tokens with Claude",
-            "points": 75,
+            "points": 25,
             "category": "tokens",
             "skill_level": "intermediate",
             "condition": {
@@ -564,7 +564,7 @@
             "id": "tokens_10m",
             "name": "Token Titan",
             "description": "Consume 10,000,000 tokens with Claude",
-            "points": 200,
+            "points": 75,
             "category": "tokens",
             "skill_level": "experienced",
             "condition": {
@@ -576,7 +576,7 @@
             "id": "tokens_50m",
             "name": "Context King",
             "description": "Consume 50,000,000 tokens with Claude",
-            "points": 500,
+            "points": 150,
             "category": "tokens",
             "skill_level": "master",
             "condition": {
@@ -588,7 +588,7 @@
             "id": "tokens_500m",
             "name": "The Singularity",
             "description": "Consume 500,000,000 tokens with Claude",
-            "points": 1000,
+            "points": 300,
             "category": "tokens",
             "skill_level": "impossible",
             "condition": {
@@ -600,7 +600,7 @@
             "id": "skill_calls_1",
             "name": "Shortcut Savvy",
             "description": "Invoke your first skill",
-            "points": 10,
+            "points": 5,
             "category": "commands",
             "skill_level": "beginner",
             "condition": {
@@ -612,7 +612,7 @@
             "id": "skill_calls_5",
             "name": "Slash Artist",
             "description": "Invoke 5 skills",
-            "points": 20,
+            "points": 10,
             "category": "commands",
             "skill_level": "beginner",
             "condition": {
@@ -624,7 +624,7 @@
             "id": "skill_calls_15",
             "name": "Command Center",
             "description": "Invoke 15 skills",
-            "points": 40,
+            "points": 25,
             "category": "commands",
             "skill_level": "intermediate",
             "condition": {
@@ -636,7 +636,7 @@
             "id": "commands_created_1",
             "name": "Roll Your Own",
             "description": "Create your first custom slash command",
-            "points": 20,
+            "points": 15,
             "category": "commands",
             "skill_level": "beginner",
             "condition": {
@@ -648,7 +648,7 @@
             "id": "commands_created_5",
             "name": "Command Crafter",
             "description": "Create 5 custom slash commands",
-            "points": 50,
+            "points": 30,
             "category": "commands",
             "skill_level": "intermediate",
             "condition": {
@@ -660,7 +660,7 @@
             "id": "commands_created_15",
             "name": "Workflow Wizard",
             "description": "Create 15 custom slash commands",
-            "points": 100,
+            "points": 60,
             "category": "commands",
             "skill_level": "experienced",
             "condition": {
@@ -672,7 +672,7 @@
             "id": "commands_created_50",
             "name": "Automation Architect",
             "description": "Create 50 custom slash commands",
-            "points": 200,
+            "points": 125,
             "category": "commands",
             "skill_level": "master",
             "condition": {
@@ -684,7 +684,7 @@
             "id": "auto_compacts_1",
             "name": "Full House",
             "description": "Fill the context window and trigger auto-compact for the first time",
-            "points": 15,
+            "points": 10,
             "category": "context",
             "skill_level": "beginner",
             "condition": {
@@ -696,7 +696,7 @@
             "id": "auto_compacts_10",
             "name": "Context Junkie",
             "description": "Trigger auto-compact 10 times",
-            "points": 40,
+            "points": 30,
             "category": "context",
             "skill_level": "intermediate",
             "condition": {
@@ -708,7 +708,7 @@
             "id": "auto_compacts_25",
             "name": "Serial Overloader",
             "description": "Trigger auto-compact 25 times",
-            "points": 75,
+            "points": 50,
             "category": "context",
             "skill_level": "experienced",
             "condition": {
@@ -720,7 +720,7 @@
             "id": "auto_compacts_100",
             "name": "The Tokenator",
             "description": "Trigger auto-compact 100 times",
-            "points": 200,
+            "points": 100,
             "category": "context",
             "skill_level": "master",
             "condition": {
@@ -732,7 +732,7 @@
             "id": "million_context_fills_1",
             "name": "Megabrain",
             "description": "Fill a 1,000,000 token context window",
-            "points": 100,
+            "points": 75,
             "category": "context",
             "skill_level": "experienced",
             "condition": {
@@ -744,7 +744,7 @@
             "id": "spec_first",
             "name": "Schema Scholar",
             "description": "Write your first API spec file (OpenAPI, Swagger, AsyncAPI)",
-            "points": 15,
+            "points": 10,
             "category": "specs",
             "skill_level": "beginner",
             "condition": {
@@ -756,7 +756,7 @@
             "id": "spec_5",
             "name": "API Architect",
             "description": "Write 5 API spec files",
-            "points": 40,
+            "points": 30,
             "category": "specs",
             "skill_level": "intermediate",
             "condition": {
@@ -768,7 +768,7 @@
             "id": "spec_20",
             "name": "Spec Master",
             "description": "Write 20 API spec files",
-            "points": 100,
+            "points": 60,
             "category": "specs",
             "skill_level": "experienced",
             "condition": {
@@ -780,7 +780,7 @@
             "id": "easter_egg",
             "name": "Hey Unlock This",
             "description": "Ask Claude to unlock this achievement",
-            "points": 50,
+            "points": 25,
             "category": "misc",
             "skill_level": "secret",
             "condition": {
@@ -792,7 +792,7 @@
             "id": "concurrent_5",
             "name": "Many Claudes",
             "description": "Run 5 Claude Code sessions simultaneously",
-            "points": 75,
+            "points": 50,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -804,7 +804,7 @@
             "id": "laying_down_the_law",
             "name": "Laying Down the Law",
             "description": "Create a CLAUDE.md file to set instructions for Claude",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -817,7 +817,7 @@
             "id": "git_er_done",
             "name": "Git Er Done",
             "description": "Have Claude run its first git commit",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -829,7 +829,7 @@
             "id": "pull_request_pioneer",
             "name": "Pull Request Pioneer",
             "description": "Have Claude create your first pull request",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -841,7 +841,7 @@
             "id": "spring_cleaning",
             "name": "Spring Cleaning",
             "description": "Manually compact your context window with /compact",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -853,7 +853,7 @@
             "id": "self_aware",
             "name": "Self Aware",
             "description": "Have Claude read its own achievement files",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -865,7 +865,7 @@
             "id": "five_day_streak",
             "name": "On a Roll",
             "description": "Use Claude Code 5 days in a row",
-            "points": 50,
+            "points": 30,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -877,7 +877,7 @@
             "id": "sudo_first",
             "name": "I am groot, wait I mean root",
             "description": "Run a sudo command through Claude",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -889,7 +889,7 @@
             "id": "force_push_first",
             "name": "Rewriting History",
             "description": "Have Claude force push to a git remote",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -901,7 +901,7 @@
             "id": "kill9_first",
             "name": "Execute Order 66",
             "description": "Have Claude use kill -9 to terminate a process",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -925,7 +925,7 @@
             "id": "model_curious",
             "name": "Eclectic Taste",
             "description": "Use 3 different Claude models",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -937,7 +937,7 @@
             "id": "model_collector",
             "name": "Model Collector",
             "description": "Use 5 different Claude models",
-            "points": 50,
+            "points": 30,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -949,7 +949,7 @@
             "id": "model_sommelier",
             "name": "Model Sommelier",
             "description": "Use 15 different Claude models",
-            "points": 150,
+            "points": 75,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -973,7 +973,7 @@
             "id": "hal_9000",
             "name": "I'm Sorry, Dave",
             "description": "Get Claude to say the HAL 9000 phrase",
-            "points": 15,
+            "points": 25,
             "category": "misc",
             "skill_level": "secret",
             "condition": {
@@ -985,7 +985,7 @@
             "id": "style_points",
             "name": "Style Points",
             "description": "Set a custom status line command in Claude Code",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -997,7 +997,7 @@
             "id": "write_that_down",
             "name": "Write that down, write that down!",
             "description": "Add information to a CLAUDE.md file when context is over 90% full",
-            "points": 30,
+            "points": 25,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -1009,7 +1009,7 @@
             "id": "take_a_break",
             "name": "Take a Break",
             "description": "Play a game of 20 questions with Claude",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1021,7 +1021,7 @@
             "id": "snake_charmer",
             "name": "Snake Charmer",
             "description": "Have Claude read a Python file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1033,7 +1033,7 @@
             "id": "segfault_risk",
             "name": "Segfault Risk",
             "description": "Have Claude read a C or C++ file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1045,7 +1045,7 @@
             "id": "gopherize_it",
             "name": "Gopherize It",
             "description": "Have Claude read a Go file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1057,7 +1057,7 @@
             "id": "crimson_tide",
             "name": "Crimson Tide",
             "description": "Have Claude read a Rust file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1069,7 +1069,7 @@
             "id": "script_kiddie",
             "name": "Script Kiddie",
             "description": "Have Claude read a shell script",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1081,7 +1081,7 @@
             "id": "write_once_debug_everywhere",
             "name": "Write Once, Debug Everywhere",
             "description": "Have Claude read a Java file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1093,7 +1093,7 @@
             "id": "hunting_wabbits",
             "name": "Shh, I'm Hunting Wabbits",
             "description": "Invoke Claude in non-interactive pipe mode from a bash command",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1105,7 +1105,7 @@
             "id": "under_the_hood",
             "name": "Under the Hood",
             "description": "Run Claude with the --verbose flag",
-            "points": 30,
+            "points": 20,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -1117,7 +1117,7 @@
             "id": "stack_connector",
             "name": "Stack Connector",
             "description": "Use GitHub MCP, Jira MCP, and at least one other MCP server",
-            "points": 50,
+            "points": 35,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -1129,7 +1129,7 @@
             "id": "but_its_compiling",
             "name": "But Its Compiling",
             "description": "Have Claude take more than 15 minutes to answer a prompt",
-            "points": 30,
+            "points": 20,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -1141,7 +1141,7 @@
             "id": "bold_and_brash",
             "name": "Bold and Brash",
             "description": "Have Claude create an HTML file as a mock-up",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1153,7 +1153,7 @@
             "id": "it_really_can",
             "name": "It Really Can do Anything",
             "description": "Have Claude create a PowerPoint presentation",
-            "points": 30,
+            "points": 25,
             "category": "misc",
             "skill_level": "experienced",
             "condition": {
@@ -1165,7 +1165,7 @@
             "id": "f_is_for_friends",
             "name": "F is for friends who do stuff together!",
             "description": "Get lucky — 0.1% chance to unlock with each prompt",
-            "points": 50,
+            "points": 25,
             "category": "misc",
             "skill_level": "secret",
             "condition": {
@@ -1177,7 +1177,7 @@
             "id": "inner_machinations",
             "name": "The Inner Machinations of My Mind Are an Enigma",
             "description": "Ask Claude to explain or summarize a codebase",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1189,7 +1189,7 @@
             "id": "magic_conch",
             "name": "The Magic Conch Shell",
             "description": "Ask Claude to help you make a decision",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1201,7 +1201,7 @@
             "id": "barnacles",
             "name": "Barnacles!",
             "description": "Get Claude to express its frustration using the word barnacles",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1213,7 +1213,7 @@
             "id": "smarter_than_you",
             "name": "I'm Smarter than you",
             "description": "Get Claude to say you're right",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1237,7 +1237,7 @@
             "id": "rtfm",
             "name": "RTFM",
             "description": "Have Claude read or edit a README file",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1249,7 +1249,7 @@
             "id": "ill_fix_later",
             "name": "I'll Fix That Later",
             "description": "Have Claude add a TODO or FIXME comment to code",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1261,7 +1261,7 @@
             "id": "return_of_the_king",
             "name": "Return of the King",
             "description": "Resume a previous Claude session 5 times",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1285,7 +1285,7 @@
             "id": "midnight_first",
             "name": "404: Sleep Not Found",
             "description": "Start a Claude session between midnight and 5am",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1297,7 +1297,7 @@
             "id": "friday_first",
             "name": "It's 5 O'Clock Somewhere",
             "description": "Start a Claude session on a Friday after 4pm",
-            "points": 15,
+            "points": 10,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1321,7 +1321,7 @@
             "id": "chess_game",
             "name": "That's a Great Use of Tokens",
             "description": "Play a game of chess with Claude",
-            "points": 20,
+            "points": 15,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1345,7 +1345,7 @@
             "id": "call_an_ambulance",
             "name": "Call an Ambulance...But Not For Me",
             "description": "Run the /doctor command in Claude Code",
-            "points": 10,
+            "points": 5,
             "category": "misc",
             "skill_level": "beginner",
             "condition": {
@@ -1357,7 +1357,7 @@
             "id": "tic_tac_toe",
             "name": "It's not about winning; it's about fun!",
             "description": "Lose a game of tic tac toe to Claude",
-            "points": 30,
+            "points": 25,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1369,7 +1369,7 @@
             "id": "code_smell",
             "name": "The kind of smelly smell that smells... smelly.",
             "description": "Have Claude check your code for bad code smells",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1381,7 +1381,7 @@
             "id": "dangerous_streak_5",
             "name": "Do as I Say Not as I Do",
             "description": "Start Claude with --dangerously-skip-permissions 5 days in a row",
-            "points": 150,
+            "points": 100,
             "category": "misc",
             "skill_level": "master",
             "condition": {
@@ -1393,7 +1393,7 @@
             "id": "docs_team",
             "name": "Part of the Docs Team",
             "description": "Use the Confluence MCP server to create or edit a wiki page",
-            "points": 25,
+            "points": 20,
             "category": "misc",
             "skill_level": "intermediate",
             "condition": {
@@ -1405,7 +1405,7 @@
             "id": "graduation_day",
             "name": "Graduation Day",
             "description": "Unlock all Beginner achievements",
-            "points": 75,
+            "points": 50,
             "category": "rank",
             "skill_level": "beginner",
             "condition": {
@@ -1430,7 +1430,7 @@
             "id": "elite_operator",
             "name": "Elite Operator",
             "description": "Unlock all Experienced achievements",
-            "points": 200,
+            "points": 150,
             "category": "rank",
             "skill_level": "experienced",
             "condition": {
@@ -1443,7 +1443,7 @@
             "id": "efficiency_grandmaster",
             "name": "Efficiency Grandmaster",
             "description": "Unlock all Master achievements",
-            "points": 2000,
+            "points": 250,
             "category": "rank",
             "skill_level": "master",
             "condition": {
@@ -1456,7 +1456,7 @@
             "id": "beyond_the_claudeverse",
             "name": "Beyond the Claudeverse",
             "description": "Unlock every single achievement",
-            "points": 5000,
+            "points": 500,
             "category": "rank",
             "skill_level": "impossible",
             "condition": {
@@ -1480,7 +1480,7 @@
             "id": "test_happy",
             "name": "Test Happy",
             "description": "Write 10 test files",
-            "points": 25,
+            "points": 20,
             "category": "tests",
             "skill_level": "beginner",
             "condition": {
@@ -1492,7 +1492,7 @@
             "id": "test_champion",
             "name": "Test Champion",
             "description": "Write 50 test files",
-            "points": 75,
+            "points": 40,
             "category": "tests",
             "skill_level": "intermediate",
             "condition": {
@@ -1516,7 +1516,7 @@
             "id": "test_runner_50",
             "name": "Regression Hunter",
             "description": "Run tests 50 times via Claude",
-            "points": 30,
+            "points": 20,
             "category": "tests",
             "skill_level": "beginner",
             "condition": {
@@ -1528,7 +1528,7 @@
             "id": "test_runner_200",
             "name": "Quality Crusader",
             "description": "Run tests 200 times via Claude",
-            "points": 100,
+            "points": 50,
             "category": "tests",
             "skill_level": "intermediate",
             "condition": {
