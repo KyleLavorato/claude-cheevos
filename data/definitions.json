@@ -63,6 +63,19 @@
             }
         },
         {
+            "id": "files_written_first",
+            "name": "First Draft",
+            "description": "Have Claude write or edit your first file",
+            "points": 5,
+            "category": "files",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "files_written",
+                "threshold": 1
+            },
+            "tutorial": true
+        },
+        {
             "id": "files_written_10",
             "name": "Code Sculptor",
             "description": "Write 10 files with Claude",
@@ -72,8 +85,7 @@
             "condition": {
                 "counter": "files_written",
                 "threshold": 10
-            },
-            "tutorial": true
+            }
         },
         {
             "id": "files_written_100",
@@ -112,6 +124,19 @@
             }
         },
         {
+            "id": "files_read_first",
+            "name": "Open Book",
+            "description": "Have Claude read your first file",
+            "points": 5,
+            "category": "files",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "files_read",
+                "threshold": 1
+            },
+            "tutorial": true
+        },
+        {
             "id": "files_read_100",
             "name": "Bookworm",
             "description": "Read 100 files with Claude",
@@ -121,8 +146,7 @@
             "condition": {
                 "counter": "files_read",
                 "threshold": 100
-            },
-            "tutorial": true
+            }
         },
         {
             "id": "files_read_500",
@@ -161,6 +185,19 @@
             }
         },
         {
+            "id": "bash_first",
+            "name": "Hello Terminal",
+            "description": "Run your first bash command through Claude",
+            "points": 5,
+            "category": "shell",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "bash_calls",
+                "threshold": 1
+            },
+            "tutorial": true
+        },
+        {
             "id": "bash_calls_50",
             "name": "Shell Jockey",
             "description": "Run 50 bash commands through Claude",
@@ -170,8 +207,7 @@
             "condition": {
                 "counter": "bash_calls",
                 "threshold": 50
-            },
-            "tutorial": true
+            }
         },
         {
             "id": "bash_calls_500",
@@ -271,6 +307,19 @@
             }
         },
         {
+            "id": "glob_grep_first",
+            "name": "Code Detective",
+            "description": "Search a codebase with Claude for the first time using grep or glob",
+            "points": 5,
+            "category": "search",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "glob_grep_calls",
+                "threshold": 1
+            },
+            "tutorial": true
+        },
+        {
             "id": "glob_grep_50",
             "name": "Code Archaeologist",
             "description": "Run 50 glob or grep searches",
@@ -321,14 +370,15 @@
         {
             "id": "github_first",
             "name": "Open Source Hero",
-            "description": "Make your first GitHub MCP call",
+            "description": "Connect to GitHub via MCP for the first time",
             "points": 15,
             "category": "mcp",
             "skill_level": "beginner",
             "condition": {
                 "counter": "github_mcp_calls",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "jira_first",
@@ -449,7 +499,8 @@
             "condition": {
                 "counter": "code_reviews",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "code_review_10",
@@ -481,7 +532,7 @@
             "description": "Get a code review back with no issues found",
             "points": 20,
             "category": "reviews",
-            "skill_level": "beginner",
+            "skill_level": "intermediate",
             "condition": {
                 "counter": "perfect_reviews",
                 "threshold": 1
@@ -489,11 +540,11 @@
         },
         {
             "id": "thorough_review",
-            "name": "AI Wrote this didn't it",
+            "name": "AI Wrote This, Didn't It?",
             "description": "Get a code review that finds 20 or more issues",
             "points": 20,
             "category": "reviews",
-            "skill_level": "beginner",
+            "skill_level": "intermediate",
             "condition": {
                 "counter": "thorough_reviews",
                 "threshold": 1
@@ -522,7 +573,8 @@
             "condition": {
                 "counter": "task_calls",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "dangerously_skip_permissions",
@@ -606,7 +658,8 @@
             "condition": {
                 "counter": "skill_calls",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "skill_calls_5",
@@ -679,6 +732,19 @@
                 "counter": "commands_created",
                 "threshold": 50
             }
+        },
+        {
+            "id": "check_your_vitals",
+            "name": "Check Your Vitals",
+            "description": "Run the /context command to see your current context window usage",
+            "points": 5,
+            "category": "context",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "context_command_run",
+                "threshold": 1
+            },
+            "tutorial": true
         },
         {
             "id": "auto_compacts_1",
@@ -823,7 +889,8 @@
             "condition": {
                 "counter": "git_commits",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "pull_request_pioneer",
@@ -847,7 +914,8 @@
             "condition": {
                 "counter": "manual_compacts",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "self_aware",
@@ -875,7 +943,7 @@
         },
         {
             "id": "sudo_first",
-            "name": "I am groot, wait I mean root",
+            "name": "I Am Groot, Wait... I Mean Root",
             "description": "Run a sudo command through Claude",
             "points": 15,
             "category": "misc",
@@ -995,7 +1063,7 @@
         },
         {
             "id": "write_that_down",
-            "name": "Write that down, write that down!",
+            "name": "Write That Down, Write That Down!",
             "description": "Add information to a CLAUDE.md file when context is over 90% full",
             "points": 25,
             "category": "misc",
@@ -1127,7 +1195,7 @@
         },
         {
             "id": "but_its_compiling",
-            "name": "But Its Compiling",
+            "name": "But It's Compiling",
             "description": "Have Claude take more than 15 minutes to answer a prompt",
             "points": 20,
             "category": "misc",
@@ -1151,7 +1219,7 @@
         },
         {
             "id": "it_really_can",
-            "name": "It Really Can do Anything",
+            "name": "It Really Can Do Anything",
             "description": "Have Claude create a PowerPoint presentation",
             "points": 25,
             "category": "misc",
@@ -1163,7 +1231,7 @@
         },
         {
             "id": "f_is_for_friends",
-            "name": "F is for friends who do stuff together!",
+            "name": "F Is for Friends Who Do Stuff Together!",
             "description": "Get lucky — 0.1% chance to unlock with each prompt",
             "points": 25,
             "category": "misc",
@@ -1183,7 +1251,8 @@
             "condition": {
                 "counter": "inner_machinations_used",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "magic_conch",
@@ -1211,7 +1280,7 @@
         },
         {
             "id": "smarter_than_you",
-            "name": "I'm Smarter than you",
+            "name": "I'm Smarter Than You",
             "description": "Get Claude to say you're right",
             "points": 15,
             "category": "misc",
@@ -1355,7 +1424,7 @@
         },
         {
             "id": "tic_tac_toe",
-            "name": "It's not about winning; it's about fun!",
+            "name": "It's Not About Winning; It's About Fun!",
             "description": "Lose a game of tic tac toe to Claude",
             "points": 25,
             "category": "misc",
@@ -1367,7 +1436,7 @@
         },
         {
             "id": "code_smell",
-            "name": "The kind of smelly smell that smells... smelly.",
+            "name": "The Kind of Smelly Smell That Smells... Smelly.",
             "description": "Have Claude check your code for bad code smells",
             "points": 20,
             "category": "misc",
@@ -1474,7 +1543,8 @@
             "condition": {
                 "counter": "test_files_written",
                 "threshold": 1
-            }
+            },
+            "tutorial": true
         },
         {
             "id": "test_happy",

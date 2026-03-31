@@ -48,15 +48,18 @@ The **Tutorial** column marks achievements in the guided path (`cheevos learn`).
 | Committed | Complete 50 Claude Code sessions | 30 | sessions | Intermediate |  |
 | Power User | Complete 100 Claude Code sessions | 50 | sessions | Experienced |  |
 | Veteran | Complete 300 Claude Code sessions | 100 | sessions | Master |  |
-| Code Sculptor | Write 10 files with Claude | 10 | files | Beginner | ✓ |
+| First Draft | Have Claude write or edit your first file | 5 | files | Beginner | ✓ |
+| Code Sculptor | Write 10 files with Claude | 10 | files | Beginner |  |
 | Prolific Author | Write 100 files with Claude | 40 | files | Intermediate |  |
 | Ghostwriter | Write 500 files with Claude | 60 | files | Experienced |  |
 | Publishing House | Write 2,000 files with Claude | 100 | files | Master |  |
-| Bookworm | Read 100 files with Claude | 15 | files | Beginner | ✓ |
+| Open Book | Have Claude read your first file | 5 | files | Beginner | ✓ |
+| Bookworm | Read 100 files with Claude | 15 | files | Beginner |  |
 | Deep Diver | Read 500 files with Claude | 40 | files | Intermediate |  |
 | Voracious Reader | Read 2,000 files with Claude | 75 | files | Experienced |  |
 | Library of Alexandria | Read 10,000 files with Claude | 150 | files | Master |  |
-| Shell Jockey | Run 50 bash commands through Claude | 15 | shell | Beginner | ✓ |
+| Hello Terminal | Run your first bash command through Claude | 5 | shell | Beginner | ✓ |
+| Shell Jockey | Run 50 bash commands through Claude | 15 | shell | Beginner |  |
 | Terminal Warrior | Run 500 bash commands through Claude | 40 | shell | Intermediate |  |
 | Automation Guru | Run 2,000 bash commands through Claude | 75 | shell | Experienced |  |
 | Shell God | Run 10,000 bash commands through Claude | 150 | shell | Master |  |
@@ -65,11 +68,12 @@ The **Tutorial** column marks achievements in the guided path (`cheevos learn`).
 | Fact Checker | Perform 100 web searches via Claude | 30 | search | Intermediate |  |
 | Web Crawler | Perform 500 web searches via Claude | 60 | search | Experienced |  |
 | Search Engine | Perform 2,000 web searches via Claude | 100 | search | Master |  |
+| Code Detective | Search a codebase with Claude for the first time using grep or glob | 5 | search | Beginner | ✓ |
 | Code Archaeologist | Run 50 glob or grep searches | 20 | search | Beginner |  |
 | Pattern Master | Run 200 glob or grep searches | 40 | search | Intermediate |  |
 | Needle Finder | Run 1,000 glob or grep searches | 75 | search | Experienced |  |
 | Haystack Hunter | Run 5,000 glob or grep searches | 150 | search | Master |  |
-| Open Source Hero | Make your first GitHub MCP call | 15 | mcp | Beginner |  |
+| Open Source Hero | Connect to GitHub via MCP for the first time | 15 | mcp | Beginner | ✓ |
 | Ticket Tracker | Make your first Jira/Confluence MCP call | 15 | mcp | Beginner |  |
 | Integration Champion | Make 100 total MCP tool calls | 30 | mcp | Intermediate |  |
 | API Virtuoso | Make 500 total MCP tool calls | 60 | mcp | Experienced |  |
@@ -84,13 +88,14 @@ The **Tutorial** column marks achievements in the guided path (`cheevos learn`).
 | Token Titan | Consume 10,000,000 tokens with Claude | 75 | tokens | Experienced |  |
 | Context King | Consume 50,000,000 tokens with Claude | 150 | tokens | Master |  |
 | The Singularity | Consume 500,000,000 tokens with Claude | 300 | tokens | Impossible |  |
-| Shortcut Savvy | Invoke your first skill | 5 | commands | Beginner |  |
+| Shortcut Savvy | Invoke your first skill | 5 | commands | Beginner | ✓ |
 | Slash Artist | Invoke 5 skills | 10 | commands | Beginner |  |
 | Command Center | Invoke 15 skills | 25 | commands | Intermediate |  |
 | Roll Your Own | Create your first custom slash command | 15 | commands | Beginner |  |
 | Command Crafter | Create 5 custom slash commands | 30 | commands | Intermediate |  |
 | Workflow Wizard | Create 15 custom slash commands | 60 | commands | Experienced |  |
 | Automation Architect | Create 50 custom slash commands | 125 | commands | Master |  |
+| Check Your Vitals | Run the /context command to see your current context window usage | 5 | context | Beginner | ✓ |
 | Full House | Fill the context window and trigger auto-compact for the first time | 10 | context | Beginner |  |
 | Context Junkie | Trigger auto-compact 10 times | 30 | context | Intermediate |  |
 | Serial Overloader | Trigger auto-compact 25 times | 50 | context | Experienced |  |
@@ -99,33 +104,33 @@ The **Tutorial** column marks achievements in the guided path (`cheevos learn`).
 | Schema Scholar | Write your first API spec file (OpenAPI, Swagger, AsyncAPI) | 10 | specs | Beginner |  |
 | API Architect | Write 5 API spec files | 30 | specs | Intermediate |  |
 | Spec Master | Write 20 API spec files | 60 | specs | Experienced |  |
-| Code Critic | Run your first code review with Claude | 10 | reviews | Beginner |  |
+| Code Critic | Run your first code review with Claude | 10 | reviews | Beginner | ✓ |
 | Review Board | Run 10 code reviews with Claude | 25 | reviews | Intermediate |  |
 | Quality Gatekeeper | Run 50 code reviews with Claude | 60 | reviews | Experienced |  |
-| Ship It! | Get a code review back with no issues found | 20 | reviews | Beginner |  |
-| AI Wrote this didn't it | Get a code review that finds 20 or more issues | 20 | reviews | Beginner |  |
-| Test Driven | Write your first test file | 10 | tests | Beginner |  |
+| Ship It! | Get a code review back with no issues found | 20 | reviews | Intermediate |  |
+| AI Wrote This, Didn't It? | Get a code review that finds 20 or more issues | 20 | reviews | Intermediate |  |
+| Test Driven | Write your first test file | 10 | tests | Beginner | ✓ |
 | Green Light | Run a test suite for the first time via Claude | 10 | tests | Beginner |  |
 | Test Happy | Write 10 test files | 20 | tests | Beginner |  |
 | Regression Hunter | Run tests 50 times via Claude | 20 | tests | Beginner |  |
 | Test Champion | Write 50 test files | 40 | tests | Intermediate |  |
 | Quality Crusader | Run tests 200 times via Claude | 50 | tests | Intermediate |  |
 | Back Again | Resume a previous Claude session | 10 | misc | Beginner | ✓ |
-| Delegation Station | Launch your first sub-agent with the Task tool | 15 | misc | Beginner |  |
+| Delegation Station | Launch your first sub-agent with the Task tool | 15 | misc | Beginner | ✓ |
 | Laying Down the Law | Create a CLAUDE.md file to set instructions for Claude | 10 | misc | Beginner | ✓ |
-| Git Er Done | Have Claude run its first git commit | 10 | misc | Beginner |  |
+| Git Er Done | Have Claude run its first git commit | 10 | misc | Beginner | ✓ |
 | Pull Request Pioneer | Have Claude create your first pull request | 15 | misc | Beginner |  |
-| Spring Cleaning | Manually compact your context window with /compact | 5 | misc | Beginner |  |
-| I am groot, wait I mean root | Run a sudo command through Claude | 15 | misc | Beginner |  |
+| Spring Cleaning | Manually compact your context window with /compact | 5 | misc | Beginner | ✓ |
+| I Am Groot, Wait... I Mean Root | Run a sudo command through Claude | 15 | misc | Beginner |  |
 | Rewriting History | Have Claude force push to a git remote | 15 | misc | Beginner |  |
 | Execute Order 66 | Have Claude use kill -9 to terminate a process | 15 | misc | Beginner |  |
 | Tell Me You're Sorry | Get Claude to say sorry | 15 | misc | **Secret** |  |
 | Teacher's Pet | Get Claude to call your question great | 10 | misc | Beginner |  |
 | I'm Sorry, Dave | Get Claude to say the HAL 9000 phrase | 25 | misc | **Secret** |  |
-| F is for friends who do stuff together! | 0.1% chance to unlock with each prompt | 25 | misc | **Secret** |  |
+| F Is for Friends Who Do Stuff Together! | 0.1% chance to unlock with each prompt | 25 | misc | **Secret** |  |
 | Deja Vu | Send the same message to Claude twice in a row | 20 | misc | **Secret** |  |
 | Style Points | Set a custom status line command in Claude Code | 10 | misc | Beginner |  |
-| The Inner Machinations of My Mind Are an Enigma | Ask Claude to explain or summarize a codebase | 10 | misc | Beginner |  |
+| The Inner Machinations of My Mind Are an Enigma | Ask Claude to explain or summarize a codebase | 10 | misc | Beginner | ✓ |
 | Call an Ambulance...But Not For Me | Run the /doctor command in Claude Code | 5 | misc | Beginner |  |
 | Snake Charmer | Have Claude read a Python file | 5 | misc | Beginner |  |
 | Segfault Risk | Have Claude read a C or C++ file | 5 | misc | Beginner |  |
@@ -143,22 +148,22 @@ The **Tutorial** column marks achievements in the guided path (`cheevos learn`).
 | Barnacles! | Get Claude to express its frustration using the word barnacles | 20 | misc | Intermediate |  |
 | Bold and Brash | Have Claude create an HTML file as a mock-up | 15 | misc | Intermediate |  |
 | Shh, I'm Hunting Wabbits | Invoke Claude in non-interactive pipe mode from a bash command | 20 | misc | Intermediate |  |
-| It's not about winning; it's about fun! | Lose a game of tic tac toe to Claude | 25 | misc | Intermediate |  |
-| The kind of smelly smell that smells... smelly. | Have Claude check your code for bad code smells | 20 | misc | Intermediate |  |
+| It's Not About Winning; It's About Fun! | Lose a game of tic tac toe to Claude | 25 | misc | Intermediate |  |
+| The Kind of Smelly Smell That Smells... Smelly. | Have Claude check your code for bad code smells | 20 | misc | Intermediate |  |
 | Part of the Docs Team | Use the Confluence MCP server to create or edit a wiki page | 20 | misc | Intermediate |  |
 | Take a Break | Play a game of 20 questions with Claude | 15 | misc | Intermediate |  |
 | That's a Great Use of Tokens | Play a game of chess with Claude | 15 | misc | Intermediate |  |
-| I'm Smarter than you | Get Claude to say you're right | 15 | misc | Intermediate |  |
+| I'm Smarter Than You | Get Claude to say you're right | 15 | misc | Intermediate |  |
 | Self Aware | Have Claude read its own achievement files | 20 | misc | Intermediate |  |
 | On a Roll | Use Claude Code 5 days in a row | 30 | misc | Intermediate |  |
 | Lucky 7s | Get Claude to respond with exactly 777 output tokens | 77 | misc | Intermediate |  |
 | Eclectic Taste | Use 3 different Claude models | 20 | misc | Intermediate |  |
 | Model Collector | Use 5 different Claude models | 30 | misc | Intermediate |  |
-| Write that down, write that down! | Add information to a CLAUDE.md file when context is over 90% full | 25 | misc | Experienced |  |
+| Write That Down, Write That Down! | Add information to a CLAUDE.md file when context is over 90% full | 25 | misc | Experienced |  |
 | Under the Hood | Run Claude with the --verbose flag | 20 | misc | Experienced |  |
 | Stack Connector | Use GitHub MCP, Jira MCP, and at least one other MCP server | 35 | misc | Experienced |  |
-| But Its Compiling | Have Claude take more than 15 minutes to answer a prompt | 20 | misc | Experienced |  |
-| It Really Can do Anything | Have Claude create a PowerPoint presentation | 25 | misc | Experienced |  |
+| But It's Compiling | Have Claude take more than 15 minutes to answer a prompt | 20 | misc | Experienced |  |
+| It Really Can Do Anything | Have Claude create a PowerPoint presentation | 25 | misc | Experienced |  |
 | Many Claudes | Run 5 Claude Code sessions simultaneously | 50 | misc | Experienced |  |
 | Hold My Beer | Launch Claude with --dangerously-skip-permissions | 50 | misc | Experienced |  |
 | Model Sommelier | Use 15 different Claude models | 75 | misc | Experienced |  |
