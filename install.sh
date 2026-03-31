@@ -245,28 +245,42 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 3.5: Add cheevos binary to Claude Code auto-allow list
+# Phase 3.5: Add cheevos commands to Claude Code auto-allow list
 # ─────────────────────────────────────────────────────────────────────────────
 
-CHEEVOS_ALLOW="Bash($ACHIEVEMENTS_DIR/cheevos:*)"
+# Add permission patterns for cheevos commands used during /get-started tutorial
+# Patterns cover both ~ and $HOME expansions, with and without pipes/redirects
+CHEEVOS_DRAIN="Bash(*/.claude/achievements/cheevos drain*)"
+CHEEVOS_SHOW="Bash(*/.claude/achievements/cheevos show*)"
+
+# Remove legacy pattern from a34120a if present (used literal $ACHIEVEMENTS_DIR)
+LEGACY_PATTERN="Bash($ACHIEVEMENTS_DIR/cheevos:*)"
 
 TEMP=$(mktemp "$SETTINGS.XXXXXX")
-jq --arg allow "$CHEEVOS_ALLOW" '
+jq --arg drain "$CHEEVOS_DRAIN" \
+   --arg show "$CHEEVOS_SHOW" \
+   --arg legacy "$LEGACY_PATTERN" '
     .permissions //= {} |
     .permissions.allow //= [] |
-    if (.permissions.allow | any(. == $allow)) then .
-    else .permissions.allow += [$allow]
+    # Remove legacy pattern if present
+    .permissions.allow |= map(select(. != $legacy)) |
+    # Add new patterns
+    if (.permissions.allow | any(. == $drain)) then .
+    else .permissions.allow += [$drain]
+    end |
+    if (.permissions.allow | any(. == $show)) then .
+    else .permissions.allow += [$show]
     end
 ' "$SETTINGS" > "$TEMP"
 
 if ! jq empty "$TEMP" 2>/dev/null; then
     rm -f "$TEMP"
-    echo "ERROR: Failed to add cheevos to allow list - produced invalid JSON."
+    echo "ERROR: Failed to add cheevos commands to allow list - produced invalid JSON."
     exit 1
 fi
 
 mv "$TEMP" "$SETTINGS"
-echo "✓ cheevos binary added to permissions allow list"
+echo "✓ cheevos commands added to permissions allow list"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 4: Validate final settings.json

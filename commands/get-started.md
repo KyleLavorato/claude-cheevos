@@ -23,22 +23,18 @@ This creates a smooth flow: guide → action → [notification appears inline] �
 
 ## Setup
 
-First, check if the cheevos binary is installed and load the current state:
+First, load the current achievement state to see what's already unlocked:
 
 ```bash
-BINARY="$HOME/.claude/achievements/cheevos"
-if [[ -f "$BINARY" ]]; then
-  "$BINARY" show --unlocked
-else
-  echo "BINARY_NOT_FOUND"
-fi
+~/.claude/achievements/cheevos show --unlocked
 ```
 
-**If the output is "BINARY_NOT_FOUND":**
-Tell the user the cheevos binary isn't installed yet. They need to download and install from the [latest release](https://github.com/KyleLavorato/claude-cheevos/releases/latest).
+This command is auto-allowed and won't trigger permission prompts.
 
-**If the binary is found:**
-Parse the output to determine which tutorial achievements are already unlocked.
+Parse the output to determine which tutorial achievements are already unlocked. The output shows unlocked achievements with checkmarks (✅).
+
+**If the command fails** (binary not installed):
+Tell the user the cheevos binary isn't installed yet. They need to download and install from the [latest release](https://github.com/KyleLavorato/claude-cheevos/releases/latest).
 
 ## Tutorial Achievement Order (Hardcoded Optimal Path)
 
