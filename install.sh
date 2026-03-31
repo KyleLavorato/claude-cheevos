@@ -122,7 +122,6 @@ cp "$SCRIPTS_DIR_SRC/lib.sh"                "$ACHIEVEMENTS_DIR/scripts/lib.sh"
 cp "$SCRIPTS_DIR_SRC/statusline-wrapper.sh" "$ACHIEVEMENTS_DIR/scripts/statusline-wrapper.sh"
 cp "$SCRIPTS_DIR_SRC/seed-state.sh"         "$ACHIEVEMENTS_DIR/scripts/seed-state.sh"
 cp "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achievements.sh"
-cp "$SCRIPTS_DIR_SRC/learning-path.sh"      "$ACHIEVEMENTS_DIR/scripts/learning-path.sh"
 cp "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
 cp "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
@@ -163,14 +162,15 @@ else
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 1.6: Install /achievements and /uninstall-achievements slash commands
+# Phase 1.6: Install slash commands
 # ─────────────────────────────────────────────────────────────────────────────
 
 COMMANDS_DIR="$HOME/.claude/commands"
 mkdir -p "$COMMANDS_DIR"
 cp "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
+cp "$REPO_DIR/commands/get-started.md" "$COMMANDS_DIR/get-started.md"
 cp "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
-echo "✓ /achievements and /uninstall-achievements slash commands installed to $COMMANDS_DIR"
+echo "✓ Slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 2: Merge hooks into settings.json (idempotent)
@@ -357,15 +357,21 @@ echo "  Definitions: embedded in binary (hidden)"
 echo ""
 echo "Restart Claude Code for hooks to take effect."
 echo ""
-echo "View your achievements:"
-echo "  /achievements                              (slash command — opens web UI in browser)"
-echo "  $ACHIEVEMENTS_DIR/cheevos serve           (web UI, run directly)"
-echo "  $ACHIEVEMENTS_DIR/cheevos show            (static list)"
-echo "  $ACHIEVEMENTS_DIR/cheevos learn           (tutorial path)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Start a Claude session with: claude"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "Verify install:"
+echo "View your achievements (inside a Claude session):"
+echo "  /achievements                              (opens web UI in browser)"
+echo "  /get-started                               (interactive guided tour)"
+echo ""
+echo "View your achievements (from terminal):"
+echo "  $ACHIEVEMENTS_DIR/cheevos serve           (opens web UI in browser)"
+echo "  $ACHIEVEMENTS_DIR/cheevos show            (static list)"
+echo ""
+echo "Verify install (from terminal):"
 echo "  $ACHIEVEMENTS_DIR/cheevos verify"
 echo ""
 echo "Uninstall:"
-echo "  /uninstall-achievements                    (slash command — interactive guided removal)"
-echo "  $ACHIEVEMENTS_DIR/uninstall.sh             (run directly)"
+echo "  /uninstall-achievements                    (inside Claude session)"
+echo "  $ACHIEVEMENTS_DIR/uninstall.sh             (from terminal)"

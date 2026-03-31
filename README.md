@@ -9,7 +9,7 @@ usage milestones, awards points, and surfaces progress through a live status bar
 
 ## Contents
 
-[Requirements](#requirements) · [Installation](#installation) · [Uninstallation](#uninstallation) · [Tutorial](#tutorial) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Contributing](#contributing)
+[Requirements](#requirements) · [Installation](#installation) · [Uninstallation](#uninstallation) · [Getting Started](#getting-started) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Contributing](#contributing)
 
 ---
 
@@ -63,38 +63,60 @@ bash install.sh --leaderboard-secret <secret>
 
 ## Uninstallation
 
-Use `/uninstall-achievements` inside Claude Code. It removes hooks, optionally deletes
-state, and restores your original status line.
+Start a Claude session and use `/uninstall-achievements`. It removes hooks, optionally deletes state, and restores your original status line.
+
+```bash
+# Start a Claude session
+claude
+
+# Then run inside the session:
+/uninstall-achievements
+```
+
+Alternatively, uninstall from your terminal:
+
+```bash
+~/.claude/achievements/uninstall.sh
+```
 
 ---
 
-## Tutorial
+## Getting Started
 
-A guided walkthrough of the 8 core beginner achievements with tips and a progress bar.
+New to Claude Code? Start a Claude session and run the **interactive guided tour**:
 
 ```bash
-~/.claude/achievements/cheevos learn
+# First, start a Claude session
+claude
+
+# Then inside the Claude session, run:
+/get-started
 ```
 
-```
-🗺️   Claude Cheevos — Tutorial
-3/8 complete  ·  [████████░░░░░░░░░░░░]  60/165 pts
+This walks you through **18 core achievements** (155 points) with step-by-step instructions:
+- File operations (read, write, edit)
+- Running shell commands and git workflows
+- Web search and codebase exploration
+- Advanced features (plan mode, code reviews, testing)
+- Collaboration tools (GitHub, delegation, MCP)
 
-⭐  Up Next
-────────────────────────────────────────────────────────────
-  ⭐  Code Sculptor              +20 pts  [3/10 files_written]
-      Write 10 files with Claude
-      💡 Ask Claude to create files: 'Create a utils.py with a helper function'
-```
+Claude will **auto-detect** when you complete each achievement and automatically move to the next one. You can type "skip" to jump ahead at any time.
 
-Completing all 8 unlocks the **Graduate** rank badge.
+When you've completed all tutorial achievements, you'll see a trophy case celebration! 🏆
 
 ---
 
 ## Achievement List
 
-Use `/achievements` in Claude Code to open the achievement browser — filter by status and
-skill level, search by name, and track progress bars for locked achievements.
+Inside a Claude session, use `/achievements` to open the achievement browser — filter by status and skill level, search by name, and track progress bars for locked achievements.
+
+```bash
+# Start a Claude session
+claude
+
+# Then run inside the session:
+/achievements
+```
 
 For the full list of achievements, categories, and skill levels, see [docs/achievement_list.md](docs/achievement_list.md).
 
