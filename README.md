@@ -47,10 +47,10 @@ After install, your status bar shows `🏆 560 pts` at all times. If you had an 
 
 The installer is **idempotent** — safe to re-run to upgrade. Your score and progress are never touched.
 
-**Optional:** Enable leaderboard sync:
+**Optional:** Enable leaderboard sync (obtain the secret from your leaderboard admin):
 
 ```bash
-bash install.sh --token <api-token> --api-url https://...execute-api.../prod
+bash install.sh --leaderboard-secret <secret>
 ```
 
 **Verify the install:**
@@ -134,8 +134,11 @@ See [docs/auto-update.md](docs/auto-update.md) for full details.
 
 ## Leaderboard
 
-An optional live leaderboard lets you compare scores with teammates. See
-[microservice/README.md](microservice/README.md) for deployment and setup instructions.
+An optional live leaderboard lets you compare scores with teammates. The API token and
+URL are never stored in plaintext — admins generate an encrypted secret with
+`go run ./go/tools/leaderboard-keygen` and distribute it to users, who pass it to
+`install.sh --leaderboard-secret`. See [microservice/README.md](microservice/README.md)
+for full deployment and setup instructions.
 
 ---
 

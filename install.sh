@@ -15,13 +15,11 @@
 set -euo pipefail
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
-ARG_TOKEN=""
-ARG_API_URL=""
+ARG_SECRET=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --token)   ARG_TOKEN="${2:-}";   shift 2 ;;
-        --api-url) ARG_API_URL="${2:-}"; shift 2 ;;
-        *) echo "Usage: bash install.sh [--token TOKEN] [--api-url URL]"; exit 1 ;;
+        --leaderboard-secret) ARG_SECRET="${2:-}"; shift 2 ;;
+        *) echo "Usage: bash install.sh [--leaderboard-secret SECRET]"; exit 1 ;;
     esac
 done
 
@@ -280,14 +278,14 @@ printf '%s' "$VERSION" > "$ACHIEVEMENTS_DIR/.version"
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 6.5: Leaderboard configuration
 # Three cases:
-#   A) --token and --api-url both provided  → generate UUID, write enabled conf
-#   B) No args, conf already exists         → preserve (upgrade)
-#   C) No args, no conf                     → write disabled conf
+#   A) --leaderboard-secret provided  → generate UUID, write enabled conf
+#   B) No args, conf already exists   → preserve (upgrade)
+#   C) No args, no conf               → write disabled conf
 # ─────────────────────────────────────────────────────────────────────────────
 
 LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
 
-if [[ -n "$ARG_TOKEN" && -n "$ARG_API_URL" ]]; then
+if [[ -n "$ARG_SECRET" ]]; then
     # Case A: generate UUID (bash 3.2 safe)
     if command -v uuidgen >/dev/null 2>&1; then
         USER_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
@@ -303,8 +301,7 @@ if [[ -n "$ARG_TOKEN" && -n "$ARG_API_URL" ]]; then
 LEADERBOARD_ENABLED=true
 USER_ID=${USER_ID}
 USERNAME=${USERNAME}
-TOKEN=${ARG_TOKEN}
-API_URL=${ARG_API_URL}
+LEADERBOARD_SECRET=${ARG_SECRET}
 EOF
     chmod 600 "$LEADERBOARD_CONF"
     echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID})"
@@ -317,11 +314,10 @@ else
 LEADERBOARD_ENABLED=false
 USER_ID=
 USERNAME=
-TOKEN=
-API_URL=
+LEADERBOARD_SECRET=
 EOF
     chmod 600 "$LEADERBOARD_CONF"
-    echo "✓ Leaderboard disabled (re-run with --token and --api-url to enable)"
+    echo "✓ Leaderboard disabled (re-run with --leaderboard-secret to enable)"
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
