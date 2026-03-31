@@ -564,17 +564,17 @@ and called first; the achievement segment is appended after `" | "`.
 ## Interactive Guided Tour (/get-started)
 
 The `/get-started` slash command provides an interactive guided tour for new users. It walks
-them through 18 core tutorial achievements with step-by-step instructions, auto-detecting
+them through 19 core tutorial achievements with step-by-step instructions, auto-detecting
 completion and advancing automatically.
 
 **Tutorial achievements** are marked with `"tutorial": true` in `definitions.json`. The
 guided tour follows a hardcoded optimal order defined in `commands/get-started.md`.
 
-Current tutorial set (18 achievements, 155 pts):
+Current tutorial set (19 achievements, 160 pts):
 `first_session`, `files_written_first`, `files_read_first`, `bash_first`, `web_search_first`,
-`glob_grep_first`, `skill_calls_1`, `back_again`, `check_your_vitals`, `laying_down_the_law`,
-`git_er_done`, `plan_mode_first`, `code_review_1`, `test_driven`, `spring_cleaning`,
-`github_first`, `delegation_station`, `inner_machinations`
+`glob_grep_first`, `skill_calls_1`, `model_citizen`, `back_again`, `check_your_vitals`,
+`laying_down_the_law`, `git_er_done`, `plan_mode_first`, `code_review_1`, `test_driven`,
+`spring_cleaning`, `github_first`, `delegation_station`, `inner_machinations`
 
 **How it works:**
 1. User runs `/get-started` in a Claude Code session
