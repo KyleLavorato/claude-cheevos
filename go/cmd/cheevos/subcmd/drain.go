@@ -9,7 +9,6 @@ import (
     "strings"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/engine"
     "github.com/user/claude-cheevos/internal/lock"
     "github.com/user/claude-cheevos/internal/notify"
@@ -18,7 +17,7 @@ import (
 
 // Drain atomically empties the notification queue, fires OS notifications,
 // and emits a {"systemMessage": "..."} JSON blob to stdout for Claude Code.
-func Drain(achievementsDir string) error {
+func Drain(achievementsDir string, key [32]byte) error {
     notifFile := filepath.Join(achievementsDir, "notifications.json")
     lockFile := filepath.Join(achievementsDir, "state.lock")
 
@@ -60,12 +59,9 @@ func Drain(achievementsDir string) error {
 
     // Read current score (display-only, no lock needed).
     score := 0
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err == nil {
-        stateFile := filepath.Join(achievementsDir, "state.json")
-        if st, err := store.NewEncryptedJSONStore(stateFile, key).Load(); err == nil {
-            score = st.Score
-        }
+    stateFile := filepath.Join(achievementsDir, "state.json")
+    if st, err := store.NewEncryptedJSONStore(stateFile, key).Load(); err == nil {
+        score = st.Score
     }
 
     // Build achievement lines.

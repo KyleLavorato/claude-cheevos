@@ -7,7 +7,6 @@ import (
     "path/filepath"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/engine"
     cheevosmac "github.com/user/claude-cheevos/internal/hmac"
@@ -18,7 +17,7 @@ import (
 // Update applies counter increments from hook env vars to the encrypted state.
 // Requires a valid HMAC signature (_CHEEVOS_SIG) unless hmacSecret is empty
 // (empty = HMAC disabled, e.g. dev build with no injected key).
-func Update(achievementsDir string, hmacSecret []byte) error {
+func Update(achievementsDir string, hmacSecret []byte, key [32]byte) error {
     // Read env vars.
     counterUpdatesJSON := os.Getenv("_COUNTER_UPDATES")
     counterSetsJSON := os.Getenv("_COUNTER_SETS")
@@ -66,11 +65,7 @@ func Update(achievementsDir string, hmacSecret []byte) error {
         UpdateCheckEpoch:    updateCheckEpoch,
     }
 
-    // Load encryption key and state store.
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return err
-    }
+    // Load state store.
     stateFile := filepath.Join(achievementsDir, "state.json")
     notifFile := filepath.Join(achievementsDir, "notifications.json")
     lockFile := filepath.Join(achievementsDir, "state.lock")

@@ -9,7 +9,6 @@ import (
     "path/filepath"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/engine"
     "github.com/user/claude-cheevos/internal/lock"
@@ -28,12 +27,8 @@ const (
 //
 // Exits silently (no error) on network failure or if checked within the last 24h,
 // matching the behaviour of the original check-updates.sh.
-func UpdateDefs(achievementsDir string, force bool) error {
+func UpdateDefs(achievementsDir string, force bool, key [32]byte) error {
     // Rate-limit check: read last_update_check_epoch from state (no lock needed — read-only).
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return nil // state not initialised yet — skip silently
-    }
     stateFile := filepath.Join(achievementsDir, "state.json")
     st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
     if err != nil {

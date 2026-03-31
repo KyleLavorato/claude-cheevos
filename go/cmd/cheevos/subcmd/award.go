@@ -5,7 +5,6 @@ import (
     "path/filepath"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/engine"
     "github.com/user/claude-cheevos/internal/lock"
@@ -14,16 +13,12 @@ import (
 
 // Award manually increments a named counter by 1.
 // Used for Easter egg achievements (e.g. award easter_egg_unlocks).
-func Award(achievementsDir string, args []string) error {
+func Award(achievementsDir string, args []string, key [32]byte) error {
     if len(args) == 0 {
         return fmt.Errorf("award: counter name required")
     }
     counter := args[0]
 
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return err
-    }
     stateFile := filepath.Join(achievementsDir, "state.json")
     notifFile := filepath.Join(achievementsDir, "notifications.json")
     lockFile := filepath.Join(achievementsDir, "state.lock")

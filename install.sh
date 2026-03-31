@@ -144,8 +144,9 @@ echo "✓ Scripts and definitions installed to $ACHIEVEMENTS_DIR"
 # Phase 1.5: Initialize runtime directory and inject HMAC secret into lib.sh
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Initialize runtime directory: creates .key and notifications.json if absent.
-# Idempotent — safe on upgrades.
+# Initialize runtime directory: creates notifications.json if absent.
+# Idempotent — safe on upgrades. The AES key is derived from the binary's
+# compile-time HMAC secret — no .key file is created or needed.
 "$ACHIEVEMENTS_DIR/cheevos" init
 
 # Extract HMAC secret from the just-built binary and write it into lib.sh.

@@ -20,8 +20,10 @@ func main() {
         os.Exit(1)
     }
 
-    // Decode HMAC secret (available to all subcommands).
+    // Decode HMAC secret and derive the AES state key from it.
+    // Both are deterministic from the compile-time secret — no key file needed.
     hmacSecret, _ := crypto.DeobfuscateHMACKey(hmacSecretRaw)
+    stateKey, _ := crypto.DeriveStateKey(hmacSecret)
 
     // Resolve achievements directory.
     achievementsDir := os.Getenv("ACHIEVEMENTS_DIR")
@@ -40,30 +42,30 @@ func main() {
     var err error
     switch cmd {
     case "update":
-        err = subcmd.Update(achievementsDir, hmacSecret)
+        err = subcmd.Update(achievementsDir, hmacSecret, stateKey)
     case "init":
         err = subcmd.Init(achievementsDir)
     case "seed":
-        err = subcmd.Seed(achievementsDir, args)
+        err = subcmd.Seed(achievementsDir, args, stateKey)
     case "statusline":
-        err = subcmd.Statusline(achievementsDir)
+        err = subcmd.Statusline(achievementsDir, stateKey)
     case "show":
-        err = subcmd.Show(achievementsDir, args)
+        err = subcmd.Show(achievementsDir, args, stateKey)
     case "learn":
-        err = subcmd.Learn(achievementsDir)
+        err = subcmd.Learn(achievementsDir, stateKey)
     case "award":
-        err = subcmd.Award(achievementsDir, args)
+        err = subcmd.Award(achievementsDir, args, stateKey)
     case "drain":
-        err = subcmd.Drain(achievementsDir)
+        err = subcmd.Drain(achievementsDir, stateKey)
     case "update-defs":
         force := len(args) > 0 && args[0] == "--force"
-        err = subcmd.UpdateDefs(achievementsDir, force)
+        err = subcmd.UpdateDefs(achievementsDir, force, stateKey)
     case "serve":
-        err = subcmd.Serve(achievementsDir)
+        err = subcmd.Serve(achievementsDir, stateKey)
     case "leaderboard-sync":
-        err = subcmd.LeaderboardSync(achievementsDir)
+        err = subcmd.LeaderboardSync(achievementsDir, stateKey)
     case "verify":
-        err = subcmd.Verify(achievementsDir)
+        err = subcmd.Verify(achievementsDir, stateKey)
     case "print-hmac-secret":
         // Used by install.sh to inject the HMAC secret into lib.sh.
         if len(hmacSecret) == 0 {

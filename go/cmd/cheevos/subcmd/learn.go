@@ -6,7 +6,6 @@ import (
     "path/filepath"
     "strings"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/store"
     "golang.org/x/term"
@@ -37,7 +36,7 @@ var tips = map[string]string{
 }
 
 // Learn displays the tutorial learning path.
-func Learn(achievementsDir string) error {
+func Learn(achievementsDir string, key [32]byte) error {
     isTerminal := term.IsTerminal(int(os.Stdout.Fd()))
     bold, dim, green, yellow, cyan, reset := "", "", "", "", "", ""
     if isTerminal {
@@ -46,10 +45,6 @@ func Learn(achievementsDir string) error {
     }
     _ = cyan // used in tips display implicitly
 
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return err
-    }
     stateFile := filepath.Join(achievementsDir, "state.json")
     st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
     if err != nil {

@@ -11,7 +11,6 @@ import (
     "strings"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/store"
 )
 
@@ -27,7 +26,7 @@ type leaderboardConf struct {
 // state, and PUTs it to the leaderboard API. Results are logged to
 // ~/.claude/achievements/logs/leaderboard.log. The token is never written to the log.
 // Exits silently if leaderboard is disabled or not configured.
-func LeaderboardSync(achievementsDir string) error {
+func LeaderboardSync(achievementsDir string, key [32]byte) error {
     conf, err := readLeaderboardConf(filepath.Join(achievementsDir, "leaderboard.conf"))
     if err != nil || !conf.Enabled {
         return nil
@@ -36,10 +35,6 @@ func LeaderboardSync(achievementsDir string) error {
         return nil
     }
 
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return nil
-    }
     stateFile := filepath.Join(achievementsDir, "state.json")
     st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
     if err != nil {

@@ -16,7 +16,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/user/claude-cheevos/internal/crypto"
 	"github.com/user/claude-cheevos/internal/defs"
 	"github.com/user/claude-cheevos/internal/store"
 )
@@ -51,12 +50,7 @@ type serveAPIResponse struct {
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
 
-func buildAPIResponse(achievementsDir string) (*serveAPIResponse, error) {
-	key, err := crypto.LoadKeyFromFile(achievementsDir)
-	if err != nil {
-		return nil, fmt.Errorf("serve: %w", err)
-	}
-
+func buildAPIResponse(achievementsDir string, key [32]byte) (*serveAPIResponse, error) {
 	stateFile := filepath.Join(achievementsDir, "state.json")
 	st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
 	if err != nil {
@@ -140,7 +134,7 @@ func openBrowser(url string) {
 // Serve starts the achievement browser web UI on a random local port and opens
 // the browser. It blocks until the user clicks Done, presses Ctrl-C, or sends
 // SIGTERM. State is re-read from disk on every /api/data request.
-func Serve(achievementsDir string) error {
+func Serve(achievementsDir string, key [32]byte) error {
 	// Find a free port.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -164,7 +158,7 @@ func Serve(achievementsDir string) error {
 
 	// /api/data — re-reads from disk on every call so live state is reflected.
 	mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
-		resp, err := buildAPIResponse(achievementsDir)
+		resp, err := buildAPIResponse(achievementsDir, key)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

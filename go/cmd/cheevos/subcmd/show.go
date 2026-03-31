@@ -7,7 +7,6 @@ import (
     "path/filepath"
     "strings"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/store"
     "golang.org/x/term"
@@ -31,7 +30,7 @@ var categories = []struct{ id, label string }{
 }
 
 // Show lists achievements filtered by unlock status and skill level.
-func Show(achievementsDir string, args []string) error {
+func Show(achievementsDir string, args []string, key [32]byte) error {
     filter := "all"         // all | unlocked | locked
     filterSet := false
     levelFilter := "all"    // all | beginner | intermediate | experienced | master | secret
@@ -78,10 +77,6 @@ func Show(achievementsDir string, args []string) error {
         yellow = "\033[33m"; cyan = "\033[36m"; reset = "\033[0m"
     }
 
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return err
-    }
     stateFile := filepath.Join(achievementsDir, "state.json")
     st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
     if err != nil {

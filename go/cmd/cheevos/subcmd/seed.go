@@ -7,7 +7,6 @@ import (
     "path/filepath"
     "time"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/store"
 )
@@ -15,7 +14,7 @@ import (
 // Seed creates the initial encrypted state seeded from existing Claude Code stats.
 // It only runs on first install (when state.json does not yet exist).
 // args[0] (optional) is the path to stats-cache.json.
-func Seed(achievementsDir string, args []string) error {
+func Seed(achievementsDir string, args []string, key [32]byte) error {
     stateFile := filepath.Join(achievementsDir, "state.json")
 
     // Skip if state already exists (upgrade path — preserve existing state).
@@ -72,10 +71,6 @@ func Seed(achievementsDir string, args []string) error {
     }
 
     // Save encrypted state.
-    key, err := crypto.LoadKeyFromFile(achievementsDir)
-    if err != nil {
-        return err
-    }
     if err := store.NewEncryptedJSONStore(stateFile, key).Save(st); err != nil {
         return fmt.Errorf("seed: save state: %w", err)
     }

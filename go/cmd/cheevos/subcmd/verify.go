@@ -6,12 +6,11 @@ import (
     "os"
     "path/filepath"
 
-    "github.com/user/claude-cheevos/internal/crypto"
     "github.com/user/claude-cheevos/internal/store"
 )
 
 // Verify checks that the binary installation is healthy and prints a summary.
-func Verify(achievementsDir string) error {
+func Verify(achievementsDir string, key [32]byte) error {
     settings := os.Getenv("HOME") + "/.claude/settings.json"
     ok := true
 
@@ -28,25 +27,13 @@ func Verify(achievementsDir string) error {
         fmt.Println("✓ cheevos binary present")
     }
 
-    // Encryption key.
-    keyFile := filepath.Join(achievementsDir, ".key")
-    if _, err := os.Stat(keyFile); err != nil {
-        fmt.Println("✗ Encryption key missing (.key) — run: cheevos init")
-        ok = false
-    } else {
-        fmt.Println("✓ Encryption key present")
-    }
-
     // Encrypted state readable.
     stateFile := filepath.Join(achievementsDir, "state.json")
-    key, keyErr := crypto.LoadKeyFromFile(achievementsDir)
-    if keyErr == nil {
-        if st, err := store.NewEncryptedJSONStore(stateFile, key).Load(); err != nil {
-            fmt.Println("✗ State file unreadable:", err)
-            ok = false
-        } else {
-            fmt.Printf("✓ State readable (score: %d pts, %d unlocked)\n", st.Score, len(st.Unlocked))
-        }
+    if st, err := store.NewEncryptedJSONStore(stateFile, key).Load(); err != nil {
+        fmt.Println("✗ State file unreadable:", err)
+        ok = false
+    } else {
+        fmt.Printf("✓ State readable (score: %d pts, %d unlocked)\n", st.Score, len(st.Unlocked))
     }
 
     // notifications.json valid JSON.
