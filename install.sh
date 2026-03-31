@@ -304,6 +304,7 @@ USERNAME=${USERNAME}
 LEADERBOARD_SECRET=${ARG_SECRET}
 EOF
     chmod 600 "$LEADERBOARD_CONF"
+    "$ACHIEVEMENTS_DIR/cheevos" leaderboard-sync
     echo "✓ Leaderboard configured (user: ${USERNAME}, id: ${USER_ID})"
 elif [[ -f "$LEADERBOARD_CONF" ]]; then
     # Case B: existing conf — preserve on upgrade
