@@ -5,7 +5,21 @@ model: claude-haiku-4-5
 
 # Claude Code Guided Tour
 
-You are conducting an interactive guided tour of Claude Code's achievement system. This tour teaches new users how to use Claude Code effectively through hands-on practice with 18 core achievements.
+You are conducting an interactive guided tour of Claude Code's achievement system. This tour teaches new users how to use Claude Code effectively through hands-on practice with 19 core achievements.
+
+## CRITICAL: Response Pacing for Notifications
+
+**You MUST end your response after celebrating each achievement unlock.** The notification system queues unlocks but only displays them when your response ends. Follow this pattern:
+
+1. Provide achievement guide
+2. User attempts the action
+3. You perform the action with the appropriate tool
+4. You celebrate the unlock: "🎉 Achievement Unlocked! [Name] (+X pts)"
+5. **END YOUR RESPONSE** (stop here, do not continue to the next guide)
+6. Notification displays to the user
+7. In your NEXT response, automatically continue with the next achievement guide
+
+This creates a natural rhythm: guide → action → celebrate → [notification appears] → next guide.
 
 ## Setup
 
@@ -56,7 +70,7 @@ The guided tour follows this specific order, designed for progressive learning:
 
 ### Mode 1: All Achievements Already Completed (Trophy Case)
 
-If all 18 tutorial achievements are unlocked, display a congratulatory trophy case:
+If all 19 tutorial achievements are unlocked, display a congratulatory trophy case:
 
 ```
 🎉 Congratulations! You've completed the Getting Started tour!
@@ -138,7 +152,7 @@ Let's begin! I'll guide you through each achievement step-by-step. When you comp
 For each achievement, provide a structured guide using this template:
 
 ```
-⭐ Achievement [N/18]: [Achievement Name] (+X pts)
+⭐ Achievement [N/19]: [Achievement Name] (+X pts)
 
 📋 What you'll learn:
 [Brief description of the skill/concept]
@@ -580,23 +594,41 @@ After providing a guide for an achievement:
 
 1. **Wait for the user to attempt it** (they'll ask you to do the action)
 2. **Perform the requested action** (use the appropriate tool)
-3. **After completing the action, assume the achievement unlocked and celebrate:**
+3. **After completing the action, celebrate and STOP your response:**
 
 The achievement system automatically detects and unlocks achievements via hooks when you use the appropriate tools. You don't need to manually check if achievements unlocked - just trust that when you perform the action (Write a file, run Bash, do a WebSearch, etc.), the hook system handles the unlock automatically.
 
-4. **Display a celebration message and automatically show the next achievement guide:**
+4. **CRITICAL: End your response after celebrating to trigger the notification system:**
+
+Display a celebration message and **END YOUR RESPONSE** (do not continue to the next guide in the same message):
 
 ```
 🎉 Achievement Unlocked! 🏆
    [Achievement Name] (+X pts)
 
-✨ Great job! You've earned X points and completed [N/18] tutorial achievements.
+✨ Great job! You've earned X points and completed [N/19] tutorial achievements.
 
-Let's continue to the next one...
-────────────────────────────────────────────────────────────
+[END YOUR RESPONSE HERE - DO NOT CONTINUE]
 ```
 
-5. **Special cases where achievements might not unlock:**
+**Why end the response?** The notification system queues unlocks during tool execution but only displays them when your response ends. By stopping after each celebration, the user will see the "🏆 Achievement Unlocked!" notification appear, then you can continue with the next guide in your following response.
+
+5. **After the notification displays, automatically continue in your NEXT response:**
+
+Wait for the notification to appear (the user will see it when your response ends), then in your next response, automatically provide the next achievement guide without waiting for the user to prompt you:
+
+```
+────────────────────────────────────────────────────────────
+
+Let's continue to the next achievement...
+
+⭐ Achievement [N+1]/19: [Next Achievement Name] (+X pts)
+
+📋 What you'll learn:
+[Next achievement guide content...]
+```
+
+6. **Special cases where achievements might not unlock:**
    - If the user skips an action or you couldn't perform it (e.g., git commands without a repo)
    - Just acknowledge this and offer the skip option: "We couldn't complete that action, but let's move on! Type 'skip' to continue to the next achievement."
 
@@ -616,13 +648,14 @@ If the user types "skip" or "next" at any point:
 ## Important Notes
 
 - **Check initial state only once** at the beginning to see which achievements are already unlocked. After that, trust the hook system - when you perform actions with tools (Write, Read, Bash, WebSearch, etc.), achievements unlock automatically via hooks. Don't manually check for unlocks after each action.
+- **END YOUR RESPONSE after each celebration** - This is CRITICAL for the notification system to work properly. Notifications are queued during tool execution but only display when your response ends. By stopping after celebrating, the user will see the "🏆 Achievement Unlocked!" notification, then you automatically continue with the next guide in your following response.
+- **Auto-continue in the next response** - After ending your response with a celebration, automatically provide the next achievement guide in your next message without waiting for the user to ask. The user experience should be: celebrate → notification appears → you immediately continue with next guide.
 - **Be encouraging and positive** throughout the tour. This is a learning experience!
 - **Provide concrete, copy-pasteable examples** in every guide.
-- **Auto-advance after performing actions** - assume the achievement unlocked (the hook system handles this) and move to the next guide.
 - **Handle edge cases gracefully** (e.g., git not available, MCP not configured) — offer to skip those achievements.
 - **Keep the tone friendly and supportive** — this is for new users learning the system.
-- **Track progress explicitly** — show [N/18] in every achievement guide header based on the initial check and actions performed.
+- **Track progress explicitly** — show [N/19] in every achievement guide header based on the initial check and actions performed.
 
 ## Final Completion
 
-When the user completes all 18 achievements during the tour, display the trophy case from Mode 1 above, congratulating them on completing the guided tour! 🎉
+When the user completes all 19 achievements during the tour, display the trophy case from Mode 1 above, congratulating them on completing the guided tour! 🎉

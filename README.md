@@ -93,7 +93,7 @@ claude
 /get-started
 ```
 
-This walks you through **18 core achievements** (155 points) with step-by-step instructions:
+This walks you through **19 core achievements** (160 points) with step-by-step instructions:
 - File operations (read, write, edit)
 - Running shell commands and git workflows
 - Web search and codebase exploration
