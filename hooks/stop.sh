@@ -24,8 +24,15 @@ TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | jq -r '.transcript_path // ""')
 if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; then
     LAST_CHECKED=$(jq -r '.last_session_model_check // ""' "$STATE_FILE" 2>/dev/null || echo "")
 
-    # Single tail read — reused for both jq analysis and code review detection
-    TAIL_CONTENT=$(tail -c 20000 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
+    # Poll for the assistant response, since it may not be flushed to the transcript file
+    # by the time the stop hook runs. It's weird, but it's unfortunately true anyway.
+    DEADLINE=$(( $(date +%s) + 2 ))
+    while [[ $(date +%s) -lt $DEADLINE ]]; do
+        TAIL_CONTENT=$(tail "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
+        LAST_ROLE=$(printf '%s' "$TAIL_CONTENT" | jq -r '.role // ""' 2>/dev/null)
+        [[ "$LAST_ROLE" == "assistant" ]] && break
+        sleep 0.1
+    done
 
     # jq pass: extract model, sorry flag, code review quality signals, and whether
     # this turn contained a review-type tool call (any Skill with "review" in the
