@@ -26,9 +26,64 @@ All commands must be run from the **repository root**, not from `go/`.
 | `make test` | Run the Go test suite |
 | `make clean` | Remove `dist/` and the embedded defs copy |
 
-> **HMAC key:** Each build generates a fresh random key baked into the binary. The installer
-> reads it back via `cheevos print-hmac-secret` — you don't need to store the key yourself.
-> To keep a consistent key across builds, prefix with `CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen)`.
+### HMAC key
+
+The HMAC key is baked into the binary at compile time and used to derive the AES-256
+encryption key for `state.json` and leaderboard credentials. If you don't supply one,
+the Makefile generates a fresh random key automatically on every build.
+
+Keep the key if you plan to generate or regenerate the leaderboard secret without
+rebuilding the binary — the secret can only be decrypted by a binary built with the
+matching key.
+
+```bash
+# Simple build — auto-generates a new key each time
+make dist-zip
+
+# Save the key first, then build with it (required if you also need a leaderboard secret)
+CHEEVOS_HMAC_KEY=$(cd go && go run ./tools/keygen)
+CHEEVOS_HMAC_KEY="$CHEEVOS_HMAC_KEY" make dist-zip
+```
+
+### Generating a leaderboard secret
+
+The leaderboard secret is an AES-256-GCM encrypted blob containing the API token
+and URL. It is generated with `go run ./go/tools/keygen` and must be produced using
+the same `CHEEVOS_HMAC_KEY` that was used to build the distributed binary.
+
+The tool (`go/tools/keygen`) operates in three modes:
+
+**Mode 1 — HMAC key only** (no flags, original Makefile behaviour):
+```bash
+cd go && go run ./tools/keygen
+# Output: <obfuscated-key>
+```
+
+**Mode 2 — fresh key + leaderboard secret** (new binary and new secret together):
+```bash
+cd go && go run ./tools/keygen --token <api-token> --api-url <api-url>
+# Output:
+# CHEEVOS_HMAC_KEY=<key>          ← store this; use for: CHEEVOS_HMAC_KEY=<key> make dist-zip
+# LEADERBOARD_SECRET=<blob>       ← distribute to users
+```
+
+**Mode 3 — leaderboard secret only** (existing binary, no rebuild needed):
+```bash
+cd go && CHEEVOS_HMAC_KEY=<existing-key> go run ./tools/keygen --token <api-token> --api-url <api-url>
+# Output:
+# LEADERBOARD_SECRET=<blob>       ← distribute to users
+```
+
+Run `go run ./go/tools/keygen --help` for the full usage reference.
+
+**Via GitHub Actions:** Use the `Generate Leaderboard Secret` workflow dispatch in the
+repo. Supply your HMAC key, token, and API URL as inputs — all three are masked in logs
+and the secret is delivered as a 1-day artifact.
+
+Distribute the blob to users:
+```bash
+bash install.sh --leaderboard-secret <blob>
+```
 
 ---
 

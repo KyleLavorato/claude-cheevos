@@ -135,10 +135,11 @@ See [docs/auto-update.md](docs/auto-update.md) for full details.
 ## Leaderboard
 
 An optional live leaderboard lets you compare scores with teammates. The API token and
-URL are never stored in plaintext — admins generate an encrypted secret with
-`go run ./go/tools/leaderboard-keygen` and distribute it to users, who pass it to
-`install.sh --leaderboard-secret`. See [microservice/README.md](microservice/README.md)
-for full deployment and setup instructions.
+URL are never stored in plaintext — admins generate an encrypted secret using
+`go/tools/keygen` and distribute it to users, who pass it to `install.sh --leaderboard-secret`.
+
+See [DEVELOPING.md](DEVELOPING.md#generating-a-leaderboard-secret) for how to generate
+the secret, and [microservice/README.md](microservice/README.md) for deploying the backend.
 
 ---
 
