@@ -20,4 +20,6 @@ jobs:
               run: make test
 
             - name: Build all platforms
+              env:
+                  CHEEVOS_HMAC_KEY: ${{ secrets.CHEEVOS_HMAC_KEY }}
               run: make dist
