@@ -67,7 +67,7 @@ if (( CLAUDE_COUNT >= 5 )); then
 fi
 
 # Time-based achievements (local time)
-HOUR=$(printf '%d' "$(date +%H)")   # 0–23
+HOUR=$(( 10#$(date +%H) ))   # 0–23, force base-10 to avoid octal interpretation
 DOW=$(printf '%d' "$(date +%u)")    # 1=Mon … 5=Fri … 7=Sun
 
 # Midnight session: midnight to 4:59am
