@@ -1,9 +1,9 @@
 # claude-cheevos - Claude Code Achievement System
 
-![](docs/banner.png)
-
 A self-contained achievement system for [Claude Code](https://claude.ai/code) that tracks your
 usage milestones, awards points, and surfaces progress through a live status bar and achievement browser.
+
+<img src="docs/resources/achievement_unlocked.gif" alt="drawing" width="1000"/>
 
 ---
 
@@ -37,7 +37,7 @@ usage milestones, awards points, and surfaces progress through a live status bar
 
    ```bash
    unzip claude-cheevos-<platform>.zip
-   bash install.sh
+   ./install.sh
    ```
 
 3. **Restart Claude Code** for hooks to take effect.
@@ -50,7 +50,7 @@ The installer is **idempotent** — safe to re-run to upgrade. Your score and pr
 **Optional:** Enable leaderboard sync (obtain the secret from your leaderboard admin):
 
 ```bash
-bash install.sh --leaderboard-secret <secret>
+./install.sh --leaderboard-secret <secret>
 ```
 
 **Verify the install:**
@@ -119,6 +119,8 @@ claude
 ```
 
 For the full list of achievements, categories, and skill levels, see [docs/achievement_list.md](docs/achievement_list.md).
+
+![](docs/resources/achievement_list.gif)
 
 ---
 

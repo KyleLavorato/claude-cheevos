@@ -2,3 +2,5 @@
 /cheevos.exe
 go/cheevos
 dist/go/internal/defs/definitions.json
+dist/
+.DS_Store
