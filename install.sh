@@ -99,12 +99,12 @@ if [[ ! -f "$BINARY_SRC" ]]; then
 fi
 
 mkdir -p "$ACHIEVEMENTS_DIR"
-cp "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
+mv "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
 chmod +x "$ACHIEVEMENTS_DIR/cheevos"
 
 # macOS: strip the quarantine attribute Gatekeeper sets on files downloaded from the
 # internet. Without this, macOS refuses to run unsigned/unnotarized binaries with
-# "Apple could not verify..." — the cp above inherits the attribute from the source.
+# "Apple could not verify..." — the mv above inherits the attribute from the source.
 if [[ "$(uname -s)" == "Darwin" ]] && command -v xattr >/dev/null 2>&1; then
     xattr -d com.apple.quarantine "$ACHIEVEMENTS_DIR/cheevos" 2>/dev/null || true
 fi
@@ -119,28 +119,28 @@ mkdir -p "$ACHIEVEMENTS_DIR/hooks"
 mkdir -p "$ACHIEVEMENTS_DIR/scripts"
 
 # Hook scripts (modified versions that call the binary)
-cp "$HOOKS_DIR/session-start.sh"   "$ACHIEVEMENTS_DIR/hooks/session-start.sh"
-cp "$HOOKS_DIR/post-tool-use.sh"   "$ACHIEVEMENTS_DIR/hooks/post-tool-use.sh"
-cp "$HOOKS_DIR/stop.sh"            "$ACHIEVEMENTS_DIR/hooks/stop.sh"
-cp "$HOOKS_DIR/pre-compact.sh"     "$ACHIEVEMENTS_DIR/hooks/pre-compact.sh"
+mv "$HOOKS_DIR/session-start.sh"   "$ACHIEVEMENTS_DIR/hooks/session-start.sh"
+mv "$HOOKS_DIR/post-tool-use.sh"   "$ACHIEVEMENTS_DIR/hooks/post-tool-use.sh"
+mv "$HOOKS_DIR/stop.sh"            "$ACHIEVEMENTS_DIR/hooks/stop.sh"
+mv "$HOOKS_DIR/pre-compact.sh"     "$ACHIEVEMENTS_DIR/hooks/pre-compact.sh"
 chmod +x "$ACHIEVEMENTS_DIR/hooks/"*.sh
 
 # Shared scripts (thin shims that call the binary)
-cp "$SCRIPTS_DIR_SRC/lib.sh"                "$ACHIEVEMENTS_DIR/scripts/lib.sh"
-cp "$SCRIPTS_DIR_SRC/statusline-wrapper.sh" "$ACHIEVEMENTS_DIR/scripts/statusline-wrapper.sh"
-cp "$SCRIPTS_DIR_SRC/seed-state.sh"         "$ACHIEVEMENTS_DIR/scripts/seed-state.sh"
-cp "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achievements.sh"
-cp "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
-cp "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
+mv "$SCRIPTS_DIR_SRC/lib.sh"                "$ACHIEVEMENTS_DIR/scripts/lib.sh"
+mv "$SCRIPTS_DIR_SRC/statusline-wrapper.sh" "$ACHIEVEMENTS_DIR/scripts/statusline-wrapper.sh"
+mv "$SCRIPTS_DIR_SRC/seed-state.sh"         "$ACHIEVEMENTS_DIR/scripts/seed-state.sh"
+mv "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achievements.sh"
+mv "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
+mv "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions — always overwritten on install/upgrade so the binary
 # always has a current copy to read from disk.
-cp "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
+mv "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
 
 # Uninstall script — copied so /uninstall-achievements slash command can find it
 # without needing to know the repo path
-cp "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
+mv "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
 chmod +x "$ACHIEVEMENTS_DIR/uninstall.sh"
 
 echo "✓ Scripts and definitions installed to $ACHIEVEMENTS_DIR"
@@ -175,9 +175,9 @@ fi
 
 COMMANDS_DIR="$HOME/.claude/commands"
 mkdir -p "$COMMANDS_DIR"
-cp "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
-cp "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
-cp "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
+mv "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
+mv "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
+mv "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
 echo "✓ Slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
