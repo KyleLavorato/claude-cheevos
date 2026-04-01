@@ -7,15 +7,13 @@ import (
     "os/exec"
     "path/filepath"
     "strings"
-    "time"
 
-    "github.com/user/claude-cheevos/internal/defs"
     "github.com/user/claude-cheevos/internal/store"
 )
 
 // Statusline renders the achievement score for the Claude Code status bar.
 // Reads from stdin (the JSON blob Claude Code passes to statusLine.command),
-// then outputs: [original-output " | "] "🏆 N pts[ (Name!)]"
+// then outputs: [original-output " | "] "🏆 N pts"
 func Statusline(achievementsDir string, key [32]byte) error {
     // Buffer stdin — may be forwarded to the original command.
     input, _ := io.ReadAll(os.Stdin)
@@ -56,21 +54,5 @@ func buildSegment(achievementsDir string, key [32]byte) (string, error) {
         return fmt.Sprintf("🏆 0 pts"), nil //nolint:nilerr
     }
 
-    score := st.Score
-
-    // Show most recently unlocked achievement name for 5 minutes after unlock.
-    if st.LastUpdated != "" && len(st.Unlocked) > 0 {
-        lastUpdated, err := time.Parse(time.RFC3339, st.LastUpdated)
-        if err == nil && time.Since(lastUpdated) < 5*time.Minute {
-            lastID := st.Unlocked[len(st.Unlocked)-1]
-            d, derr := defs.Load(achievementsDir)
-            if derr == nil {
-                if ach := d.ByID(lastID); ach != nil {
-                    return fmt.Sprintf("🏆 %d pts (%s!)", score, ach.Name), nil
-                }
-            }
-        }
-    }
-
-    return fmt.Sprintf("🏆 %d pts", score), nil
+    return fmt.Sprintf("🏆 %d pts", st.Score), nil
 }
