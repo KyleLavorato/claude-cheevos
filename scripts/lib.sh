@@ -27,16 +27,14 @@ cheevos_ts() {
 }
 
 # cheevos_sign: compute HMAC-SHA256 of the hook payload.
-# Arguments: counter_updates counter_sets new_model session_id ts
+# Arguments: counter_updates counter_sets ts
 cheevos_sign() {
     local counter_updates="${1:-}"
     local counter_sets="${2:-}"
-    local new_model="${3:-}"
-    local session_id="${4:-}"
-    local ts="${5:-}"
+    local ts="${3:-}"
     local sep
     sep='|'
-    local payload="${counter_updates}${sep}${counter_sets}${sep}${new_model}${sep}${session_id}${sep}${ts}"
+    local payload="${counter_updates}${sep}${counter_sets}${sep}${ts}"
     printf '%s' "$payload" | openssl dgst -sha256 -mac hmac -macopt hexkey:"$_CHEEVOS_HMAC_SECRET" -binary 2>/dev/null \
         | base64 | tr -d '\n'
 }

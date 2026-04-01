@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # stop.sh - Stop hook (runs synchronously at end of each assistant turn)
 #
-# 1. Analyses the transcript to detect phrase-based counters and model tracking.
+# 1. Analyses the transcript to detect phrase-based counters.
 # 2. Calls cheevos update if anything changed.
 # 3. Calls cheevos drain to flush the notification queue and emit systemMessage.
 
@@ -17,17 +17,15 @@ source "$SCRIPT_DIR/../scripts/lib.sh"
 # Always read stdin — hook input contains session_id and transcript_path
 INPUT=$(cat)
 
-# ─── Transcript analysis (model tracking + phrase detection) ─────────────────
-SESSION_ID=$(printf '%s' "$INPUT"      | jq -r '.session_id    // ""')
+# ─── Transcript analysis (phrase detection + code review signals) ────────────
 TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | jq -r '.transcript_path // ""')
 
 if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; then
-    LAST_CHECKED=$(jq -r '.last_session_model_check // ""' "$STATE_FILE" 2>/dev/null || echo "")
 
     # Single tail read — reused for both jq analysis and code review detection
     TAIL_CONTENT=$(tail -c 20000 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
 
-    # jq pass: extract model, sorry flag, code review quality signals, and whether
+    # jq pass: extract phrase signals, code review quality signals, and whether
     # this turn contained a review-type tool call (any Skill with "review" in the
     # name, or a pull_request_review_write submission).
     TRANSCRIPT_INFO=$(printf '%s' "$TAIL_CONTENT" | jq -rs '
@@ -48,7 +46,6 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             elif type == "string" then .
             else "" end) end) as $prev_user_text |
         {
-            model:      ($last.message.model // ""),
             sorry:         ($text | ascii_downcase | test("sorry")),
             great_question: ($text | ascii_downcase | test("great question")),
             hal_9000:       ($text | ascii_downcase | test("sorry, dave")),
@@ -62,9 +59,6 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                 ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i('\''ve)? won"))
             ),
             code_smell: ($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")),
-            doctor_run: ($user_text | ascii_downcase | test("^/doctor|\\s/doctor")),
-            context_command: ($user_text | ascii_downcase | test("^/context|\\s/context")),
-            model_command:   ($user_text | ascii_downcase | test("^/model|\\s/model")),
             deja_vu:    ($user_text != "" and $user_text == $prev_user_text),
             chess:      ($user_text | ascii_downcase | test("chess")),
             slow_response: (
@@ -94,9 +88,8 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                 )
             )
         }
-    ' 2>/dev/null || echo '{"model":"","sorry":false,"great_question":false,"hal_9000":false,"youre_right":false,"barnacles":false,"twenty_questions":false,"magic_conch":false,"inner_machinations":false,"tic_tac_toe":false,"code_smell":false,"doctor_run":false,"context_command":false,"model_command":false,"deja_vu":false,"chess":false,"slow_response":false,"wrote_claude_md":false,"context_high":false,"output_tokens":0,"lucky":false,"no_issues":false,"many_issues":false,"code_review_turn":false}')
+    ' 2>/dev/null || echo '{"sorry":false,"great_question":false,"hal_9000":false,"youre_right":false,"barnacles":false,"twenty_questions":false,"magic_conch":false,"inner_machinations":false,"tic_tac_toe":false,"code_smell":false,"deja_vu":false,"chess":false,"slow_response":false,"wrote_claude_md":false,"context_high":false,"output_tokens":0,"lucky":false,"no_issues":false,"many_issues":false,"code_review_turn":false}')
 
-    MODEL=$(printf '%s' "$TRANSCRIPT_INFO"                | jq -r '.model')
     SAID_SORRY=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.sorry')
     GREAT_QUESTION=$(printf '%s' "$TRANSCRIPT_INFO"       | jq -r '.great_question')
     HAL_9000=$(printf '%s' "$TRANSCRIPT_INFO"             | jq -r '.hal_9000')
@@ -107,9 +100,6 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     INNER_MACHINATIONS=$(printf '%s' "$TRANSCRIPT_INFO"   | jq -r '.inner_machinations')
     TIC_TAC_TOE=$(printf '%s' "$TRANSCRIPT_INFO"          | jq -r '.tic_tac_toe')
     CODE_SMELL=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.code_smell')
-    DOCTOR_RUN=$(printf '%s' "$TRANSCRIPT_INFO"           | jq -r '.doctor_run')
-    CONTEXT_COMMAND=$(printf '%s' "$TRANSCRIPT_INFO"      | jq -r '.context_command')
-    MODEL_COMMAND=$(printf '%s' "$TRANSCRIPT_INFO"         | jq -r '.model_command')
     DEJA_VU=$(printf '%s' "$TRANSCRIPT_INFO"              | jq -r '.deja_vu')
     CHESS=$(printf '%s' "$TRANSCRIPT_INFO"                | jq -r '.chess')
     SLOW_RESPONSE=$(printf '%s' "$TRANSCRIPT_INFO"        | jq -r '.slow_response')
@@ -122,15 +112,6 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     CODE_REVIEW_TURN=$(printf '%s' "$TRANSCRIPT_INFO" | jq -r '.code_review_turn')
 
     COUNTER_EXTRA='{}'
-    NEW_MODEL_VAL=""
-    SESSION_ID_VAL=""
-
-    # Model tracking — only once per session
-    if [[ -n "$SESSION_ID" && "$SESSION_ID" != "$LAST_CHECKED" && \
-          -n "$MODEL" && "$MODEL" != "null" ]]; then
-        NEW_MODEL_VAL="$MODEL"
-        SESSION_ID_VAL="$SESSION_ID"
-    fi
 
     # Sorry tracking — every turn
     if [[ "$SAID_SORRY" == "true" ]]; then
@@ -180,21 +161,6 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     # Code smell
     if [[ "$CODE_SMELL" == "true" ]]; then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"code_smell_check": 1}')
-    fi
-
-    # /doctor command
-    if [[ "$DOCTOR_RUN" == "true" ]]; then
-        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"doctor_run": 1}')
-    fi
-
-    # /context command
-    if [[ "$CONTEXT_COMMAND" == "true" ]]; then
-        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"context_command_run": 1}')
-    fi
-
-    # /model command
-    if [[ "$MODEL_COMMAND" == "true" ]]; then
-        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"model_switch_calls": 1}')
     fi
 
     # Deja Vu
@@ -259,21 +225,17 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     fi
 
     # Only write to state if there's something to update
-    if [[ -n "$NEW_MODEL_VAL" || "$COUNTER_EXTRA" != '{}' ]]; then
+    if [[ "$COUNTER_EXTRA" != '{}' ]]; then
         "$CHEEVOS" init
         export _STATE_FILE="$STATE_FILE"
         export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
         export _COUNTER_UPDATES="$COUNTER_EXTRA"
-        [[ -n "$NEW_MODEL_VAL"  ]] && export _NEW_MODEL="$NEW_MODEL_VAL"
-        [[ -n "$SESSION_ID_VAL" ]] && export _SESSION_ID="$SESSION_ID_VAL"
-
         _CHEEVOS_TS=$(cheevos_ts)
         export _CHEEVOS_SIG
-        _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "${_NEW_MODEL:-}" "${_SESSION_ID:-}" "$_CHEEVOS_TS")
+        _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "$_CHEEVOS_TS")
         export _CHEEVOS_TS
 
         "$CHEEVOS" update
-        unset _NEW_MODEL _SESSION_ID
     fi
 fi
 

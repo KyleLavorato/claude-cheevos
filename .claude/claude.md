@@ -4,14 +4,14 @@ A self-contained achievement system for Claude Code that tracks usage milestones
 awards points, and displays the score in the status bar. Installed to `~/.claude/achievements/`.
 
 The core engine is a compiled Go binary (`cheevos`) that stores state in an AES-256-GCM
-encrypted file, embeds achievement definitions at compile time, and validates hook calls
-with HMAC-SHA256 signatures to prevent casual tampering.
+encrypted file, reads achievement definitions at runtime from the installed `definitions.json`,
+and validates hook calls with HMAC-SHA256 signatures to prevent casual tampering.
 
 ## Project Layout
 
 ```
 cheevos/
-├── data/definitions.json        # All achievement definitions (source of truth for embed)
+├── data/definitions.json        # All achievement definitions (source of truth; packaged into dist zips)
 ├── hooks/
 │   ├── session-start.sh         # SessionStart hook — sessions, streak, time-based, concurrent
 │   ├── post-tool-use.sh         # PostToolUse hook (async) — all tool-use counter tracking
@@ -37,7 +37,7 @@ cheevos/
 │   │   ├── store/               # EncryptedJSONStore (AES-256-GCM), StateStore interface
 │   │   ├── crypto/              # AES helpers, key loading, HMAC key deobfuscation
 │   │   ├── engine/              # Achievement-checking engine (port of state-update.sh)
-│   │   ├── defs/                # Embedded definitions + on-disk override loader
+│   │   ├── defs/                # Runtime definitions loader (reads ~/.claude/achievements/definitions.json)
 │   │   ├── hmac/                # HMAC-SHA256 payload verification
 │   │   ├── lock/                # Cross-platform advisory file lock
 │   │   └── notify/              # OS notification dispatch (macOS/Linux/Windows)
@@ -70,8 +70,8 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 | File | Purpose |
 |---|---|
 | `cheevos` | The compiled binary — all state logic lives here |
-| `state.json` | AES-256-GCM encrypted state (score, counters, unlocked list, models_used) |
-| `definitions.json` | On-disk definitions override (written by `cheevos update-defs`; absent = use embedded) |
+| `state.json` | AES-256-GCM encrypted state (score, counters, unlocked list) |
+| `definitions.json` | Achievement definitions read at runtime by the binary — must be present (installed by `install.sh`; restore by re-running `install.sh`) |
 | `notifications.json` | Queue of pending unlock notifications (`[]` when empty) |
 | `state.lock` | Advisory lockfile (never delete manually) |
 | `.version` | Installed version string — used by install.sh for upgrade detection |
@@ -86,7 +86,7 @@ Slash commands are installed to `~/.claude/commands/` (not inside `achievements/
 | File | Purpose |
 |---|---|
 | `~/.claude/commands/achievements.md` | `/achievements` — runs `cheevos serve` in background, opens browser |
-| `~/.claude/commands/achievements-tutorial.md` | `/achievements-tutorial` — interactive guided tour for new users (18 tutorial achievements) |
+| `~/.claude/commands/achievements-tutorial.md` | `/achievements-tutorial` — interactive guided tour for new users (17 tutorial achievements) |
 | `~/.claude/commands/uninstall-achievements.md` | `/uninstall-achievements` — interactive uninstall with leaderboard warning |
 
 ## Install and Test
@@ -104,7 +104,7 @@ bash install.sh --leaderboard-secret <secret>
 
 # View achievements (inside a Claude session — run 'claude' first):
 /achievements                                                  # opens web UI in browser
-/achievements-tutorial                                                   # interactive guided tour (18 tutorial achievements)
+/achievements-tutorial                                                   # interactive guided tour (17 tutorial achievements)
 
 # View achievements (from terminal):
 ~/.claude/achievements/cheevos serve                          # opens web UI in browser
@@ -172,7 +172,7 @@ Every achievement needs:
 1. An entry in `data/definitions.json`
 2. Something that increments its counter (hook or stop.sh)
 3. A row added to `docs/achievement_list.md` — **name, description, points, category, skill level, and tutorial flag must match the JSON exactly**
-4. Rebuild the binary: `make dist`
+4. Re-run `install.sh` to deploy the updated definitions and scripts. Only rebuild (`make dist-zip`) if you need to redistribute.
 
 > **Keep in sync:** `data/definitions.json` is the source of truth. Any time you add,
 > remove, or modify an achievement (including changing point values, descriptions, or
@@ -220,7 +220,7 @@ Rules of thumb:
 - Rank/completion achievements use fixed values; do not invent new points for those
 
 **Tutorial flag:** Add `"tutorial": true` to include in `/achievements-tutorial` guided tour. The
-interactive tour includes 18 beginner achievements and is driven by this flag.
+interactive tour includes 17 tutorial achievements and is driven by this flag.
 
 **Secret achievements:** Add `"secret": true` — `cheevos show` renders `???` for the
 description so the condition is hidden from the user.
@@ -273,7 +273,7 @@ reassigning the whole JSON string, to allow multiple counters to combine.
 **`easter_egg_unlocks`** is incremented manually by running:
 `~/.claude/achievements/cheevos award easter_egg_unlocks` — Claude should do this
 when the user asks to unlock "Hey Unlock This." `cheevos award` validates the counter
-name against the embedded definitions and rejects any counter not used by an achievement.
+name against the loaded definitions and rejects any counter not used by an achievement.
 
 **Bash 3.2 note:** Use `grep -qi` for case-insensitive matching, not `${var^^}`.
 Use `if/fi` not `[[ ]] && action` to avoid `set -e` exits on false conditions.
@@ -285,7 +285,7 @@ Handles three source values:
 - `"resume"` — session resumed (increments `session_resumes`, then exits)
 - anything else — exits without tracking
 
-Also fires `cheevos update-defs &` in background for the daily auto-update check.
+Also fires `cheevos check-updates &` in background for the daily auto-update check.
 
 Counter updates built incrementally into `UPDATES` JSON, then signed and passed to `cheevos update`.
 
@@ -312,7 +312,7 @@ fi
 ### stop.sh (sync, fires at end of every assistant turn)
 
 **Primary roles:**
-1. Transcript analysis (model tracking, phrase detection, code review quality)
+1. Transcript analysis (phrase detection, code review quality)
 2. `cheevos drain` → emits `systemMessage` to display unlock notifications
 3. `cheevos leaderboard-sync &` → fire-and-forget score push (if leaderboard enabled)
 
@@ -321,9 +321,22 @@ runs a single jq pass to extract multiple signals. The result is a JSON object:
 
 ```json
 {
-    "model": "claude-...",
     "sorry": true/false,
     "great_question": true/false,
+    "hal_9000": true/false,
+    "youre_right": true/false,
+    "barnacles": true/false,
+    "twenty_questions": true/false,
+    "magic_conch": true/false,
+    "inner_machinations": true/false,
+    "tic_tac_toe": true/false,
+    "code_smell": true/false,
+    "deja_vu": true/false,
+    "chess": true/false,
+    "slow_response": true/false,
+    "wrote_claude_md": true/false,
+    "context_high": true/false,
+    "output_tokens": 0,
     "lucky": true/false,
     "no_issues": true/false,
     "many_issues": true/false,
@@ -350,9 +363,6 @@ fi
 
 The `$text` variable is the last assistant message's full text content (joined from
 content blocks if it's an array). `ascii_downcase` is applied before `test()`.
-
-**Model tracking** runs once per session (gated by `last_session_model_check` session ID).
-New models are added to `state.models_used[]` and `counters.unique_models_used` increments.
 
 ### Notification System
 
@@ -415,10 +425,11 @@ The binary (`go/cmd/cheevos/`) replaces all stateful bash scripts. All subcomman
 interface. The on-disk format is `{"v":1,"n":"<nonce>","c":"<ciphertext>"}` — opaque to
 `jq`. To add SQLite later, implement `StateStore` in a new file and swap in `main.go`.
 
-**Definitions embed:** `go/internal/defs/definitions.json` is copied from `data/` by the
-Makefile before build. `cheevos show` and the engine always use this embedded copy.
-`cheevos update-defs` writes new achievements to an on-disk override at
-`~/.claude/achievements/definitions.json` which `defs.LoadWithOverride()` prefers.
+**Definitions:** `data/definitions.json` is the source of truth. It is packaged directly
+into each platform zip by `make dist-zip` and installed to `~/.claude/achievements/definitions.json`
+by `install.sh`. The binary reads definitions at runtime from that installed path via `os.ReadFile` —
+there is no compile-time embed. `cheevos update-defs` can fetch and merge new definitions from
+GitHub into that same installed file.
 
 ## Building the Binary
 
@@ -435,9 +446,6 @@ make dist-zip
 # Run tests
 make test
 ```
-
-`data/definitions.json` must be copied to `go/internal/defs/definitions.json` before
-building — the Makefile does this automatically. The copy is gitignored.
 
 The AES-256 state key is derived at runtime from the compile-time HMAC secret via
 HKDF — there is no separate `.key` file. The same binary always produces the same
@@ -475,7 +483,7 @@ decrypt correctly when the matching binary (built with the same `CHEEVOS_HMAC_KE
 | `million_context_fills` | pre-compact (auto + transcript tokens >= 1M) |
 | `code_reviews` | Skill with "review" in name, or mcp pull_request_review_write submit_pending |
 | `perfect_reviews` | stop.sh: code review turn + no-issues language in response |
-| `thorough_reviews` | stop.sh: code review turn + numbered items reaching 10+ |
+| `thorough_reviews` | stop.sh: code review turn + numbered items reaching 20+ |
 | `test_runs` | Bash: pytest/jest/go test/cargo test/rspec/etc. |
 | `plan_mode_sessions` | post-tool-use.sh: `ExitPlanMode` tool |
 | `tokens_consumed` | stop.sh: output_tokens from last assistant message, per turn |
@@ -486,7 +494,6 @@ decrypt correctly when the matching binary (built with the same `CHEEVOS_HMAC_KE
 | `last_session_epoch` | session-start: days-since-epoch (set via _COUNTER_SETS) |
 | `midnight_sessions` | session-start: HOUR < 5 |
 | `friday_sessions` | session-start: DOW == 5 && HOUR >= 16 |
-| `unique_models_used` | stop.sh: new model detected in transcript |
 | `apologies` | stop.sh: "sorry" in last response |
 | `great_question_said` | stop.sh: "great question" in last response |
 | `lucky_sessions` | stop.sh: output_tokens == 777 |
@@ -502,8 +509,6 @@ decrypt correctly when the matching binary (built with the same `CHEEVOS_HMAC_KE
     "counters": { "sessions": 0, ... },
     "unlocked": ["achievement_id", ...],
     "unlock_times": { "achievement_id": "2026-01-01T00:00:00Z", ... },
-    "models_used": ["claude-...", ...],
-    "last_session_model_check": "session-id-string",
     "last_update_check_epoch": 0,
     "last_updated": "2026-01-01T00:00:00Z"
 }
@@ -564,17 +569,17 @@ and called first; the achievement segment is appended after `" | "`.
 ## Interactive Guided Tour (/achievements-tutorial)
 
 The `/achievements-tutorial` slash command provides an interactive guided tour for new users. It walks
-them through 19 core tutorial achievements with step-by-step instructions, auto-detecting
+them through 17 core tutorial achievements with step-by-step instructions, auto-detecting
 completion and advancing automatically.
 
 **Tutorial achievements** are marked with `"tutorial": true` in `definitions.json`. The
 guided tour follows a hardcoded optimal order defined in `commands/achievements-tutorial.md`.
 
-Current tutorial set (19 achievements, 160 pts):
+Current tutorial set (17 achievements, 140 pts):
 `first_session`, `files_written_first`, `files_read_first`, `bash_first`, `web_search_first`,
-`glob_grep_first`, `skill_calls_1`, `model_citizen`, `back_again`, `check_your_vitals`,
-`laying_down_the_law`, `git_er_done`, `plan_mode_first`, `code_review_1`, `test_driven`,
-`spring_cleaning`, `github_first`, `delegation_station`, `inner_machinations`
+`glob_grep_first`, `skill_calls_1`, `back_again`, `laying_down_the_law`, `git_er_done`,
+`plan_mode_first`, `code_review_1`, `test_driven`, `spring_cleaning`, `github_first`,
+`delegation_station`, `inner_machinations`
 
 **How it works:**
 1. User runs `/achievements-tutorial` in a Claude Code session
@@ -582,7 +587,7 @@ Current tutorial set (19 achievements, 160 pts):
 3. Claude displays an overview, then guides the user through each uncompleted achievement
 4. After each achievement unlocks, Claude automatically moves to the next one
 5. User can type "skip" to move ahead without completing an achievement
-6. When all 18 are complete, Claude displays a trophy case celebration
+6. When all 17 are complete, Claude displays a trophy case celebration
 
 **To modify the tour:** Edit `commands/achievements-tutorial.md`. Each achievement has a detailed
 step-by-step guide with examples. The optimal order and all instructional content is defined
@@ -606,12 +611,12 @@ Categories displayed in order (add new ones to the `categories` slice in `go/cmd
 
 ## install.sh Checklist
 
-When adding new hook scripts, add a `cp` line in the hooks block in `go/install.sh`
+When adding new hook scripts, add a `cp` line in the hooks block in `install.sh`
 and add the hook registration to the jq merge block (Phase 2). The jq merge is
 idempotent — it checks for exact command string before adding.
 
 When adding new utility scripts, add a `cp` line in the shared-scripts block before `chmod +x`,
-and add a thin shim in `go/scripts/`.
+and add a thin shim in `scripts/`.
 
 **Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
 `commands/achievements-tutorial.md`, and `commands/uninstall-achievements.md` to
@@ -648,8 +653,10 @@ tutorial flow and improves user experience.
   - Use `.` (match any char) instead of a literal `'` in regex patterns: `i(.ve)?` not `i('ve)?`
   - Use `.?` instead of `'?`: `you.?re` not `you'?re`
   - **Always run `bash -n script.sh`** after editing any hook to catch these issues.
-- **Rebuild after changing definitions:** `data/definitions.json` is embedded at compile
-  time. Any change to it requires rebuilding the binary and redistributing `dist/`.
+- **Updating definitions:** `data/definitions.json` is read at runtime, not embedded.
+  For local use, edit the file and re-run `install.sh` to deploy it. To redistribute,
+  run `make dist-zip` and share the new zip — no binary rebuild is required for
+  definition-only changes.
 - **Hook HMAC validation:** If a hook call fails HMAC verification, `cheevos update`
   exits 1 and the hook propagates the error (hook error in Claude Code). This usually
   means the HMAC secret in `lib.sh` doesn't match the binary — re-run `install.sh` to fix.

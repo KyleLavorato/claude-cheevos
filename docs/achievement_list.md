@@ -89,14 +89,12 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | Context King | Consume 50,000,000 tokens with Claude | 150 | tokens | Master |  |
 | The Singularity | Consume 500,000,000 tokens with Claude | 300 | tokens | Impossible |  |
 | Shortcut Savvy | Invoke your first skill | 5 | commands | Beginner | ✓ |
-| Model Citizen | Open the /model skill to view or switch Claude models | 5 | commands | Beginner | ✓ |
 | Slash Artist | Invoke 5 skills | 10 | commands | Beginner |  |
 | Command Center | Invoke 15 skills | 25 | commands | Intermediate |  |
 | Roll Your Own | Create your first custom slash command | 15 | commands | Beginner |  |
 | Command Crafter | Create 5 custom slash commands | 30 | commands | Intermediate |  |
 | Workflow Wizard | Create 15 custom slash commands | 60 | commands | Experienced |  |
 | Automation Architect | Create 50 custom slash commands | 125 | commands | Master |  |
-| Check Your Vitals | Run the /context command to see your current context window usage | 5 | context | Beginner | ✓ |
 | Full House | Fill the context window and trigger auto-compact for the first time | 10 | context | Beginner |  |
 | Context Junkie | Trigger auto-compact 10 times | 30 | context | Intermediate |  |
 | Serial Overloader | Trigger auto-compact 25 times | 50 | context | Experienced |  |
@@ -132,7 +130,6 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | Deja Vu | Send the same message to Claude twice in a row | 20 | misc | **Secret** |  |
 | Style Points | Set a custom status line command in Claude Code | 10 | misc | Beginner |  |
 | The Inner Machinations of My Mind Are an Enigma | Ask Claude to explain or summarize a codebase | 10 | misc | Beginner | ✓ |
-| Call an Ambulance...But Not For Me | Run the /doctor command in Claude Code | 5 | misc | Beginner |  |
 | Snake Charmer | Have Claude read a Python file | 5 | misc | Beginner |  |
 | Segfault Risk | Have Claude read a C or C++ file | 5 | misc | Beginner |  |
 | Gopherize It | Have Claude read a Go file | 5 | misc | Beginner |  |
@@ -158,8 +155,6 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | Self Aware | Have Claude read its own achievement files | 20 | misc | Intermediate |  |
 | On a Roll | Use Claude Code 5 days in a row | 30 | misc | Intermediate |  |
 | Lucky 7s | Get Claude to respond with exactly 777 output tokens | 77 | misc | Intermediate |  |
-| Eclectic Taste | Use 3 different Claude models | 20 | misc | Intermediate |  |
-| Model Collector | Use 5 different Claude models | 30 | misc | Intermediate |  |
 | Write That Down, Write That Down! | Add information to a CLAUDE.md file when context is over 90% full | 25 | misc | Experienced |  |
 | Under the Hood | Run Claude with the --verbose flag | 20 | misc | Experienced |  |
 | Stack Connector | Use GitHub MCP, Jira MCP, and at least one other MCP server | 35 | misc | Experienced |  |
@@ -167,7 +162,6 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | It Really Can Do Anything | Have Claude create a PowerPoint presentation | 25 | misc | Experienced |  |
 | Many Claudes | Run 5 Claude Code sessions simultaneously | 50 | misc | Experienced |  |
 | Hold My Beer | Launch Claude with --dangerously-skip-permissions | 50 | misc | Experienced |  |
-| Model Sommelier | Use 15 different Claude models | 75 | misc | Experienced |  |
 | True Vibe Coder | While using --dangerously-skip-permissions, have Claude write code, commit it, and open a PR | 100 | misc | Master |  |
 | Do as I Say Not as I Do | Start Claude with --dangerously-skip-permissions 5 days in a row | 100 | misc | Master |  |
 | Achievement Unlocked: Achievement | Unlock 50 achievements | 50 | rank | Experienced |  |

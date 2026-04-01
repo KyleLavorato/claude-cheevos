@@ -21,8 +21,6 @@ func Update(achievementsDir string, hmacSecret []byte, key [32]byte) error {
     // Read env vars.
     counterUpdatesJSON := os.Getenv("_COUNTER_UPDATES")
     counterSetsJSON := os.Getenv("_COUNTER_SETS")
-    newModel := os.Getenv("_NEW_MODEL")
-    sessionID := os.Getenv("_SESSION_ID")
     ts := os.Getenv("_CHEEVOS_TS")
     sig := os.Getenv("_CHEEVOS_SIG")
 
@@ -32,7 +30,7 @@ func Update(achievementsDir string, hmacSecret []byte, key [32]byte) error {
 
     // Verify HMAC (skip if secret not injected — dev builds).
     if len(hmacSecret) > 0 {
-        if err := cheevosmac.Verify(hmacSecret, counterUpdatesJSON, counterSetsJSON, newModel, sessionID, ts, sig); err != nil {
+        if err := cheevosmac.Verify(hmacSecret, counterUpdatesJSON, counterSetsJSON, ts, sig); err != nil {
             return fmt.Errorf("update: HMAC validation failed: %w", err)
         }
     }
@@ -58,11 +56,9 @@ func Update(achievementsDir string, hmacSecret []byte, key [32]byte) error {
     }
 
     params := engine.UpdateParams{
-        CounterUpdates:      rawUpdates,
-        CounterSets:         rawSets,
-        NewModel:            newModel,
-        SessionID:           sessionID,
-        UpdateCheckEpoch:    updateCheckEpoch,
+        CounterUpdates:   rawUpdates,
+        CounterSets:      rawSets,
+        UpdateCheckEpoch: updateCheckEpoch,
     }
 
     // Load state store.

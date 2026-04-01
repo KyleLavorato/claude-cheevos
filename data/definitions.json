@@ -662,19 +662,6 @@
             "tutorial": true
         },
         {
-            "id": "model_citizen",
-            "name": "Model Citizen",
-            "description": "Open the /model skill to view or switch Claude models",
-            "points": 5,
-            "category": "commands",
-            "skill_level": "beginner",
-            "condition": {
-                "counter": "model_switch_calls",
-                "threshold": 1
-            },
-            "tutorial": true
-        },
-        {
             "id": "skill_calls_5",
             "name": "Slash Artist",
             "description": "Invoke 5 skills",
@@ -745,19 +732,6 @@
                 "counter": "commands_created",
                 "threshold": 50
             }
-        },
-        {
-            "id": "check_your_vitals",
-            "name": "Check Your Vitals",
-            "description": "Run the /context command to see your current context window usage",
-            "points": 5,
-            "category": "context",
-            "skill_level": "beginner",
-            "condition": {
-                "counter": "context_command_run",
-                "threshold": 1
-            },
-            "tutorial": true
         },
         {
             "id": "auto_compacts_1",
@@ -1003,42 +977,6 @@
             }
         },
         {
-            "id": "model_curious",
-            "name": "Eclectic Taste",
-            "description": "Use 3 different Claude models",
-            "points": 20,
-            "category": "misc",
-            "skill_level": "intermediate",
-            "condition": {
-                "counter": "unique_models_used",
-                "threshold": 3
-            }
-        },
-        {
-            "id": "model_collector",
-            "name": "Model Collector",
-            "description": "Use 5 different Claude models",
-            "points": 30,
-            "category": "misc",
-            "skill_level": "intermediate",
-            "condition": {
-                "counter": "unique_models_used",
-                "threshold": 5
-            }
-        },
-        {
-            "id": "model_sommelier",
-            "name": "Model Sommelier",
-            "description": "Use 15 different Claude models",
-            "points": 75,
-            "category": "misc",
-            "skill_level": "experienced",
-            "condition": {
-                "counter": "unique_models_used",
-                "threshold": 15
-            }
-        },
-        {
             "id": "lucky_7s",
             "name": "Lucky 7s",
             "description": "Get Claude to respond with exactly 777 output tokens",
@@ -1245,7 +1183,7 @@
         {
             "id": "f_is_for_friends",
             "name": "F Is for Friends Who Do Stuff Together!",
-            "description": "Get lucky — 0.1% chance to unlock with each prompt",
+            "description": "Get lucky \u2014 0.1% chance to unlock with each prompt",
             "points": 25,
             "category": "misc",
             "skill_level": "secret",
@@ -1420,18 +1358,6 @@
             "skill_level": "secret",
             "condition": {
                 "counter": "deja_vu_sent",
-                "threshold": 1
-            }
-        },
-        {
-            "id": "call_an_ambulance",
-            "name": "Call an Ambulance...But Not For Me",
-            "description": "Run the /doctor command in Claude Code",
-            "points": 5,
-            "category": "misc",
-            "skill_level": "beginner",
-            "condition": {
-                "counter": "doctor_run",
                 "threshold": 1
             }
         },

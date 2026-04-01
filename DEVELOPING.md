@@ -24,7 +24,7 @@ All commands must be run from the **repository root**, not from `go/`.
 | `make dist` | Cross-compile all 5 platforms → `dist/cheevos-*` |
 | `make dist-zip` | Run `dist`, then package per-platform zips → `dist/claude-cheevos-*.zip` |
 | `make test` | Run the Go test suite |
-| `make clean` | Remove `dist/` and the embedded defs copy |
+| `make clean` | Remove `dist/` |
 
 ### HMAC key
 
@@ -90,7 +90,7 @@ bash install.sh --leaderboard-secret <blob>
 
 ## Adding Custom Achievements
 
-Edit `data/definitions.json`, rebuild (`make dist`), and re-run `install.sh`. Progress is preserved.
+Edit `data/definitions.json` and re-run `install.sh` to deploy. Progress is preserved. Rebuild (`make dist-zip`) only if redistributing to other users.
 
 ```json
 {
