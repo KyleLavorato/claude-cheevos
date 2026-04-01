@@ -80,6 +80,8 @@ func main() {
         err = subcmd.LeaderboardSync(achievementsDir, stateKey)
     case "leaderboard-delete":
         err = subcmd.LeaderboardDelete(achievementsDir, stateKey)
+    case "get-counter":
+        err = subcmd.GetCounter(achievementsDir, args, stateKey)
     case "verify":
         err = subcmd.Verify(achievementsDir, stateKey)
     case "print-hmac-secret":
@@ -119,6 +121,7 @@ Subcommands:
   check-updates [--force]   Check for both definition and binary updates
   leaderboard-sync    Push score to leaderboard API (reads leaderboard.conf)
   leaderboard-delete  Remove user entry from leaderboard API (used by uninstall)
+  get-counter <name>  Print the current value of a named counter
   verify              Verify the installation is healthy
   print-hmac-secret   Print HMAC secret (hex) for install.sh`)
 }

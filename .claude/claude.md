@@ -312,7 +312,8 @@ fi
 2. `cheevos drain` → emits `systemMessage` to display unlock notifications
 3. `cheevos leaderboard-sync &` → fire-and-forget score push (if leaderboard enabled)
 
-**Transcript analysis** reads the last 20 KB of the transcript via `tail -c 20000` and
+**Transcript analysis** reads the last 50 JSONL entries of the transcript via `tail -n 50`,
+pre-filters out any partially-written lines using `jq -Rc 'try fromjson catch empty'`, and
 runs a single jq pass to extract multiple signals. The result is a JSON object:
 
 ```json
@@ -414,6 +415,7 @@ The binary (`go/cmd/cheevos/`) replaces all stateful bash scripts. All subcomman
 | `cheevos update-defs [--force]` | check-updates.sh — fetch new defs from GitHub (once/day) |
 | `cheevos leaderboard-sync` | PUT score to leaderboard API (spawned by `drain` on unlock) |
 | `cheevos leaderboard-delete` | DELETE user entry from leaderboard (called by uninstall flow) |
+| `cheevos get-counter <name>` | Output the integer value of a named counter from encrypted state (outputs "0" if missing) |
 | `cheevos verify` | verify-install.sh — health check the installation |
 | `cheevos print-hmac-secret` | (install-time) extract HMAC secret for lib.sh injection |
 
@@ -668,6 +670,26 @@ tutorial flow and improves user experience.
 - **`commands/` slash commands are not inside `~/.claude/achievements/`:** They live in
   `~/.claude/commands/` and are installed by Phase 1.6. The uninstall slash command references
   `~/.claude/achievements/uninstall.sh` (a copy placed there by install.sh), not the repo file.
+- **`jq 1.7.1` `any(generator)` bug:** The one-argument form `any(gen)` is broken in jq 1.7.1.
+  It throws "Cannot index string with string 'type'" when the generator uses field access.
+  Always use the two-argument form: `any(generator; condition)` where `generator` produces
+  the values to test and `condition` is the predicate. This affects `wrote_claude_md` and
+  `code_review_turn` in `stop.sh`.
+- **Never read encrypted `state.json` with `jq` in hooks:** The state file is AES-256-GCM
+  encrypted. Direct `jq` reads (e.g., `jq -r '.counters.foo // 0' "$STATE_FILE"`) silently
+  return 0 from the unencrypted outer envelope. Use `cheevos get-counter <name>` instead.
+  This affected streak tracking in `session-start.sh` and vibe/stack checks in `stop.sh`.
+- **`tail` transcript polling race condition:** The stop hook polls the transcript file every
+  0.1 seconds for 2 seconds. During this time, Claude Code is actively appending new JSONL
+  entries. Use `tail -n 50` (not default 10) to ensure the last assistant message is still
+  in the window even after many progress/system entries are appended afterward. Pre-filter
+  the tail content with `jq -Rc 'try fromjson catch empty'` before the main analysis pass
+  to skip any partially-written lines that would cause jq to fail on the entire input.
+- **`install.sh` uses `mv` (not `cp`) for hooks:** Running `bash install.sh` MOVES the
+  hook files from `hooks/` into `~/.claude/achievements/hooks/`. The repo `hooks/` directory
+  is left empty after install. If you need to re-run install.sh or develop iteratively,
+  copy the hooks back from the installed location first:
+  `cp ~/.claude/achievements/hooks/*.sh hooks/ && cp ~/.claude/achievements/scripts/lib.sh scripts/`
 
 ## Verifying Changes
 
