@@ -42,8 +42,8 @@ fi
 # Compute days since Unix epoch for today (integer, same across timezones)
 TODAY_EPOCH=$(( $(date +%s) / 86400 ))
 
-LAST_EPOCH=$(jq -r '.counters.last_session_epoch // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-CURRENT_STREAK=$(jq -r '.counters.streak_days // 0' "$STATE_FILE" 2>/dev/null || echo 0)
+LAST_EPOCH=$("$CHEEVOS" get-counter last_session_epoch 2>/dev/null || echo 0)
+CURRENT_STREAK=$("$CHEEVOS" get-counter streak_days 2>/dev/null || echo 0)
 DIFF=$(( TODAY_EPOCH - LAST_EPOCH ))
 
 if (( DIFF <= 0 )); then
@@ -81,7 +81,7 @@ if (( DOW == 5 && HOUR >= 16 )); then
 fi
 
 # Dangerous launch detection
-CURRENT_DANGER_STREAK=$(jq -r '.counters.dangerous_streak // 0' "$STATE_FILE" 2>/dev/null || echo 0)
+CURRENT_DANGER_STREAK=$("$CHEEVOS" get-counter dangerous_streak 2>/dev/null || echo 0)
 if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"dangerous_launches": 1}')
     NEW_DANGER_STREAK=$(( CURRENT_DANGER_STREAK + 1 ))

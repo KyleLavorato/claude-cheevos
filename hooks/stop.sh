@@ -24,18 +24,20 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
 
     # Poll for the assistant response, since it may not be flushed to the transcript file
     # by the time the stop hook runs. It's weird, but it's unfortunately true anyway.
+    # Use -n 50 to capture enough history even if progress/system entries were appended
+    # after the assistant message while we were waiting.
     DEADLINE=$(( $(date +%s) + 2 ))
     while [[ $(date +%s) -lt $DEADLINE ]]; do
-        TAIL_CONTENT=$(tail "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
-        LAST_ROLE=$(printf '%s' "$TAIL_CONTENT" | jq -r '.role // ""' 2>/dev/null)
-        [[ "$LAST_ROLE" == "assistant" ]] && break
+        TAIL_CONTENT=$(tail -n 50 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
+        LAST_TYPE=$(printf '%s' "$TAIL_CONTENT" | tail -1 | jq -r '.type // ""' 2>/dev/null)
+        [[ "$LAST_TYPE" == "assistant" ]] && break
         sleep 0.1
     done
 
     # jq pass: extract phrase signals, code review quality signals, and whether
     # this turn contained a review-type tool call (any Skill with "review" in the
     # name, or a pull_request_review_write submission).
-    TRANSCRIPT_INFO=$(printf '%s' "$TAIL_CONTENT" | jq -rs '
+    TRANSCRIPT_INFO=$(printf '%s' "$TAIL_CONTENT" | jq -Rc 'try fromjson catch empty' 2>/dev/null | jq -rs '
         ([ .[] | select(.type == "assistant") ] | last) as $last |
         ([ .[] | select(.type == "user") ])           as $all_users |
         ($all_users | last)                           as $last_user |
@@ -77,9 +79,9 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                 ) // 0 > 900
             ),
             wrote_claude_md: any(
-                .[] | select(.type == "assistant") | .message.content[]? |
-                select(.type == "tool_use" and .name == "Write") |
-                ((.input.file_path // "") | test("CLAUDE\\.md$"; "i"))
+                .[] | select(.type == "assistant") | .message.content[]?
+                | select(.type == "tool_use" and .name == "Write");
+                (.input.file_path // "") | test("CLAUDE\\.md$"; "i")
             ),
             context_high: (($last.message.usage.input_tokens // 0) > 180000),
             output_tokens:  ($last.message.usage.output_tokens // 0),
@@ -88,11 +90,10 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                             test("no issues|lgtm|looks good to me|no problems found|no code issues|nothing to flag")),
             many_issues: ($text | test("\\b[2-9][0-9]\\.[ \t]|\\b[1-9][0-9]{2,}\\.[ \t]")),
             code_review_turn: any(
-                .[] | select(.type == "assistant") | .message.content[]? |
-                select(.type == "tool_use") | (
-                    (.name == "Skill" and ((.input.skill // "") | ascii_downcase | test("review"))) or
-                    (.name | test("pull_request_review_write"))
-                )
+                .[] | select(.type == "assistant") | .message.content[]?
+                | select(.type == "tool_use");
+                (.name == "Skill" and ((.input.skill // "") | ascii_downcase | test("review"))) or
+                (.name | test("pull_request_review_write"))
             )
         }
     ' 2>/dev/null || echo '{"sorry":false,"great_question":false,"hal_9000":false,"youre_right":false,"barnacles":false,"twenty_questions":false,"magic_conch":false,"inner_machinations":false,"tic_tac_toe":false,"code_smell":false,"deja_vu":false,"chess":false,"slow_response":false,"wrote_claude_md":false,"context_high":false,"output_tokens":0,"lucky":false,"no_issues":false,"many_issues":false,"code_review_turn":false}')
@@ -181,9 +182,9 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     fi
 
     # True Vibe Coder — dangerous launch + git commit + PR all in usage history
-    _VDANGER=$(jq -r '.counters.dangerous_launches // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-    _VCOMMIT=$(jq -r '.counters.git_commits // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-    _VPR=$(jq -r '.counters.pull_requests // 0' "$STATE_FILE" 2>/dev/null || echo 0)
+    _VDANGER=$("$CHEEVOS" get-counter dangerous_launches 2>/dev/null || echo 0)
+    _VCOMMIT=$("$CHEEVOS" get-counter git_commits 2>/dev/null || echo 0)
+    _VPR=$("$CHEEVOS" get-counter pull_requests 2>/dev/null || echo 0)
     if (( _VDANGER >= 1 && _VCOMMIT >= 1 && _VPR >= 1 )); then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"vibe_code_done": 1}')
     fi
@@ -199,9 +200,9 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     fi
 
     # Stack Connector — GitHub MCP + Jira MCP + at least one other MCP server
-    _GH=$(jq -r '.counters.github_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-    _JR=$(jq -r '.counters.jira_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
-    _TOT=$(jq -r '.counters.total_mcp_calls // 0' "$STATE_FILE" 2>/dev/null || echo 0)
+    _GH=$("$CHEEVOS" get-counter github_mcp_calls 2>/dev/null || echo 0)
+    _JR=$("$CHEEVOS" get-counter jira_mcp_calls 2>/dev/null || echo 0)
+    _TOT=$("$CHEEVOS" get-counter total_mcp_calls 2>/dev/null || echo 0)
     if (( _GH >= 1 && _JR >= 1 && _TOT > _GH + _JR )); then
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"multi_mcp_used": 1}')
     fi
