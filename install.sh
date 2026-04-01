@@ -125,13 +125,8 @@ mv "$HOOKS_DIR/stop.sh"            "$ACHIEVEMENTS_DIR/hooks/stop.sh"
 mv "$HOOKS_DIR/pre-compact.sh"     "$ACHIEVEMENTS_DIR/hooks/pre-compact.sh"
 chmod +x "$ACHIEVEMENTS_DIR/hooks/"*.sh
 
-# Shared scripts (thin shims that call the binary)
-mv "$SCRIPTS_DIR_SRC/lib.sh"                "$ACHIEVEMENTS_DIR/scripts/lib.sh"
-mv "$SCRIPTS_DIR_SRC/statusline-wrapper.sh" "$ACHIEVEMENTS_DIR/scripts/statusline-wrapper.sh"
-mv "$SCRIPTS_DIR_SRC/seed-state.sh"         "$ACHIEVEMENTS_DIR/scripts/seed-state.sh"
-mv "$SCRIPTS_DIR_SRC/show-achievements.sh"  "$ACHIEVEMENTS_DIR/scripts/show-achievements.sh"
-mv "$SCRIPTS_DIR_SRC/award.sh"              "$ACHIEVEMENTS_DIR/scripts/award.sh"
-mv "$SCRIPTS_DIR_SRC/verify-install.sh"     "$ACHIEVEMENTS_DIR/scripts/verify-install.sh"
+# Shared library (sourced by hooks — not executable, sourced only)
+mv "$SCRIPTS_DIR_SRC/lib.sh" "$ACHIEVEMENTS_DIR/scripts/lib.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions — always overwritten on install/upgrade so the binary
@@ -261,18 +256,11 @@ fi
 CHEEVOS_DRAIN="Bash(*/.claude/achievements/cheevos drain*)"
 CHEEVOS_SHOW="Bash(*/.claude/achievements/cheevos show*)"
 
-# Remove legacy pattern from a34120a if present (used literal $ACHIEVEMENTS_DIR)
-LEGACY_PATTERN="Bash($ACHIEVEMENTS_DIR/cheevos:*)"
-
 TEMP=$(mktemp "$SETTINGS.XXXXXX")
 jq --arg drain "$CHEEVOS_DRAIN" \
-   --arg show "$CHEEVOS_SHOW" \
-   --arg legacy "$LEGACY_PATTERN" '
+   --arg show "$CHEEVOS_SHOW" '
     .permissions //= {} |
     .permissions.allow //= [] |
-    # Remove legacy pattern if present
-    .permissions.allow |= map(select(. != $legacy)) |
-    # Add new patterns
     if (.permissions.allow | any(. == $drain)) then .
     else .permissions.allow += [$drain]
     end |

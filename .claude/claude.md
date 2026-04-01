@@ -18,12 +18,7 @@ cheevos/
 │   ├── pre-compact.sh           # PreCompact hook — auto-compact and manual compact tracking
 │   └── stop.sh                  # Stop hook — transcript analysis + drain + leaderboard sync
 ├── scripts/
-│   ├── lib.sh                   # Shared library: paths, HMAC helpers, _CHEEVOS_HMAC_SECRET
-│   ├── statusline-wrapper.sh    # Thin shim → cheevos statusline
-│   ├── seed-state.sh            # Thin shim → cheevos seed
-│   ├── show-achievements.sh     # Thin shim → cheevos show
-│   ├── award.sh                 # Thin shim → cheevos award
-│   └── verify-install.sh        # Thin shim → cheevos verify
+│   └── lib.sh                   # Shared library: paths, HMAC helpers, _CHEEVOS_HMAC_SECRET
 ├── commands/
 │   ├── achievements.md          # /achievements slash command — runs cheevos serve, opens browser
 │   ├── achievements-tutorial.md # /achievements-tutorial slash command — interactive guided tour
@@ -76,7 +71,8 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 | `state.lock` | Advisory lockfile (never delete manually) |
 | `.version` | Installed version string — used by install.sh for upgrade detection |
 | `.original-statusline` | Prior `statusLine.command` value saved for uninstall restoration |
-| `hooks/`, `scripts/` | All scripts copied from repo (safe to overwrite on upgrade) |
+| `hooks/` | Hook scripts copied from repo (safe to overwrite on upgrade) |
+| `scripts/lib.sh` | Shared library sourced by all hooks (HMAC secret injected at install time) |
 | `uninstall.sh` | Copy of uninstall.sh — referenced by `/uninstall-achievements` slash command |
 | `leaderboard.conf` | Leaderboard config: enabled flag, user UUID, encrypted secret (chmod 600) |
 | `logs/leaderboard.log` | Append-only sync log — every PUT attempt logged (success and failure) |
@@ -615,8 +611,8 @@ When adding new hook scripts, add a `cp` line in the hooks block in `install.sh`
 and add the hook registration to the jq merge block (Phase 2). The jq merge is
 idempotent — it checks for exact command string before adding.
 
-When adding new utility scripts, add a `cp` line in the shared-scripts block before `chmod +x`,
-and add a thin shim in `scripts/`.
+Only `scripts/lib.sh` is installed from the `scripts/` directory — it is sourced by all hooks
+and must stay there. Do not add new utility scripts; call the binary directly instead.
 
 **Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
 `commands/achievements-tutorial.md`, and `commands/uninstall-achievements.md` to
