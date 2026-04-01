@@ -103,22 +103,6 @@ func TestCounterSets(t *testing.T) {
     }
 }
 
-func TestModelDedup(t *testing.T) {
-    d := syntheticDefs()
-    st := freshState()
-
-    Update(st, d, UpdateParams{CounterUpdates: map[string]int64{}, NewModel: "claude-opus-4"})
-    Update(st, d, UpdateParams{CounterUpdates: map[string]int64{}, NewModel: "claude-opus-4"})
-    Update(st, d, UpdateParams{CounterUpdates: map[string]int64{}, NewModel: "claude-sonnet-4"})
-
-    if st.Counters["unique_models_used"] != 2 {
-        t.Errorf("unique_models_used: got %d want 2", st.Counters["unique_models_used"])
-    }
-    if len(st.ModelsUsed) != 2 {
-        t.Errorf("models_used length: got %d want 2", len(st.ModelsUsed))
-    }
-}
-
 func TestAllOfLevelCondition(t *testing.T) {
     d := syntheticDefs()
     st := freshState()

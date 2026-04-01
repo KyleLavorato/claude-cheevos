@@ -18,8 +18,8 @@ const (
 
 // Sign computes HMAC-SHA256 of the hook payload and returns a base64-encoded signature.
 // This mirrors the shell-side cheevos_sign() function in lib.sh.
-func Sign(secret []byte, counterUpdates, counterSets, newModel, sessionID, tsStr string) string {
-    payload := buildPayload(counterUpdates, counterSets, newModel, sessionID, tsStr)
+func Sign(secret []byte, counterUpdates, counterSets, tsStr string) string {
+    payload := buildPayload(counterUpdates, counterSets, tsStr)
     mac := hmac.New(sha256.New, secret)
     mac.Write([]byte(payload))
     return base64.StdEncoding.EncodeToString(mac.Sum(nil))
@@ -27,7 +27,7 @@ func Sign(secret []byte, counterUpdates, counterSets, newModel, sessionID, tsStr
 
 // Verify checks that sig is a valid HMAC-SHA256 signature of the hook payload,
 // and that the timestamp is within MaxAge of now.
-func Verify(secret []byte, counterUpdates, counterSets, newModel, sessionID, tsStr, sig string) error {
+func Verify(secret []byte, counterUpdates, counterSets, tsStr, sig string) error {
     if tsStr == "" {
         return errors.New("hmac: missing _CHEEVOS_TS")
     }
@@ -48,16 +48,16 @@ func Verify(secret []byte, counterUpdates, counterSets, newModel, sessionID, tsS
         return fmt.Errorf("hmac: timestamp out of window (%v old, max %v)", time.Duration(diff), MaxAge)
     }
 
-    expected := Sign(secret, counterUpdates, counterSets, newModel, sessionID, tsStr)
+    expected := Sign(secret, counterUpdates, counterSets, tsStr)
     if !hmac.Equal([]byte(expected), []byte(sig)) {
         return errors.New("hmac: signature mismatch")
     }
     return nil
 }
 
-func buildPayload(counterUpdates, counterSets, newModel, sessionID, tsStr string) string {
+func buildPayload(counterUpdates, counterSets, tsStr string) string {
     // Use "|" as separator instead of NUL byte — bash variables cannot store NUL bytes,
     // so the shell-side cheevos_sign() must use the same printable separator.
     sep := "|"
-    return counterUpdates + sep + counterSets + sep + newModel + sep + sessionID + sep + tsStr
+    return counterUpdates + sep + counterSets + sep + tsStr
 }

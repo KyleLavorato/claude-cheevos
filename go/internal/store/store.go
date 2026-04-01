@@ -7,8 +7,6 @@ type State struct {
     Counters              map[string]int64  `json:"counters"`
     Unlocked              []string          `json:"unlocked"`
     UnlockTimes           map[string]string `json:"unlock_times"`
-    ModelsUsed                 []string          `json:"models_used"`
-    LastSessionModelCheck      string            `json:"last_session_model_check"`
     LastUpdateCheckEpoch       int64             `json:"last_update_check_epoch,omitempty"`
     LastBinaryUpdateCheckEpoch int64             `json:"last_binary_update_check_epoch,omitempty"`
     InstalledVersion           string            `json:"installed_version,omitempty"`
@@ -29,10 +27,9 @@ func NewState() *State {
     return &State{
         SchemaVersion: 1,
         Score:         0,
-        Counters:      make(map[string]int64),
-        Unlocked:      []string{},
-        UnlockTimes:   make(map[string]string),
-        ModelsUsed:    []string{},
+        Counters:    make(map[string]int64),
+        Unlocked:    []string{},
+        UnlockTimes: make(map[string]string),
     }
 }
 

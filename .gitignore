@@ -1,4 +1,4 @@
 /cheevos
 /cheevos.exe
 go/cheevos
-dist/
+dist/go/internal/defs/definitions.json

@@ -93,7 +93,7 @@ claude
 /achievements-tutorial
 ```
 
-This walks you through **19 core achievements** (160 points) with step-by-step instructions:
+This walks you through **17 core achievements** (140 points) with step-by-step instructions:
 - File operations (read, write, edit)
 - Running shell commands and git workflows
 - Web search and codebase exploration
@@ -174,6 +174,26 @@ URL are never stored in plaintext — admins generate an encrypted secret using
 
 See [DEVELOPING.md](DEVELOPING.md#generating-a-leaderboard-secret) for how to generate
 the secret, and [microservice/README.md](microservice/README.md) for deploying the backend.
+
+---
+
+## Known Limitations
+
+Some Claude Code built-in slash commands cannot be detected by the hook system and were
+removed or redesigned as a result. Claude Code intercepts built-in commands
+(`/doctor`, `/context`, `/model`, etc.) client-side before any message reaches the model —
+they never appear in the transcript and do not trigger any hook event.
+
+**Removed achievements:**
+
+| Achievement | Command | Reason |
+|---|---|---|
+| Call an Ambulance...But Not For Me | `/doctor` | Client-side only; no hook or transcript entry is produced |
+| Check Your Vitals | `/context` | Client-side only; no hook or transcript entry is produced |
+| Model Citizen, Eclectic Taste, Model Collector, Model Sommelier | `/model` | Cross-session model tracking via transcript was unreliable in practice |
+
+Note: `/compact` works because Claude Code fires a dedicated `PreCompact` hook event for
+it. No equivalent hook exists for `/doctor`, `/context`, or `/model`.
 
 ---
 

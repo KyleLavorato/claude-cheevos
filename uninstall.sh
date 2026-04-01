@@ -89,6 +89,12 @@ if [[ -f "$UNINSTALL_COMMAND_FILE" ]]; then
     echo "✓ Removed /uninstall-achievements slash command"
 fi
 
+TUTORIAL_COMMAND_FILE="$HOME/.claude/commands/achievements-tutorial.md"
+if [[ -f "$TUTORIAL_COMMAND_FILE" ]]; then
+    rm -f "$TUTORIAL_COMMAND_FILE"
+    echo "✓ Removed /achievements-tutorial slash command"
+fi
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 3: Remove from leaderboard (if enabled)
 # ─────────────────────────────────────────────────────────────────────────────

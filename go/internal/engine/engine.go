@@ -17,10 +17,6 @@ type UpdateParams struct {
     CounterUpdates map[string]int64
     // CounterSets maps counter names to absolute values to write (used for streaks).
     CounterSets map[string]int64
-    // NewModel is a model name to add to models_used if not already present.
-    NewModel string
-    // SessionID is recorded as last_session_model_check.
-    SessionID string
     // UpdateCheckEpoch, when non-zero, is written to state.LastUpdateCheckEpoch
     // for rate-limiting the daily auto-update check.
     UpdateCheckEpoch int64
@@ -52,15 +48,6 @@ func Update(st *State, d *defs.Definitions, params UpdateParams) ([]Notification
     // Apply counter sets (absolute values, e.g. streak_days).
     for k, v := range params.CounterSets {
         st.Counters[k] = v
-    }
-    // Track new model.
-    if params.NewModel != "" && !containsStr(st.ModelsUsed, params.NewModel) {
-        st.ModelsUsed = append(st.ModelsUsed, params.NewModel)
-        st.Counters["unique_models_used"]++
-    }
-    // Record session ID.
-    if params.SessionID != "" {
-        st.LastSessionModelCheck = params.SessionID
     }
     // Record update-check timestamp.
     if params.UpdateCheckEpoch > 0 {
@@ -194,16 +181,6 @@ func checkCondition(cond defs.Condition, st *store.State, d *defs.Definitions, a
     default:
         return false
     }
-}
-
-// containsStr reports whether slice contains s.
-func containsStr(slice []string, s string) bool {
-    for _, v := range slice {
-        if v == s {
-            return true
-        }
-    }
-    return false
 }
 
 // State is an alias to avoid import cycles in tests.

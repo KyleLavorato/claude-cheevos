@@ -10,10 +10,6 @@
 # Optional environment variables:
 #   _COUNTER_SETS       - JSON object of counter values to SET (not increment),
 #                         e.g. '{"streak_days": 1, "last_session_epoch": 19800}'
-#   _NEW_MODEL          - model name string; if not already in models_used, appends it
-#                         and increments unique_models_used counter
-#   _SESSION_ID         - session ID to record as last_session_model_check (used by
-#                         stop.sh to avoid re-reading transcript every turn)
 #   _UPDATE_CHECK_EPOCH - unix epoch timestamp to record as last_update_check_epoch
 #                         (used by check-updates.sh for rate limiting)
 
@@ -39,27 +35,6 @@ if [[ -n "${_COUNTER_SETS:-}" ]]; then
         --argjson sets "$_COUNTER_SETS" '
         .counters |= reduce ($sets | to_entries[]) as $e (.;
             .[$e.key] = $e.value)
-    ')
-fi
-
-# Track a newly seen model — only added to models_used if not already present,
-# which also increments unique_models_used for achievement checking.
-if [[ -n "${_NEW_MODEL:-}" ]]; then
-    NEW_STATE=$(printf '%s' "$NEW_STATE" | jq \
-        --arg model "$_NEW_MODEL" '
-        if ((.models_used // []) | index($model)) == null then
-            .models_used = ((.models_used // []) + [$model]) |
-            .counters.unique_models_used = ((.counters.unique_models_used // 0) + 1)
-        else .
-        end
-    ')
-fi
-
-# Record the session ID so stop.sh can skip re-reading the transcript next turn
-if [[ -n "${_SESSION_ID:-}" ]]; then
-    NEW_STATE=$(printf '%s' "$NEW_STATE" | jq \
-        --arg sid "$_SESSION_ID" '
-        .last_session_model_check = $sid
     ')
 fi
 

@@ -218,7 +218,7 @@ export _COUNTER_UPDATES="$COUNTER_UPDATES"
 
 _CHEEVOS_TS=$(cheevos_ts)
 export _CHEEVOS_SIG
-_CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "" "" "$_CHEEVOS_TS")
+_CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "$_CHEEVOS_TS")
 export _CHEEVOS_TS
 
 "$CHEEVOS" update

@@ -25,7 +25,7 @@ if [[ "$SOURCE" == "resume" ]]; then
     export _COUNTER_UPDATES='{"session_resumes": 1}'
     _CHEEVOS_TS=$(cheevos_ts)
     export _CHEEVOS_SIG
-    _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "" "" "$_CHEEVOS_TS")
+    _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "$_CHEEVOS_TS")
     export _CHEEVOS_TS
     "$CHEEVOS" update
     exit 0
@@ -102,7 +102,7 @@ export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
 
 _CHEEVOS_TS=$(cheevos_ts)
 export _CHEEVOS_SIG
-_CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "${_COUNTER_SETS:-}" "" "" "$_CHEEVOS_TS")
+_CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "${_COUNTER_SETS:-}" "$_CHEEVOS_TS")
 export _CHEEVOS_TS
 
 "$CHEEVOS" update
