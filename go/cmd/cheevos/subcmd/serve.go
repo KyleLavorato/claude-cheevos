@@ -13,6 +13,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -109,6 +110,16 @@ func buildAPIResponse(achievementsDir string, key [32]byte) (*serveAPIResponse, 
 
 // ─── Browser opener ───────────────────────────────────────────────────────────
 
+// isWSL detects if we're running inside Windows Subsystem for Linux.
+func isWSL() bool {
+	data, err := os.ReadFile("/proc/version")
+	if err != nil {
+		return false
+	}
+	version := strings.ToLower(string(data))
+	return strings.Contains(version, "microsoft") || strings.Contains(version, "wsl")
+}
+
 func openBrowser(url string) {
 	time.Sleep(150 * time.Millisecond)
 	var cmd string
@@ -117,7 +128,12 @@ func openBrowser(url string) {
 	case "darwin":
 		cmd, args = "open", []string{url}
 	case "linux":
-		cmd, args = "xdg-open", []string{url}
+		if isWSL() {
+			// In WSL, launch Edge using Windows cmd.exe
+			cmd, args = "cmd.exe", []string{"/c", "start", "microsoft-edge:" + url}
+		} else {
+			cmd, args = "xdg-open", []string{url}
+		}
 	case "windows":
 		cmd, args = "cmd", []string{"/c", "start", url}
 	default:
