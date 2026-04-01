@@ -40,6 +40,7 @@ jobs:
               run: |
                   # Extract install.sh from each zip, stamp version, and repackage
                   cd dist
+                  DIST_ABS=$(pwd)
                   for zipfile in claude-cheevos-*.zip; do
                       # Create temp dir for this zip
                       tmpdir=$(mktemp -d)
@@ -48,9 +49,9 @@ jobs:
                       # Stamp version into install.sh
                       sed -i "s/^VERSION=.*/VERSION=\"${{ steps.version.outputs.version }}\"/" "$tmpdir/install.sh"
 
-                      # Repackage
+                      # Repackage back into dist/ using absolute path
                       rm "$zipfile"
-                      (cd "$tmpdir" && zip -r -q "../$zipfile" .)
+                      (cd "$tmpdir" && zip -r -q "$DIST_ABS/$zipfile" .)
                       rm -rf "$tmpdir"
                   done
                   cd ..
