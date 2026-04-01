@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 
 env:
-    MAJOR: 2
+    MAJOR: 1
 
 jobs:
     release:
