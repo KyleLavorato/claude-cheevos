@@ -101,6 +101,14 @@ fi
 mkdir -p "$ACHIEVEMENTS_DIR"
 cp "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
 chmod +x "$ACHIEVEMENTS_DIR/cheevos"
+
+# macOS: strip the quarantine attribute Gatekeeper sets on files downloaded from the
+# internet. Without this, macOS refuses to run unsigned/unnotarized binaries with
+# "Apple could not verify..." — the cp above inherits the attribute from the source.
+if [[ "$(uname -s)" == "Darwin" ]] && command -v xattr >/dev/null 2>&1; then
+    xattr -d com.apple.quarantine "$ACHIEVEMENTS_DIR/cheevos" 2>/dev/null || true
+fi
+
 echo "✓ Binary installed from dist/$BINARY_NAME"
 
 # ─────────────────────────────────────────────────────────────────────────────
