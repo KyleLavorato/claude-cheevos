@@ -46,12 +46,13 @@ type serveAPIResponse struct {
 	TotalPts      int               `json:"total_pts"`
 	UnlockedCount int               `json:"unlocked_count"`
 	TotalCount    int               `json:"total_count"`
+	Version       string            `json:"version"`
 	Achievements  []achievementView `json:"achievements"`
 }
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
 
-func buildAPIResponse(achievementsDir string, key [32]byte) (*serveAPIResponse, error) {
+func buildAPIResponse(achievementsDir string, appVersion string, key [32]byte) (*serveAPIResponse, error) {
 	stateFile := filepath.Join(achievementsDir, "state.json")
 	st, err := store.NewEncryptedJSONStore(stateFile, key).Load()
 	if err != nil {
@@ -104,6 +105,7 @@ func buildAPIResponse(achievementsDir string, key [32]byte) (*serveAPIResponse, 
 		TotalPts:      totalPts,
 		UnlockedCount: len(st.Unlocked),
 		TotalCount:    len(d.Achievements),
+		Version:       appVersion,
 		Achievements:  views,
 	}, nil
 }
@@ -150,7 +152,7 @@ func openBrowser(url string) {
 // Serve starts the achievement browser web UI on a random local port and opens
 // the browser. It blocks until the user clicks Done, presses Ctrl-C, or sends
 // SIGTERM. State is re-read from disk on every /api/data request.
-func Serve(achievementsDir string, key [32]byte) error {
+func Serve(achievementsDir string, appVersion string, key [32]byte) error {
 	// Find a free port.
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
@@ -174,7 +176,7 @@ func Serve(achievementsDir string, key [32]byte) error {
 
 	// /api/data — re-reads from disk on every call so live state is reflected.
 	mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
-		resp, err := buildAPIResponse(achievementsDir, key)
+		resp, err := buildAPIResponse(achievementsDir, appVersion, key)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

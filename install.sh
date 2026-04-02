@@ -173,6 +173,7 @@ mkdir -p "$COMMANDS_DIR"
 mv "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
 mv "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
 mv "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
+mv "$REPO_DIR/commands/achievements-version.md" "$COMMANDS_DIR/achievements-version.md"
 echo "✓ Slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
