@@ -75,7 +75,7 @@ func main() {
         force := len(args) > 0 && args[0] == "--force"
         err = subcmd.CheckUpdates(achievementsDir, appVersion, force, stateKey)
     case "serve":
-        err = subcmd.Serve(achievementsDir, stateKey)
+        err = subcmd.Serve(achievementsDir, appVersion, stateKey)
     case "leaderboard-sync":
         err = subcmd.LeaderboardSync(achievementsDir, stateKey)
     case "leaderboard-delete":

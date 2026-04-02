@@ -180,6 +180,12 @@ func UpdateBinary(achievementsDir string, appVersion string, force bool, key [32
 		}
 	}
 
+	// Install updated hook scripts and slash commands from the same zip (best-effort).
+	// lib.sh is overwritten with the empty-secret version from the zip; the correct
+	// HMAC secret is re-injected automatically by selfpatch.EnsureLibShSecret on the
+	// next binary invocation.
+	_ = extractAndInstallHooks(achievementsDir, zipData)
+
 	// Record the update in state
 	if err := recordBinaryUpdateCheck(achievementsDir, now, release.TagName, key); err != nil {
 		return nil
@@ -220,6 +226,73 @@ func extractBinaryFromZip(zipData []byte, filename string) ([]byte, error) {
 	}
 
 	return nil, fmt.Errorf("binary %s not found in zip", filename)
+}
+
+// extractAndInstallHooks extracts hook scripts, shared scripts, and slash command
+// files from the already-downloaded and checksum-verified zip, then atomically
+// overwrites the installed versions. Each file is best-effort: a failure on one
+// entry does not prevent the rest from being updated. definitions.json is
+// intentionally excluded — it is managed separately by UpdateDefs.
+func extractAndInstallHooks(achievementsDir string, zipData []byte) error {
+	// Slash commands live one directory above achievementsDir: ~/.claude/commands/
+	commandsDir := filepath.Join(filepath.Dir(achievementsDir), "commands")
+
+	type target struct {
+		dest string
+		mode os.FileMode
+	}
+	targets := map[string]target{
+		"hooks/session-start.sh":             {filepath.Join(achievementsDir, "hooks", "session-start.sh"), 0755},
+		"hooks/post-tool-use.sh":             {filepath.Join(achievementsDir, "hooks", "post-tool-use.sh"), 0755},
+		"hooks/stop.sh":                      {filepath.Join(achievementsDir, "hooks", "stop.sh"), 0755},
+		"hooks/pre-compact.sh":               {filepath.Join(achievementsDir, "hooks", "pre-compact.sh"), 0755},
+		"scripts/lib.sh":                     {filepath.Join(achievementsDir, "scripts", "lib.sh"), 0755},
+		"uninstall.sh":                       {filepath.Join(achievementsDir, "uninstall.sh"), 0755},
+		"commands/achievements.md":           {filepath.Join(commandsDir, "achievements.md"), 0644},
+		"commands/achievements-tutorial.md":  {filepath.Join(commandsDir, "achievements-tutorial.md"), 0644},
+		"commands/uninstall-achievements.md": {filepath.Join(commandsDir, "uninstall-achievements.md"), 0644},
+		"commands/achievements-version.md":   {filepath.Join(commandsDir, "achievements-version.md"), 0644},
+	}
+
+	reader := bytes.NewReader(zipData)
+	zipReader, err := zip.NewReader(reader, int64(len(zipData)))
+	if err != nil {
+		return err
+	}
+
+	for _, file := range zipReader.File {
+		t, ok := targets[file.Name]
+		if !ok {
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(t.dest), 0700); err != nil {
+			continue // best-effort
+		}
+		rc, err := file.Open()
+		if err != nil {
+			continue
+		}
+		data, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			continue
+		}
+		// Write to a temp file in the same directory, then atomically rename.
+		tmp, err := os.CreateTemp(filepath.Dir(t.dest), ".hook_tmp_")
+		if err != nil {
+			continue
+		}
+		tmpName := tmp.Name()
+		_, werr := tmp.Write(data)
+		tmp.Close()
+		if werr != nil {
+			os.Remove(tmpName)
+			continue
+		}
+		os.Chmod(tmpName, t.mode) //nolint:errcheck
+		os.Rename(tmpName, t.dest) //nolint:errcheck — atomic on POSIX; best-effort on Windows
+	}
+	return nil
 }
 
 // recordBinaryUpdateCheck updates the state with the binary update check timestamp.

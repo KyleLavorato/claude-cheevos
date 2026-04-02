@@ -389,8 +389,9 @@ async function load() {
     data = await r.json();
     document.getElementById('js-score').textContent =
       `${data.score.toLocaleString()} / ${data.total_pts.toLocaleString()} pts`;
+    const ver = data.version && data.version !== 'dev' ? ` · ${data.version}` : '';
     document.getElementById('js-meta').textContent =
-      `· ${data.unlocked_count} / ${data.total_count} unlocked`;
+      `· ${data.unlocked_count} / ${data.total_count} unlocked${ver}`;
     render();
   } catch (e) {
     document.getElementById('js-content').innerHTML =
