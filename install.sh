@@ -10,18 +10,28 @@
 #
 # Usage:
 #   bash install.sh                           # basic install (leaderboard disabled)
-#   bash install.sh --token TOKEN --api-url URL  # install with leaderboard enabled
+#   bash install.sh -cp                       # dev install: cp instead of mv (keeps repo files)
+#   bash install.sh --leaderboard-secret S    # install with leaderboard enabled
 
 set -euo pipefail
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
 ARG_SECRET=""
+DEV_INSTALL=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --leaderboard-secret) ARG_SECRET="${2:-}"; shift 2 ;;
-        *) echo "Usage: bash install.sh [--leaderboard-secret SECRET]"; exit 1 ;;
+        -cp|--copy) DEV_INSTALL=true; shift ;;
+        *) echo "Usage: bash install.sh [-cp|--copy] [--leaderboard-secret SECRET]"; exit 1 ;;
     esac
 done
+
+# In dev mode use cp so source files stay in the repo; otherwise mv (normal install).
+if [[ "$DEV_INSTALL" == "true" ]]; then
+    FILE_CMD="cp"
+else
+    FILE_CMD="mv"
+fi
 
 VERSION="2.0.0"
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -67,6 +77,9 @@ if [[ -f "$ACHIEVEMENTS_DIR/.version" ]]; then
 else
     echo "Fresh install..."
 fi
+if [[ "$DEV_INSTALL" == "true" ]]; then
+    echo "(dev mode: source files will be copied, not moved)"
+fi
 echo ""
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -99,7 +112,7 @@ if [[ ! -f "$BINARY_SRC" ]]; then
 fi
 
 mkdir -p "$ACHIEVEMENTS_DIR"
-mv "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
+$FILE_CMD "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
 chmod +x "$ACHIEVEMENTS_DIR/cheevos"
 
 # macOS: strip the quarantine attribute and apply ad-hoc signing.
@@ -120,23 +133,23 @@ mkdir -p "$ACHIEVEMENTS_DIR/hooks"
 mkdir -p "$ACHIEVEMENTS_DIR/scripts"
 
 # Hook scripts (modified versions that call the binary)
-mv "$HOOKS_DIR/session-start.sh"   "$ACHIEVEMENTS_DIR/hooks/session-start.sh"
-mv "$HOOKS_DIR/post-tool-use.sh"   "$ACHIEVEMENTS_DIR/hooks/post-tool-use.sh"
-mv "$HOOKS_DIR/stop.sh"            "$ACHIEVEMENTS_DIR/hooks/stop.sh"
-mv "$HOOKS_DIR/pre-compact.sh"     "$ACHIEVEMENTS_DIR/hooks/pre-compact.sh"
+$FILE_CMD "$HOOKS_DIR/session-start.sh"   "$ACHIEVEMENTS_DIR/hooks/session-start.sh"
+$FILE_CMD "$HOOKS_DIR/post-tool-use.sh"   "$ACHIEVEMENTS_DIR/hooks/post-tool-use.sh"
+$FILE_CMD "$HOOKS_DIR/stop.sh"            "$ACHIEVEMENTS_DIR/hooks/stop.sh"
+$FILE_CMD "$HOOKS_DIR/pre-compact.sh"     "$ACHIEVEMENTS_DIR/hooks/pre-compact.sh"
 chmod +x "$ACHIEVEMENTS_DIR/hooks/"*.sh
 
 # Shared library (sourced by hooks — not executable, sourced only)
-mv "$SCRIPTS_DIR_SRC/lib.sh" "$ACHIEVEMENTS_DIR/scripts/lib.sh"
+$FILE_CMD "$SCRIPTS_DIR_SRC/lib.sh" "$ACHIEVEMENTS_DIR/scripts/lib.sh"
 chmod +x "$ACHIEVEMENTS_DIR/scripts/"*.sh
 
 # Achievement definitions — always overwritten on install/upgrade so the binary
 # always has a current copy to read from disk.
-mv "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
+$FILE_CMD "$REPO_DIR/data/definitions.json" "$ACHIEVEMENTS_DIR/definitions.json"
 
 # Uninstall script — copied so /uninstall-achievements slash command can find it
 # without needing to know the repo path
-mv "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
+$FILE_CMD "$REPO_DIR/uninstall.sh" "$ACHIEVEMENTS_DIR/uninstall.sh"
 chmod +x "$ACHIEVEMENTS_DIR/uninstall.sh"
 
 echo "✓ Scripts and definitions installed to $ACHIEVEMENTS_DIR"
@@ -171,10 +184,10 @@ fi
 
 COMMANDS_DIR="$HOME/.claude/commands"
 mkdir -p "$COMMANDS_DIR"
-mv "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
-mv "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
-mv "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
-mv "$REPO_DIR/commands/achievements-version.md" "$COMMANDS_DIR/achievements-version.md"
+$FILE_CMD "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
+$FILE_CMD "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
+$FILE_CMD "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
+$FILE_CMD "$REPO_DIR/commands/achievements-version.md" "$COMMANDS_DIR/achievements-version.md"
 echo "✓ Slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
