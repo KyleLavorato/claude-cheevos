@@ -29,8 +29,8 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     DEADLINE=$(( $(date +%s) + 2 ))
     while [[ $(date +%s) -lt $DEADLINE ]]; do
         TAIL_CONTENT=$(tail -n 50 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
-        LAST_TYPE=$(printf '%s' "$TAIL_CONTENT" | tail -1 | jq -r '.type // ""' 2>/dev/null)
-        [[ "$LAST_TYPE" == "assistant" ]] && break
+        HAS_ASSISTANT=$(printf '%s' "$TAIL_CONTENT" | jq -Rc 'try fromjson catch empty' 2>/dev/null | jq -rs 'any(.[]; .type == "assistant")' 2>/dev/null)
+        [[ "$HAS_ASSISTANT" == "true" ]] && break
         sleep 0.1
     done
 

@@ -688,8 +688,10 @@ tutorial flow and improves user experience.
 - **`install.sh` uses `mv` (not `cp`) for hooks:** Running `bash install.sh` MOVES the
   hook files from `hooks/` into `~/.claude/achievements/hooks/`. The repo `hooks/` directory
   is left empty after install. If you need to re-run install.sh or develop iteratively,
-  copy the hooks back from the installed location first:
-  `cp ~/.claude/achievements/hooks/*.sh hooks/ && cp ~/.claude/achievements/scripts/lib.sh scripts/`
+  restore the hook files from git — this guarantees they match your current branch rather
+  than whatever was installed at a prior point. **Warning:** this discards any uncommitted
+  changes to those files:
+  `git restore hooks/*.sh scripts/lib.sh`
 
 ## Verifying Changes
 
