@@ -22,6 +22,7 @@ cheevos/
 ├── commands/
 │   ├── achievements.md          # /achievements slash command — runs cheevos serve, opens browser
 │   ├── achievements-tutorial.md # /achievements-tutorial slash command — interactive guided tour
+│   ├── achievements-version.md  # /achievements-version slash command — reports installed version
 │   └── uninstall-achievements.md # /uninstall-achievements slash command — interactive uninstall
 ├── go/                          # Go source for the cheevos binary
 │   ├── go.mod / go.sum
@@ -83,6 +84,7 @@ Slash commands are installed to `~/.claude/commands/` (not inside `achievements/
 |---|---|
 | `~/.claude/commands/achievements.md` | `/achievements` — runs `cheevos serve` in background, opens browser |
 | `~/.claude/commands/achievements-tutorial.md` | `/achievements-tutorial` — interactive guided tour for new users (17 tutorial achievements) |
+| `~/.claude/commands/achievements-version.md` | `/achievements-version` — reports the installed version string |
 | `~/.claude/commands/uninstall-achievements.md` | `/uninstall-achievements` — interactive uninstall with leaderboard warning |
 
 ## Install and Test
@@ -617,7 +619,7 @@ Only `scripts/lib.sh` is installed from the `scripts/` directory — it is sourc
 and must stay there. Do not add new utility scripts; call the binary directly instead.
 
 **Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
-`commands/achievements-tutorial.md`, and `commands/uninstall-achievements.md` to
+`commands/achievements-tutorial.md`, `commands/achievements-version.md`, and `commands/uninstall-achievements.md` to
 `~/.claude/commands/`. Also copies `uninstall.sh` itself into
 `$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command can find it without knowing
 the repo path.
