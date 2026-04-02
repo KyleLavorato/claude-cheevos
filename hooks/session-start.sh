@@ -80,11 +80,20 @@ if (( DOW == 5 && HOUR >= 16 )); then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"friday_sessions": 1}')
 fi
 
-# Dangerous launch detection
+# Dangerous launch detection — streak counts consecutive DAYS, not sessions
 CURRENT_DANGER_STREAK=$("$CHEEVOS" get-counter dangerous_streak 2>/dev/null || echo 0)
 if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"dangerous_launches": 1}')
-    NEW_DANGER_STREAK=$(( CURRENT_DANGER_STREAK + 1 ))
+    if (( DIFF <= 0 )); then
+        # Same day — already counted today, keep current streak
+        NEW_DANGER_STREAK=$CURRENT_DANGER_STREAK
+    elif (( DIFF == 1 )); then
+        # Consecutive day — extend streak
+        NEW_DANGER_STREAK=$(( CURRENT_DANGER_STREAK + 1 ))
+    else
+        # Gap of more than one day — restart streak at 1
+        NEW_DANGER_STREAK=1
+    fi
 else
     NEW_DANGER_STREAK=0
 fi
