@@ -102,11 +102,12 @@ mkdir -p "$ACHIEVEMENTS_DIR"
 mv "$BINARY_SRC" "$ACHIEVEMENTS_DIR/cheevos"
 chmod +x "$ACHIEVEMENTS_DIR/cheevos"
 
-# macOS: strip the quarantine attribute Gatekeeper sets on files downloaded from the
-# internet. Without this, macOS refuses to run unsigned/unnotarized binaries with
-# "Apple could not verify..." — the mv above inherits the attribute from the source.
-if [[ "$(uname -s)" == "Darwin" ]] && command -v xattr >/dev/null 2>&1; then
-    xattr -d com.apple.quarantine "$ACHIEVEMENTS_DIR/cheevos" 2>/dev/null || true
+# macOS: strip the quarantine attribute and apply ad-hoc signing.
+# macOS 15+ kills unsigned binaries spawned as subprocesses (Killed: 9) even when
+# built locally. xattr removes the download quarantine; codesign handles the rest.
+if [[ "$(uname -s)" == "Darwin" ]]; then
+    command -v xattr >/dev/null 2>&1 && xattr -d com.apple.quarantine "$ACHIEVEMENTS_DIR/cheevos" 2>/dev/null || true
+    command -v codesign >/dev/null 2>&1 && codesign --force --sign - "$ACHIEVEMENTS_DIR/cheevos" 2>/dev/null || true
 fi
 
 echo "✓ Binary installed from dist/$BINARY_NAME"

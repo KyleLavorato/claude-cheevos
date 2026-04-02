@@ -32,6 +32,9 @@ prod:
 	cd $(GO_DIR) && GOOS=$(_OS) GOARCH=$(_ARCH) go build \
 		-ldflags "$(LDFLAGS) -X 'main.hmacSecretRaw=$(_KEY)'" \
 		-o ../$(_OUT) ./cmd/cheevos
+	@if [ "$(_OS)" = "darwin" ] && command -v codesign >/dev/null 2>&1; then \
+		codesign --force --sign - $(_OUT) 2>/dev/null && echo "Ad-hoc signed $(_OUT)" || true; \
+	fi
 	@echo "Built $(_OUT) with HMAC key"
 
 # ─── Cross-compile all platforms into dist/ ────────────────────────────────
