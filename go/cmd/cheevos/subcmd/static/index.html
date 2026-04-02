@@ -336,6 +336,7 @@ body {
     <span class="header-title">🏆 Claude Code Achievements</span>
     <span class="header-score" id="js-score">—</span>
     <span class="header-meta" id="js-meta">Loading…</span>
+    <span class="header-meta" id="js-version" style="margin-left:auto"></span>
   </div>
   <div class="filter-row">
     <input class="search" id="js-search" type="search" placeholder="Search…" autocomplete="off">
@@ -389,9 +390,11 @@ async function load() {
     data = await r.json();
     document.getElementById('js-score').textContent =
       `${data.score.toLocaleString()} / ${data.total_pts.toLocaleString()} pts`;
-    const ver = data.version && data.version !== 'dev' ? ` · ${data.version}` : '';
     document.getElementById('js-meta').textContent =
-      `· ${data.unlocked_count} / ${data.total_count} unlocked${ver}`;
+      `· ${data.unlocked_count} / ${data.total_count} unlocked`;
+    if (data.version && data.version !== 'dev') {
+      document.getElementById('js-version').textContent = data.version;
+    }
     render();
   } catch (e) {
     document.getElementById('js-content').innerHTML =
