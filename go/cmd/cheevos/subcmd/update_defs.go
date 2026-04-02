@@ -16,8 +16,11 @@ import (
 )
 
 const (
-    githubDefsURL    = "https://raw.githubusercontent.com/KyleLavorato/claude-cheevos/main/data/definitions.json"
-    updateIntervalS  = 86400 // 24 hours
+    // githubDefsRepo is used to resolve the latest release tag before fetching
+    // definitions. Definitions are always fetched from a release tag, not from
+    // main, so they only change when a new release is published.
+    githubDefsRepo  = "KyleLavorato/claude-cheevos"
+    updateIntervalS = 86400 // 24 hours
 )
 
 // UpdateDefs checks the public GitHub repo for new achievement definitions,
@@ -39,8 +42,20 @@ func UpdateDefs(achievementsDir string, force bool, key [32]byte) error {
         return nil // checked recently — exit silently
     }
 
-    // Fetch remote definitions.json.
-    remoteData, err := update.DownloadAsset(githubDefsURL, 10*time.Second)
+    // Resolve the latest release tag so definitions are always fetched from a
+    // published release, not from main. This ensures definitions only change
+    // when a new release is pushed, not on every commit to main.
+    release, err := update.FetchLatestRelease(githubDefsRepo)
+    if err != nil {
+        return nil // network unavailable — exit silently
+    }
+    defsURL := fmt.Sprintf(
+        "https://raw.githubusercontent.com/%s/refs/tags/%s/data/definitions.json",
+        githubDefsRepo, release.TagName,
+    )
+
+    // Fetch remote definitions.json from the release tag.
+    remoteData, err := update.DownloadAsset(defsURL, 10*time.Second)
     if err != nil {
         return nil // network unavailable — exit silently
     }
