@@ -145,6 +145,13 @@ func UpdateBinary(achievementsDir string, appVersion string, force bool, key [32
 		return nil
 	}
 
+	// macOS: apply ad-hoc code signature so macOS 15+ does not kill the binary
+	// with SIGKILL when it is spawned as a subprocess. Best-effort: if codesign
+	// is unavailable or fails, we proceed and let the sanity check catch it.
+	if runtime.GOOS == "darwin" {
+		_ = exec.Command("codesign", "--force", "--sign", "-", tmpPath).Run()
+	}
+
 	// Sanity check: try to run `cheevos version` with new binary
 	cmd := exec.Command(tmpPath, "version")
 	if err := cmd.Run(); err != nil {
