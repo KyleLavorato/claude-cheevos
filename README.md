@@ -73,12 +73,6 @@ claude
 /uninstall-achievements
 ```
 
-Alternatively, uninstall from your terminal:
-
-```bash
-~/.claude/achievements/uninstall.sh
-```
-
 ---
 
 ## Getting Started
@@ -141,20 +135,28 @@ Multiple unlocks in the same turn are batched into one notification.
 
 ## Auto-Updates
 
-The system automatically updates both achievement definitions and the `cheevos` binary once
-per day on session start. Your progress is always preserved.
+The system automatically updates once per day on session start. Your progress is always preserved.
 
 - **Achievement definitions:** New achievements are fetched from GitHub
-- **Binary updates:** The `cheevos` binary is updated to the latest release
+- **Binary + hooks:** The `cheevos` binary and all hook scripts are updated to the latest release
 - **Custom compilations:** Binary auto-updates are disabled if you built from source
 
-```bash
-# Force an immediate check for both
-~/.claude/achievements/cheevos check-updates --force
+Check your installed version at any time inside a Claude session:
 
-# Check only definitions or binary
-~/.claude/achievements/cheevos update-defs --force
-~/.claude/achievements/cheevos update-binary --force
+```
+/achievements-version
+```
+
+Or from the terminal:
+
+```bash
+~/.claude/achievements/cheevos version
+```
+
+Force an immediate update check:
+
+```bash
+~/.claude/achievements/cheevos check-updates --force
 ```
 
 **Opt out of binary auto-updates:**

@@ -14,14 +14,16 @@ New achievements (identified by unique ID) are merged into your local override f
 - Your score, counters, and unlocked achievements are always preserved
 - When new achievements are added, you get a desktop notification
 
-### Binary Updates
+### Binary and Hook Updates
 
-The `cheevos` binary is automatically updated to the latest GitHub release:
+The `cheevos` binary and all hook scripts are automatically updated to the latest GitHub release:
 
 - Downloads are verified with SHA256 checksums
 - Updates are atomic with automatic rollback on failure
 - The binary is sanity-checked before committing the update
 - Your encrypted state and HMAC secret are automatically preserved
+- Hook scripts (`hooks/*.sh`, `scripts/lib.sh`) and slash commands are replaced from the same verified zip
+- The HMAC secret is automatically re-injected into `lib.sh` on the next binary invocation
 
 ## How It Works
 
@@ -40,6 +42,20 @@ If you built the binary from source (not from an official release), binary auto-
 - **Force flag:** Even `--force` won't enable binary updates for custom builds
 
 To re-enable binary auto-updates, install an official release from GitHub.
+
+## Checking Your Version
+
+Inside a Claude session:
+
+```
+/achievements-version
+```
+
+From the terminal:
+
+```bash
+~/.claude/achievements/cheevos version
+```
 
 ## Manual Updates
 
