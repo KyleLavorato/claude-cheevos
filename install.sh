@@ -327,7 +327,7 @@ printf '%s' "$VERSION" > "$ACHIEVEMENTS_DIR/.version"
 # ─────────────────────────────────────────────────────────────────────────────
 # Phase 6.5: Leaderboard configuration
 # Three cases:
-#   A) --leaderboard-secret provided  → generate UUID, write enabled conf
+#   A) --leaderboard-secret provided  → preserve existing USER_ID (upgrade) or generate new UUID, write enabled conf
 #   B) No args, conf already exists   → preserve (upgrade)
 #   C) No args, no conf               → write disabled conf
 # ─────────────────────────────────────────────────────────────────────────────
@@ -335,8 +335,15 @@ printf '%s' "$VERSION" > "$ACHIEVEMENTS_DIR/.version"
 LEADERBOARD_CONF="$ACHIEVEMENTS_DIR/leaderboard.conf"
 
 if [[ -n "$ARG_SECRET" ]]; then
-    # Case A: generate UUID (bash 3.2 safe)
-    if command -v uuidgen >/dev/null 2>&1; then
+    # Case A: --leaderboard-secret provided
+    # Preserve existing USER_ID on upgrade to avoid duplicate leaderboard entries
+    EXISTING_USER_ID=""
+    if [[ -f "$LEADERBOARD_CONF" ]]; then
+        EXISTING_USER_ID=$(grep '^USER_ID=' "$LEADERBOARD_CONF" | cut -d= -f2-)
+    fi
+    if [[ -n "$EXISTING_USER_ID" ]]; then
+        USER_ID="$EXISTING_USER_ID"
+    elif command -v uuidgen >/dev/null 2>&1; then
         USER_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
     elif command -v python3 >/dev/null 2>&1; then
         USER_ID=$(python3 -c "import uuid; print(str(uuid.uuid4()))")

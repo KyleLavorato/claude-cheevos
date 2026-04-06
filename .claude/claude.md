@@ -633,7 +633,7 @@ tutorial flow and improves user experience.
 
 **Phase 6.5 — Leaderboard configuration:**
 - `--leaderboard-secret SECRET` arg parsed before Phase 0
-- If arg provided → generates UUID → writes enabled `leaderboard.conf` with `LEADERBOARD_SECRET=<blob>` → `chmod 600`
+- If arg provided → preserves existing `USER_ID` from conf (upgrade) or generates new UUID (fresh install) → writes enabled `leaderboard.conf` with `LEADERBOARD_SECRET=<blob>` → `chmod 600`
 - If no arg and conf exists → preserves (upgrade path)
 - If no arg and no conf → writes disabled stub with empty `LEADERBOARD_SECRET=`
 - `leaderboard.conf` is never overwritten on upgrade unless `--leaderboard-secret` is re-supplied
