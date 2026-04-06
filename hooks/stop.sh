@@ -120,6 +120,7 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     CODE_REVIEW_TURN=$(printf '%s' "$TRANSCRIPT_INFO" | jq -r '.code_review_turn')
 
     COUNTER_EXTRA='{}'
+    COUNTER_SETS='{}'
 
     # Sorry tracking — every turn
     if [[ "$SAID_SORRY" == "true" ]]; then
@@ -217,9 +218,15 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"lucky_sessions": 1}')
     fi
 
-    # Token consumption
-    if (( OUTPUT_TOKENS > 0 )); then
-        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq --argjson t "$OUTPUT_TOKENS" '. + {"tokens_consumed": $t}')
+    # Token consumption — read actual cumulative total from Claude Code stats-cache.
+    # The transcript JSONL only contains streaming chunk sizes (1-26 tokens each),
+    # not real API response totals. stats-cache.json has the ground-truth modelUsage.
+    STATS_CACHE="$HOME/.claude/stats-cache.json"
+    if [[ -f "$STATS_CACHE" ]]; then
+        TOTAL_OUTPUT_TOKENS=$(jq '[(.modelUsage // {}) | to_entries[] | .value.outputTokens // 0] | add // 0' "$STATS_CACHE" 2>/dev/null || echo 0)
+        if (( TOTAL_OUTPUT_TOKENS > 0 )); then
+            COUNTER_SETS=$(printf '{"tokens_consumed": %d}' "$TOTAL_OUTPUT_TOKENS")
+        fi
     fi
 
     # Code review quality
@@ -233,14 +240,15 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
     fi
 
     # Only write to state if there's something to update
-    if [[ "$COUNTER_EXTRA" != '{}' ]]; then
+    if [[ "$COUNTER_EXTRA" != '{}' || "$COUNTER_SETS" != '{}' ]]; then
         "$CHEEVOS" init
         export _STATE_FILE="$STATE_FILE"
         export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"
         export _COUNTER_UPDATES="$COUNTER_EXTRA"
+        export _COUNTER_SETS="$COUNTER_SETS"
         _CHEEVOS_TS=$(cheevos_ts)
         export _CHEEVOS_SIG
-        _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "" "$_CHEEVOS_TS")
+        _CHEEVOS_SIG=$(cheevos_sign "$_COUNTER_UPDATES" "$_COUNTER_SETS" "$_CHEEVOS_TS")
         export _CHEEVOS_TS
 
         "$CHEEVOS" update
