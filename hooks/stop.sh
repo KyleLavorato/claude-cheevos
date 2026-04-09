@@ -19,6 +19,7 @@ INPUT=$(cat)
 
 # ─── Transcript analysis (phrase detection + code review signals) ────────────
 TRANSCRIPT_PATH=$(printf '%s' "$INPUT" | jq -r '.transcript_path // ""')
+SESSION_ID=$(printf '%s' "$INPUT" | jq -r '.session_id // ""')
 
 if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; then
 
@@ -218,14 +219,70 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
         COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq '. + {"lucky_sessions": 1}')
     fi
 
-    # Token consumption — read actual cumulative total from Claude Code stats-cache.
-    # The transcript JSONL only contains streaming chunk sizes (1-26 tokens each),
-    # not real API response totals. stats-cache.json has the ground-truth modelUsage.
+    # ─── Per-turn real-time token tracking ─────────────────────────────────────
+    # The transcript contains two kinds of assistant entries:
+    #   - Streaming chunks:    stop_reason=null,     output_tokens=1-7  (useless)
+    #   - Complete turn entry: stop_reason!=null,     output_tokens=real total
+    # We find the last complete entry in a 200-line window (wider than the 50-line
+    # phrase-detection window because streaming chunks accumulate during the
+    # 2-second polling wait and can bury the complete entry).
+    #
+    # Multi-instance safety: each session writes its last-seen entry timestamp to
+    # a per-session file (token_ts_<session_id>).  Concurrent Claude instances each
+    # read/write their own file — no shared state for deduplication.  The cheevos
+    # binary's flock serialises the actual counter increment so no instance clobbers
+    # another.  The stats-cache SET is guarded so it never overrides a counter that
+    # is already higher than what the SET would write.
+
+    TOKEN_TS_FILE=""
+    LAST_TOKEN_TS=0
+    if [[ -n "$SESSION_ID" ]]; then
+        TOKEN_TS_FILE="$ACHIEVEMENTS_DIR/token_ts_${SESSION_ID}"
+        if [[ -f "$TOKEN_TS_FILE" ]]; then
+            LAST_TOKEN_TS=$(cat "$TOKEN_TS_FILE" 2>/dev/null || echo 0)
+        fi
+    fi
+
+    WIDE_TAIL=$(tail -n 200 "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
+    TURN_TOKEN_INFO=$(printf '%s' "$WIDE_TAIL" \
+        | jq -Rc 'try fromjson catch empty' 2>/dev/null \
+        | jq -rs '
+            [.[] | select(.type == "assistant" and .message.stop_reason != null and (.message.usage.output_tokens // 0) > 0)] | last
+            | if . == null then {"tokens": 0, "ts": 0}
+              else {
+                "tokens": (.message.usage.output_tokens // 0),
+                "ts": (try (.timestamp | gsub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) catch 0)
+              }
+              end
+        ' 2>/dev/null || echo '{"tokens":0,"ts":0}')
+
+    TURN_TOKENS=$(printf '%s' "$TURN_TOKEN_INFO" | jq -r '.tokens' || echo 0)
+    TURN_TS=$(printf '%s' "$TURN_TOKEN_INFO" | jq -r '.ts' || echo 0)
+
+    # Read current counter value before this update (used for stats-cache guard below).
+    CURRENT_TOKENS=$("$CHEEVOS" get-counter tokens_consumed 2>/dev/null || echo 0)
+
+    # Increment by this turn's real output tokens if we haven't counted this entry yet.
+    if (( TURN_TS > LAST_TOKEN_TS && TURN_TOKENS > 0 )); then
+        COUNTER_EXTRA=$(printf '%s' "$COUNTER_EXTRA" | jq --argjson t "$TURN_TOKENS" '. + {"tokens_consumed": $t}')
+        # Atomic write via tmp+mv so a crash mid-write never leaves a corrupt file.
+        if [[ -n "$TOKEN_TS_FILE" ]]; then
+            printf '%d' "$TURN_TS" > "${TOKEN_TS_FILE}.tmp" \
+                && mv "${TOKEN_TS_FILE}.tmp" "$TOKEN_TS_FILE" || true
+        fi
+    fi
+
+    # Stats-cache correction — SET to the historical total only when stats-cache has
+    # advanced beyond what per-turn tracking gives after this update.  Guards against:
+    #   (a) the SET overriding a freshly-incremented counter (engine applies updates
+    #       before sets, but we compute EXPECTED_AFTER_UPDATE defensively), and
+    #   (b) the counter going backward if stats-cache is stale.
     STATS_CACHE="$HOME/.claude/stats-cache.json"
     if [[ -f "$STATS_CACHE" ]]; then
-        TOTAL_OUTPUT_TOKENS=$(jq '[(.modelUsage // {}) | to_entries[] | .value.outputTokens // 0] | add // 0' "$STATS_CACHE" 2>/dev/null || echo 0)
-        if (( TOTAL_OUTPUT_TOKENS > 0 )); then
-            COUNTER_SETS=$(printf '{"tokens_consumed": %d}' "$TOTAL_OUTPUT_TOKENS")
+        STATS_TOTAL=$(jq '[(.modelUsage // {}) | to_entries[] | .value.outputTokens // 0] | add // 0' "$STATS_CACHE" 2>/dev/null || echo 0)
+        EXPECTED_AFTER_UPDATE=$(( CURRENT_TOKENS + TURN_TOKENS ))
+        if (( STATS_TOTAL > EXPECTED_AFTER_UPDATE )); then
+            COUNTER_SETS=$(printf '{"tokens_consumed": %d}' "$STATS_TOTAL")
         fi
     fi
 
