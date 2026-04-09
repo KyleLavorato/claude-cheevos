@@ -33,12 +33,12 @@ COUNTER_UPDATES='{"auto_compacts": 1}'
 
 # Check if this session filled a 1M-token context window.
 if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" ]]; then
-    MAX_CONTEXT=$(jq -rs '
+    MAX_CONTEXT=$(jq -Rc 'try fromjson catch empty' "$TRANSCRIPT_PATH" 2>/dev/null | jq -rs '
         [.[] | select(.type == "assistant") | .message.usage.input_tokens // 0] |
         max // 0
-    ' "$TRANSCRIPT_PATH" 2>/dev/null || echo 0)
+    ' 2>/dev/null || echo 0)
 
-    if (( MAX_CONTEXT >= 1000000 )); then
+    if (( MAX_CONTEXT >= 850000 )); then
         COUNTER_UPDATES='{"auto_compacts": 1, "million_context_fills": 1}'
     fi
 fi
