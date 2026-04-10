@@ -40,17 +40,11 @@ func Award(achievementsDir string, args []string, key [32]byte) error {
         return err
     }
 
-    // Validate that the counter is used by at least one achievement.
-    // This prevents junk counters from being created in state (mirrors award.sh validation).
-    valid := false
-    for _, ach := range d.Achievements {
-        if ach.Condition.Counter == counter {
-            valid = true
-            break
-        }
-    }
-    if !valid {
-        return fmt.Errorf("award: %q is not a valid achievement counter\n       Valid counters are those referenced by an achievement condition", counter)
+    // Only the easter_egg_unlocks counter may be awarded manually.
+    // All other counters are tracked automatically by hooks; awarding them
+    // directly would bypass the achievement system and constitute cheating.
+    if counter != "easter_egg_unlocks" {
+        return fmt.Errorf("award: only \"easter_egg_unlocks\" may be awarded manually\n       Other counters are tracked automatically by hooks")
     }
 
     params := engine.UpdateParams{
