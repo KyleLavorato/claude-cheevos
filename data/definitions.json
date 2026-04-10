@@ -444,49 +444,49 @@
         {
             "id": "plan_mode_10",
             "name": "Strategic Mind",
-            "description": "Enter plan mode 10 times",
+            "description": "Enter plan mode 5 times",
             "points": 20,
             "category": "plan_mode",
             "skill_level": "beginner",
             "condition": {
                 "counter": "plan_mode_sessions",
-                "threshold": 10
+                "threshold": 5
             }
         },
         {
             "id": "plan_mode_50",
             "name": "Architect",
-            "description": "Enter plan mode 50 times",
+            "description": "Enter plan mode 25 times",
             "points": 40,
             "category": "plan_mode",
             "skill_level": "intermediate",
             "condition": {
                 "counter": "plan_mode_sessions",
-                "threshold": 50
+                "threshold": 25
             }
         },
         {
             "id": "plan_mode_200",
             "name": "Grand Designer",
-            "description": "Enter plan mode 200 times",
+            "description": "Enter plan mode 100 times",
             "points": 75,
             "category": "plan_mode",
             "skill_level": "experienced",
             "condition": {
                 "counter": "plan_mode_sessions",
-                "threshold": 200
+                "threshold": 100
             }
         },
         {
             "id": "plan_mode_500",
             "name": "Visionary",
-            "description": "Enter plan mode 500 times",
+            "description": "Enter plan mode 200 times",
             "points": 150,
             "category": "plan_mode",
             "skill_level": "master",
             "condition": {
                 "counter": "plan_mode_sessions",
-                "threshold": 500
+                "threshold": 200
             }
         },
         {
