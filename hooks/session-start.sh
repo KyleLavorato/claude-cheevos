@@ -80,6 +80,11 @@ if (( DOW == 5 && HOUR >= 16 )); then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"friday_sessions": 1}')
 fi
 
+# Verbose launch detection
+if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-verbose"; then
+    UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"claude_verbose": 1}')
+fi
+
 # Dangerous launch detection — streak counts consecutive DAYS, not sessions
 CURRENT_DANGER_STREAK=$("$CHEEVOS" get-counter dangerous_streak 2>/dev/null || echo 0)
 if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
