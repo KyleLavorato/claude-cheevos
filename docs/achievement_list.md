@@ -79,10 +79,10 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | API Virtuoso | Make 500 total MCP tool calls | 60 | mcp | Experienced |  |
 | Integration Legend | Make 2,000 total MCP tool calls | 125 | mcp | Master |  |
 | Think First | Enter plan mode for the first time | 10 | plan_mode | Beginner | ✓ |
-| Strategic Mind | Enter plan mode 10 times | 20 | plan_mode | Beginner |  |
-| Architect | Enter plan mode 50 times | 40 | plan_mode | Intermediate |  |
-| Grand Designer | Enter plan mode 200 times | 75 | plan_mode | Experienced |  |
-| Visionary | Enter plan mode 500 times | 150 | plan_mode | Master |  |
+| Strategic Mind | Enter plan mode 5 times | 20 | plan_mode | Beginner |  |
+| Architect | Enter plan mode 25 times | 40 | plan_mode | Intermediate |  |
+| Grand Designer | Enter plan mode 100 times | 75 | plan_mode | Experienced |  |
+| Visionary | Enter plan mode 200 times | 150 | plan_mode | Master |  |
 | Token Taster | Consume 100,000 tokens with Claude | 10 | tokens | Beginner |  |
 | Million Dollar Mind | Consume 1,000,000 tokens with Claude | 25 | tokens | Intermediate |  |
 | Token Titan | Consume 10,000,000 tokens with Claude | 75 | tokens | Experienced |  |
