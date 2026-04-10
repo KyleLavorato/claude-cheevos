@@ -68,7 +68,7 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
                 ($user_text | ascii_downcase | test("tic.?tac.?toe")) and
                 ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i('\''ve)? won"))
             ),
-            code_smell: ($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")),
+            code_smell: (($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")) or ($text | ascii_downcase | test("smell"))),
             deja_vu:    ($user_text != "" and $user_text == $prev_user_text),
             chess:      ($user_text | ascii_downcase | test("chess")),
             slow_response: (
