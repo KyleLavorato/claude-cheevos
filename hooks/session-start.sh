@@ -61,7 +61,7 @@ fi
 UPDATES='{"sessions": 1}'
 
 # Concurrent session detection
-CLAUDE_COUNT=$(pgrep -f "[/]claude$" 2>/dev/null | wc -l | tr -d '[:space:]') || CLAUDE_COUNT=1
+CLAUDE_COUNT=$(pgrep -x claude 2>/dev/null | wc -l | tr -d '[:space:]') || CLAUDE_COUNT=1
 if (( CLAUDE_COUNT >= 5 )); then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"concurrent_sessions_5": 1}')
 fi
