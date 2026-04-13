@@ -105,8 +105,24 @@ fi
 
 export _COUNTER_SETS="{\"streak_days\": ${NEW_STREAK}, \"last_session_epoch\": ${TODAY_EPOCH}, \"dangerous_streak\": ${NEW_DANGER_STREAK}}"
 
-# Style Points — user had a custom statusLine configured before cheevos install
-if [[ -s "$ACHIEVEMENTS_DIR/.original-statusline" ]]; then
+# Style Points — user has a custom statusLine configured
+# Check the saved file (install-time) first, then fall back to reading
+# settings.json directly to catch post-install customisation (issue #56).
+ORIGINAL_SAVE="$ACHIEVEMENTS_DIR/.original-statusline"
+HAS_CUSTOM_STATUSLINE=false
+if [[ -s "$ORIGINAL_SAVE" ]]; then
+    HAS_CUSTOM_STATUSLINE=true
+else
+    SETTINGS_FILE="$HOME/.claude/settings.json"
+    if [[ -f "$SETTINGS_FILE" ]]; then
+        CURRENT_CMD=$(jq -r '.statusLine.command // ""' "$SETTINGS_FILE")
+        CHEEVOS_DEFAULT="$ACHIEVEMENTS_DIR/cheevos statusline"
+        if [[ -n "$CURRENT_CMD" ]] && [[ "$CURRENT_CMD" != "$CHEEVOS_DEFAULT" ]]; then
+            HAS_CUSTOM_STATUSLINE=true
+        fi
+    fi
+fi
+if [[ "$HAS_CUSTOM_STATUSLINE" == "true" ]]; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"custom_statusline_set": 1}')
 fi
 
