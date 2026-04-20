@@ -138,6 +138,9 @@ export _CHEEVOS_TS
 "$CHEEVOS" update
 
 # Auto-update check (once per day, runs in background — rate-limited inside the binary)
-"$CHEEVOS" check-updates &
+# Skipped if the user has opted out by placing a .no-auto-update flag file.
+if [[ ! -f "$ACHIEVEMENTS_DIR/.no-auto-update" ]]; then
+    "$CHEEVOS" check-updates &
+fi
 
 exit 0

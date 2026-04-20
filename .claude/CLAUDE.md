@@ -20,10 +20,13 @@ cheevos/
 ├── scripts/
 │   └── lib.sh                   # Shared library: paths, HMAC helpers, _CHEEVOS_HMAC_SECRET
 ├── commands/
-│   ├── achievements.md          # /achievements slash command — runs cheevos serve, opens browser
-│   ├── achievements-tutorial.md # /achievements-tutorial slash command — interactive guided tour
-│   ├── achievements-version.md  # /achievements-version slash command — reports installed version
-│   └── uninstall-achievements.md # /uninstall-achievements slash command — interactive uninstall
+│   ├── achievements.md              # /achievements slash command — runs cheevos serve, opens browser
+│   ├── achievements-tutorial.md     # /achievements-tutorial slash command — interactive guided tour
+│   ├── achievements-version.md      # /achievements-version slash command — reports installed version
+│   ├── achievements-update.md       # /achievements-update slash command — force update check
+│   ├── achievements-enable-update.md  # /achievements-enable-update slash command — re-enable auto-updates
+│   ├── achievements-disable-update.md # /achievements-disable-update slash command — disable auto-updates
+│   └── uninstall-achievements.md    # /uninstall-achievements slash command — interactive uninstall
 ├── go/                          # Go source for the cheevos binary
 │   ├── go.mod / go.sum
 │   ├── Makefile                 # cross-compile matrix (requires CHEEVOS_HMAC_KEY env var)
@@ -72,6 +75,7 @@ Installed runtime lives at `~/.claude/achievements/` (state never touched on rei
 | `state.lock` | Advisory lockfile (never delete manually) |
 | `.version` | Installed version string — used by install.sh for upgrade detection |
 | `.original-statusline` | Prior `statusLine.command` value saved for uninstall restoration |
+| `.no-auto-update` | Optional flag file — when present, disables automatic update checks on session start. Created by `--no-auto-update` install flag or `/achievements-disable-update`. Removed by `/achievements-enable-update`. |
 | `hooks/` | Hook scripts copied from repo (safe to overwrite on upgrade) |
 | `scripts/lib.sh` | Shared library sourced by all hooks (HMAC secret injected at install time) |
 | `uninstall.sh` | Copy of uninstall.sh — referenced by `/uninstall-achievements` slash command |
@@ -85,6 +89,9 @@ Slash commands are installed to `~/.claude/commands/` (not inside `achievements/
 | `~/.claude/commands/achievements.md` | `/achievements` — runs `cheevos serve` in background, opens browser |
 | `~/.claude/commands/achievements-tutorial.md` | `/achievements-tutorial` — interactive guided tour for new users (17 tutorial achievements) |
 | `~/.claude/commands/achievements-version.md` | `/achievements-version` — reports the installed version string |
+| `~/.claude/commands/achievements-update.md` | `/achievements-update` — force-runs `cheevos check-updates --force` |
+| `~/.claude/commands/achievements-enable-update.md` | `/achievements-enable-update` — removes `.no-auto-update` flag to re-enable auto-updates |
+| `~/.claude/commands/achievements-disable-update.md` | `/achievements-disable-update` — creates `.no-auto-update` flag to disable auto-updates |
 | `~/.claude/commands/uninstall-achievements.md` | `/uninstall-achievements` — interactive uninstall with leaderboard warning |
 
 ## Install and Test
@@ -619,19 +626,28 @@ Only `scripts/lib.sh` is installed from the `scripts/` directory — it is sourc
 and must stay there. Do not add new utility scripts; call the binary directly instead.
 
 **Phase 1.6 — Slash commands:** copies `commands/achievements.md`,
-`commands/achievements-tutorial.md`, `commands/achievements-version.md`, and `commands/uninstall-achievements.md` to
+`commands/achievements-tutorial.md`, `commands/achievements-version.md`,
+`commands/achievements-update.md`, `commands/achievements-enable-update.md`,
+`commands/achievements-disable-update.md`, and `commands/uninstall-achievements.md` to
 `~/.claude/commands/`. Also copies `uninstall.sh` itself into
 `$ACHIEVEMENTS_DIR/uninstall.sh` so the slash command can find it without knowing
 the repo path.
 
-**Phase 3.5 — Auto-allowed commands:** adds permission patterns for `cheevos drain`
-and `cheevos show` to the allow list. These commands are used repeatedly during the
-`/achievements-tutorial` interactive tutorial. The patterns use wildcards (`*/.claude/achievements/cheevos`)
+**Phase 3.5 — Auto-allowed commands:** adds permission patterns for `cheevos drain`,
+`cheevos show`, `cheevos check-updates`, and the `rm`/`touch` operations for the
+`.no-auto-update` flag file. The patterns use wildcards (`*/.claude/achievements/cheevos`)
 to match any path expansion (tilde, $HOME, or full path) and trailing `*` to match
 flags, pipes, and redirects. This prevents repetitive permission prompts during the
-tutorial flow and improves user experience.
+tutorial and update management flows.
 
-**Phase 6.5 — Leaderboard configuration:**
+**Phase 6.5 — Auto-update preference:**
+- `--no-auto-update` flag parsed in argument parsing block
+- If `--no-auto-update` provided → `touch "$ACHIEVEMENTS_DIR/.no-auto-update"` to disable auto-updates
+- If flag is already present on disk → preserve it (upgrade path — user preference retained)
+- If neither → log that auto-updates are enabled
+- The flag file is checked at runtime by `session-start.sh` before calling `cheevos check-updates`
+
+**Phase 6.7 — Leaderboard configuration:**
 - `--leaderboard-secret SECRET` arg parsed before Phase 0
 - If arg provided → preserves existing `USER_ID` from conf (upgrade) or generates new UUID (fresh install) → writes enabled `leaderboard.conf` with `LEADERBOARD_SECRET=<blob>` → `chmod 600`
 - If no arg and conf exists → preserves (upgrade path)

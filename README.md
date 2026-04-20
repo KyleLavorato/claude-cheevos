@@ -9,7 +9,7 @@ usage milestones, awards points, and surfaces progress through a live status bar
 
 ## Contents
 
-[Requirements](#requirements) · [Installation](#installation) · [Uninstallation](#uninstallation) · [Getting Started](#getting-started) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Contributing](#contributing)
+[Requirements](#requirements) · [Installation](#installation) · [Uninstallation](#uninstallation) · [Slash Commands](#slash-commands) · [Getting Started](#getting-started) · [Achievement List](#achievement-list) · [Notifications](#notifications) · [Auto-Updates](#auto-updates) · [Leaderboard](#leaderboard) · [Contributing](#contributing)
 
 ---
 
@@ -53,6 +53,12 @@ The installer is **idempotent** — safe to re-run to upgrade. Your score and pr
 ./install.sh --leaderboard-secret <secret>
 ```
 
+**Optional:** Disable automatic daily update checks (see [Auto-Updates](#auto-updates)):
+
+```bash
+./install.sh --no-auto-update
+```
+
 **Verify the install:**
 
 ```bash
@@ -72,6 +78,22 @@ claude
 # Then run inside the session:
 /uninstall-achievements
 ```
+
+---
+
+## Slash Commands
+
+All slash commands run inside a Claude session (`claude`).
+
+| Command | Description |
+|---|---|
+| `/achievements` | Open the achievement browser web UI (filter, search, track progress) |
+| `/achievements-tutorial` | Interactive guided tour — 17 core achievements, 140 pts |
+| `/achievements-version` | Check the currently installed version |
+| `/achievements-update` | Force an immediate update check |
+| `/achievements-enable-update` | Re-enable automatic daily update checks |
+| `/achievements-disable-update` | Disable automatic daily update checks |
+| `/uninstall-achievements` | Interactive uninstall (removes hooks, optionally deletes state) |
 
 ---
 
@@ -141,32 +163,25 @@ The system automatically updates once per day on session start. Your progress is
 - **Binary + hooks:** The `cheevos` binary and all hook scripts are updated to the latest release
 - **Custom compilations:** Binary auto-updates are disabled if you built from source
 
-Check your installed version at any time inside a Claude session:
+Manage updates from inside a Claude session:
 
-```
-/achievements-version
-```
+| Command | Description |
+|---|---|
+| `/achievements-version` | Check the currently installed version |
+| `/achievements-update` | Force an immediate update check |
+| `/achievements-disable-update` | Disable automatic daily update checks |
+| `/achievements-enable-update` | Re-enable automatic daily update checks |
 
-Or from the terminal:
+### Disabling Auto-Updates
 
-```bash
-~/.claude/achievements/cheevos version
-```
-
-Force an immediate update check:
-
-```bash
-~/.claude/achievements/cheevos check-updates --force
-```
-
-**Opt out of binary auto-updates:**
+To disable at install time, pass `--no-auto-update` to the installer. When auto-updates are disabled the system will never contact GitHub on session start. Use
+`/achievements-update` to update manually at any time.
 
 ```bash
-touch ~/.claude/achievements/.no-auto-update
+./install.sh --no-auto-update
 ```
 
-See [docs/auto-update.md](docs/auto-update.md) for full details including security, rollback,
-and disabling updates.
+See [docs/auto-update.md](docs/auto-update.md) for full details including security and rollback.
 
 ---
 

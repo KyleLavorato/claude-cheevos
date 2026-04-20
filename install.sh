@@ -12,17 +12,20 @@
 #   bash install.sh                           # basic install (leaderboard disabled)
 #   bash install.sh -cp                       # dev install: cp instead of mv (keeps repo files)
 #   bash install.sh --leaderboard-secret S    # install with leaderboard enabled
+#   bash install.sh --no-auto-update          # disable automatic daily update checks
 
 set -euo pipefail
 
 # ─── Argument parsing ─────────────────────────────────────────────────────────
 ARG_SECRET=""
 DEV_INSTALL=false
+ARG_NO_AUTO_UPDATE=false
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --leaderboard-secret) ARG_SECRET="${2:-}"; shift 2 ;;
         -cp|--copy) DEV_INSTALL=true; shift ;;
-        *) echo "Usage: bash install.sh [-cp|--copy] [--leaderboard-secret SECRET]"; exit 1 ;;
+        --no-auto-update) ARG_NO_AUTO_UPDATE=true; shift ;;
+        *) echo "Usage: bash install.sh [-cp|--copy] [--leaderboard-secret SECRET] [--no-auto-update]"; exit 1 ;;
     esac
 done
 
@@ -188,6 +191,9 @@ $FILE_CMD "$REPO_DIR/commands/achievements.md" "$COMMANDS_DIR/achievements.md"
 $FILE_CMD "$REPO_DIR/commands/achievements-tutorial.md" "$COMMANDS_DIR/achievements-tutorial.md"
 $FILE_CMD "$REPO_DIR/commands/uninstall-achievements.md" "$COMMANDS_DIR/uninstall-achievements.md"
 $FILE_CMD "$REPO_DIR/commands/achievements-version.md" "$COMMANDS_DIR/achievements-version.md"
+$FILE_CMD "$REPO_DIR/commands/achievements-update.md" "$COMMANDS_DIR/achievements-update.md"
+$FILE_CMD "$REPO_DIR/commands/achievements-enable-update.md" "$COMMANDS_DIR/achievements-enable-update.md"
+$FILE_CMD "$REPO_DIR/commands/achievements-disable-update.md" "$COMMANDS_DIR/achievements-disable-update.md"
 echo "✓ Slash commands installed to $COMMANDS_DIR"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -267,13 +273,20 @@ fi
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Add permission patterns for cheevos commands used during /achievements-tutorial tutorial
-# Patterns cover both ~ and $HOME expansions, with and without pipes/redirects
+# and the update-management slash commands. Patterns cover both ~ and $HOME expansions,
+# with and without pipes/redirects.
 CHEEVOS_DRAIN="Bash(*/.claude/achievements/cheevos drain*)"
 CHEEVOS_SHOW="Bash(*/.claude/achievements/cheevos show*)"
+CHEEVOS_CHECK_UPDATES="Bash(*/.claude/achievements/cheevos check-updates*)"
+CHEEVOS_NO_AUTO_UPDATE_RM="Bash(rm -f */.claude/achievements/.no-auto-update*)"
+CHEEVOS_NO_AUTO_UPDATE_TOUCH="Bash(touch */.claude/achievements/.no-auto-update*)"
 
 TEMP=$(mktemp "$SETTINGS.XXXXXX")
 jq --arg drain "$CHEEVOS_DRAIN" \
-   --arg show "$CHEEVOS_SHOW" '
+   --arg show "$CHEEVOS_SHOW" \
+   --arg check_updates "$CHEEVOS_CHECK_UPDATES" \
+   --arg rm_flag "$CHEEVOS_NO_AUTO_UPDATE_RM" \
+   --arg touch_flag "$CHEEVOS_NO_AUTO_UPDATE_TOUCH" '
     .permissions //= {} |
     .permissions.allow //= [] |
     if (.permissions.allow | any(. == $drain)) then .
@@ -281,6 +294,15 @@ jq --arg drain "$CHEEVOS_DRAIN" \
     end |
     if (.permissions.allow | any(. == $show)) then .
     else .permissions.allow += [$show]
+    end |
+    if (.permissions.allow | any(. == $check_updates)) then .
+    else .permissions.allow += [$check_updates]
+    end |
+    if (.permissions.allow | any(. == $rm_flag)) then .
+    else .permissions.allow += [$rm_flag]
+    end |
+    if (.permissions.allow | any(. == $touch_flag)) then .
+    else .permissions.allow += [$touch_flag]
     end
 ' "$SETTINGS" > "$TEMP"
 
@@ -325,7 +347,21 @@ fi
 printf '%s' "$VERSION" > "$ACHIEVEMENTS_DIR/.version"
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Phase 6.5: Leaderboard configuration
+# Phase 6.5: Auto-update preference
+# ─────────────────────────────────────────────────────────────────────────────
+
+NO_AUTO_UPDATE_FLAG="$ACHIEVEMENTS_DIR/.no-auto-update"
+if [[ "$ARG_NO_AUTO_UPDATE" == "true" ]]; then
+    touch "$NO_AUTO_UPDATE_FLAG"
+    echo "✓ Auto-updates disabled (.no-auto-update flag set)"
+elif [[ ! -f "$NO_AUTO_UPDATE_FLAG" ]]; then
+    echo "✓ Auto-updates enabled (use --no-auto-update to disable, or /achievements-disable-update)"
+else
+    echo "✓ Auto-update preference preserved (already disabled — use /achievements-enable-update to re-enable)"
+fi
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 6.7: Leaderboard configuration
 # Three cases:
 #   A) --leaderboard-secret provided  → preserve existing USER_ID (upgrade) or generate new UUID, write enabled conf
 #   B) No args, conf already exists   → preserve (upgrade)
@@ -396,6 +432,11 @@ echo ""
 echo "View your achievements (inside a Claude session):"
 echo "  /achievements                              (opens web UI in browser)"
 echo "  /achievements-tutorial                               (interactive guided tour)"
+echo ""
+echo "Manage updates (inside a Claude session):"
+echo "  /achievements-update                             (force update now)"
+echo "  /achievements-enable-update                (re-enable auto-updates)"
+echo "  /achievements-disable-update               (disable auto-updates)"
 echo ""
 echo "View your achievements (from terminal):"
 echo "  $ACHIEVEMENTS_DIR/cheevos serve           (opens web UI in browser)"
