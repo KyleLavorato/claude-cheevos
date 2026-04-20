@@ -68,7 +68,7 @@ echo "✓ Removed achievement hooks from settings.json"
 TEMP=$(mktemp "$SETTINGS.XXXXXX")
 jq '
     if .permissions.allow then
-        .permissions.allow |= map(select(test("achievements/cheevos") | not))
+        .permissions.allow |= map(select(test("\\.claude/achievements") | not))
     else . end
 ' "$SETTINGS" > "$TEMP" && mv "$TEMP" "$SETTINGS"
 echo "✓ Removed cheevos from permissions allow list"
@@ -77,23 +77,21 @@ echo "✓ Removed cheevos from permissions allow list"
 # Step 2.6: Remove slash commands
 # ─────────────────────────────────────────────────────────────────────────────
 
-COMMAND_FILE="$HOME/.claude/commands/achievements.md"
-if [[ -f "$COMMAND_FILE" ]]; then
-    rm -f "$COMMAND_FILE"
-    echo "✓ Removed /achievements slash command"
-fi
-
-UNINSTALL_COMMAND_FILE="$HOME/.claude/commands/uninstall-achievements.md"
-if [[ -f "$UNINSTALL_COMMAND_FILE" ]]; then
-    rm -f "$UNINSTALL_COMMAND_FILE"
-    echo "✓ Removed /uninstall-achievements slash command"
-fi
-
-TUTORIAL_COMMAND_FILE="$HOME/.claude/commands/achievements-tutorial.md"
-if [[ -f "$TUTORIAL_COMMAND_FILE" ]]; then
-    rm -f "$TUTORIAL_COMMAND_FILE"
-    echo "✓ Removed /achievements-tutorial slash command"
-fi
+for CMD_FILE in \
+    achievements.md \
+    achievements-tutorial.md \
+    achievements-version.md \
+    achievements-update.md \
+    achievements-enable-update.md \
+    achievements-disable-update.md \
+    uninstall-achievements.md
+do
+    FULL_PATH="$HOME/.claude/commands/$CMD_FILE"
+    if [[ -f "$FULL_PATH" ]]; then
+        rm -f "$FULL_PATH"
+        echo "✓ Removed /${CMD_FILE%.md} slash command"
+    fi
+done
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Step 3: Remove from leaderboard (if enabled)
