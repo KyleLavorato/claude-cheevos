@@ -126,6 +126,25 @@ if [[ "$HAS_CUSTOM_STATUSLINE" == "true" ]]; then
     UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"custom_statusline_set": 1}')
 fi
 
+# Learning/Explanatory output style detection
+# Check project-local (highest precedence), user-local, then user-global settings
+OUTPUT_STYLE=""
+for SETTINGS_CANDIDATE in ".claude/settings.local.json" "$HOME/.claude/settings.local.json" "$HOME/.claude/settings.json"; do
+    if [[ -f "$SETTINGS_CANDIDATE" ]]; then
+        CANDIDATE_STYLE=$(jq -r '.outputStyle // ""' "$SETTINGS_CANDIDATE")
+        if [[ -n "$CANDIDATE_STYLE" ]]; then
+            OUTPUT_STYLE="$CANDIDATE_STYLE"
+            break
+        fi
+    fi
+done
+if printf '%s' "$OUTPUT_STYLE" | grep -qi "learning"; then
+    UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"learning_mode_sessions": 1}')
+fi
+if printf '%s' "$OUTPUT_STYLE" | grep -qi "explanatory"; then
+    UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"explanatory_mode_sessions": 1}')
+fi
+
 export _COUNTER_UPDATES="$UPDATES"
 export _STATE_FILE="$STATE_FILE"
 export _NOTIFICATIONS_FILE="$NOTIFICATIONS_FILE"

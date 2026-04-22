@@ -506,6 +506,8 @@ decrypt correctly when the matching binary (built with the same `CHEEVOS_HMAC_KE
 | `lucky_sessions` | stop.sh: output_tokens == 777 |
 | `easter_egg_unlocks` | award subcommand (manual) |
 | `self_reads` | Read: path contains /.claude/achievements/ |
+| `learning_mode_sessions` | session-start.sh: outputStyle contains "learning" |
+| `explanatory_mode_sessions` | session-start.sh: outputStyle contains "explanatory" |
 
 ## state.json Schema (encrypted — fields listed for reference)
 

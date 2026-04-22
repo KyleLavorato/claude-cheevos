@@ -1013,6 +1013,30 @@
             }
         },
         {
+            "id": "student_driver",
+            "name": "Student Driver",
+            "description": "Start a session with Claude's Learning output style enabled",
+            "points": 10,
+            "category": "misc",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "learning_mode_sessions",
+                "threshold": 1
+            }
+        },
+        {
+            "id": "explain_like_im_5",
+            "name": "Explain Like I'm 5",
+            "description": "Start a session with Claude's Explanatory output style enabled",
+            "points": 10,
+            "category": "misc",
+            "skill_level": "beginner",
+            "condition": {
+                "counter": "explanatory_mode_sessions",
+                "threshold": 1
+            }
+        },
+        {
             "id": "write_that_down",
             "name": "Write That Down, Write That Down!",
             "description": "Add information to a CLAUDE.md file when context is over 90% full",

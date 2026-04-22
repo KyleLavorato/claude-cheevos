@@ -129,6 +129,8 @@ The **Tutorial** column marks achievements in the interactive guided tour (`/ach
 | F Is for Friends Who Do Stuff Together! | 0.1% chance to unlock with each prompt | 25 | misc | **Secret** |  |
 | Deja Vu | Send the same message to Claude twice in a row | 20 | misc | **Secret** |  |
 | Style Points | Set a custom status line command in Claude Code | 10 | misc | Beginner |  |
+| Student Driver | Start a session with Claude's Learning output style enabled | 10 | misc | Beginner |  |
+| Explain Like I'm 5 | Start a session with Claude's Explanatory output style enabled | 10 | misc | Beginner |  |
 | The Inner Machinations of My Mind Are an Enigma | Ask Claude to explain or summarize a codebase | 10 | misc | Beginner | ✓ |
 | Snake Charmer | Have Claude read a Python file | 5 | misc | Beginner |  |
 | Segfault Risk | Have Claude read a C or C++ file | 5 | misc | Beginner |  |
