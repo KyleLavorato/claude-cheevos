@@ -81,10 +81,10 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             ),
             wrote_claude_md: any(
                 .[] | select(.type == "assistant") | .message.content[]?
-                | select(.type == "tool_use" and .name == "Write");
+                | select(.type == "tool_use" and (.name == "Write" or .name == "Edit"));
                 (.input.file_path // "") | test("CLAUDE\\.md$"; "i")
             ),
-            context_high: (($last.message.usage.input_tokens // 0) > 180000),
+            context_high: ((($last.message.usage.input_tokens // 0) + ($last.message.usage.cache_creation_input_tokens // 0) + ($last.message.usage.cache_read_input_tokens // 0)) > 180000),
             output_tokens:  ($last.message.usage.output_tokens // 0),
             lucky:          (($last.message.usage.output_tokens // 0) == 777),
             no_issues:  ($text | ascii_downcase |
