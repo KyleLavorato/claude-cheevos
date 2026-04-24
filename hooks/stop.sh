@@ -65,7 +65,10 @@ if [[ -n "$TRANSCRIPT_PATH" && -f "$TRANSCRIPT_PATH" && -f "$STATE_FILE" ]]; the
             magic_conch:      ($user_text | ascii_downcase | test("help me decide|help me choose|help me make a decision|which should i|what should i (do|pick|choose|use)")),
             inner_machinations: ($user_text | ascii_downcase | test("explain (this |the )?(codebase|code|repo|project)|summarize (this |the )?(codebase|code|repo|project)|give me an overview|walk me through (this |the )?(codebase|code|repo)|how does (this |the )?(codebase|code|project) work")),
             tic_tac_toe: (
-                ($user_text | ascii_downcase | test("tic.?tac.?toe")) and
+                ([$all_users[:-1][].message.content |
+                    if type == "array" then [.[] | .text // ""] | join(" ")
+                    elif type == "string" then .
+                    else "" end] | join(" ") | ascii_downcase | test("tic.?tac.?toe")) and
                 ($text | ascii_downcase | test("\\bi win\\b|you lose|x wins|o wins|game over|i('\''ve)? won"))
             ),
             code_smell: (($user_text | ascii_downcase | test("code smell|code smells|smelly code|smell.*code|code.*smell|bad smell")) or ($text | ascii_downcase | test("smell"))),
