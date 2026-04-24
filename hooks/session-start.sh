@@ -87,20 +87,26 @@ fi
 
 # Dangerous launch detection — streak counts consecutive DAYS, not sessions
 CURRENT_DANGER_STREAK=$("$CHEEVOS" get-counter dangerous_streak 2>/dev/null || echo 0)
-if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
-    UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"dangerous_launches": 1}')
-    if (( DIFF <= 0 )); then
-        # Same day — already counted today, keep current streak
-        NEW_DANGER_STREAK=$CURRENT_DANGER_STREAK
-    elif (( DIFF == 1 )); then
-        # Consecutive day — extend streak
-        NEW_DANGER_STREAK=$(( CURRENT_DANGER_STREAK + 1 ))
+PPID_CMD=$(ps -p "$PPID" -o comm= 2>/dev/null || echo "")
+if [[ "$PPID_CMD" == "claude" ]]; then
+    if ps -p "$PPID" -o args= 2>/dev/null | grep -q "\-\-dangerously-skip-permissions"; then
+        UPDATES=$(printf '%s' "$UPDATES" | jq '. + {"dangerous_launches": 1}')
+        if (( DIFF <= 0 )); then
+            # Same day — already counted today, keep current streak
+            NEW_DANGER_STREAK=$CURRENT_DANGER_STREAK
+        elif (( DIFF == 1 )); then
+            # Consecutive day — extend streak
+            NEW_DANGER_STREAK=$(( CURRENT_DANGER_STREAK + 1 ))
+        else
+            # Gap of more than one day — restart streak at 1
+            NEW_DANGER_STREAK=1
+        fi
     else
-        # Gap of more than one day — restart streak at 1
-        NEW_DANGER_STREAK=1
+        NEW_DANGER_STREAK=0
     fi
 else
-    NEW_DANGER_STREAK=0
+    # Non-CLI session (Claude.app, IDE) — preserve existing streak, don't reset
+    NEW_DANGER_STREAK=$CURRENT_DANGER_STREAK
 fi
 
 export _COUNTER_SETS="{\"streak_days\": ${NEW_STREAK}, \"last_session_epoch\": ${TODAY_EPOCH}, \"dangerous_streak\": ${NEW_DANGER_STREAK}}"
